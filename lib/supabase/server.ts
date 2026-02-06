@@ -38,6 +38,9 @@ export async function createServerClient() {
 // Alias for backward compatibility
 export { createServerClient as createClient };
 
+// Re-export the SSR createServerClient with correct types
+export { createServerClientSSR };
+
 // Admin client using service role key - bypasses RLS
 // Only use on server-side for admin operations
 export function createAdminClient() {
