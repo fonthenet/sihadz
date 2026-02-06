@@ -2,37 +2,57 @@ import { createServerClient as createServerClientSSR } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-export async function createServerClient(): Promise<SupabaseClient> {
-  const cookieStore = await cookies();
+// Fallback client for build-time prerendering when env vars are unavailable
+function createFallbackClient(): SupabaseClient {
+  return createSupabaseClient(
+    'https://placeholder.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
 
+export async function createServerClient(): Promise<SupabaseClient> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('[CRITICAL] Missing Supabase environment variables in server client');
+    return createFallbackClient();
   }
 
-  return createServerClientSSR(
-    supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseAnonKey || 'placeholder-key',
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // The "setAll" method was called from a Server Component.
-            // This can be ignored if you have proxy refreshing user sessions.
-          }
+  try {
+    const cookieStore = await cookies();
+
+    return createServerClientSSR(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options),
+              );
+            } catch {
+              // The "setAll" method was called from a Server Component.
+              // This can be ignored if you have proxy refreshing user sessions.
+            }
+          },
         },
       },
-    },
-  ) as unknown as SupabaseClient;
+    ) as unknown as SupabaseClient;
+  } catch {
+    // During build-time prerendering, cookies() or SSR client may throw
+    return createFallbackClient();
+  }
 }
 
 // Alias for backward compatibility

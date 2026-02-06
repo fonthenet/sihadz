@@ -1,5 +1,5 @@
 import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | null = null;
 
@@ -15,16 +15,20 @@ export function createClient() {
       hasKey: !!supabaseAnonKey,
       nodeEnv: process.env.NODE_ENV,
     });
-    // Create a client with placeholder values to prevent immediate crash
-    // Operations will fail gracefully with clear error messages
-    client = createSupabaseBrowserClient(
-      supabaseUrl || 'https://placeholder.supabase.co',
-      supabaseAnonKey || 'placeholder-key',
-    );
+    // Use @supabase/supabase-js directly as fallback (accepts any URL)
+    client = createSupabaseClient(
+      'https://placeholder.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
+    ) as SupabaseClient;
     return client;
   }
-  
-  client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey);
+
+  try {
+    client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
+  } catch {
+    // Fallback if SSR browser client throws
+    client = createSupabaseClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
+  }
   
   return client;
 }
