@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function PATCH(
@@ -7,7 +7,7 @@ export async function PATCH(
 ) {
   try {
     const { id: prescriptionId } = await params
-    const supabase = await createServerClient()
+    const supabase = createAdminClient()
     
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {

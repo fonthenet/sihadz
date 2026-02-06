@@ -1,9 +1,9 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const supabase = await createServerClient()
+  const supabase = createAdminClient()
 
   try {
     const { data: { user } } = await supabase.auth.getUser()
