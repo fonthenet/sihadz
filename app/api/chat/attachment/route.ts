@@ -2,14 +2,12 @@
  * Proxy chat attachment for playback - avoids CORS issues with direct storage URLs
  * GET ?path=chat/threadId/msgId/filename - streams file from storage
  * When Safari/iOS requests WebM audio, transcodes to MP4 for playback support
+ * (Transcoding skipped on Vercel - ffmpeg exceeds 50MB serverless function limit)
  */
 
 import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { Readable, PassThrough } from 'stream'
-import ffmpeg from 'fluent-ffmpeg'
-import ffmpegPath from 'ffmpeg-static'
 
 const BUCKET = 'chat-attachments'
 
@@ -28,27 +26,33 @@ function isWebMAudio(path: string, contentType: string): boolean {
   )
 }
 
-/** Stream WebM → MP4 for Safari/iOS */
-function transcodeWebmToMp4Stream(buffer: Buffer): Readable {
-  const inputStream = Readable.from(buffer)
-  const outputStream = new PassThrough()
-
-  const path = ffmpegPath ?? 'ffmpeg'
-  const cmd = ffmpeg(inputStream)
-    .setFfmpegPath(path)
-    .inputFormat('webm')
-    .outputFormat('mp4')
-    .audioCodec('aac')
-    .audioBitrate('128k')
-    .addOutputOptions(['-vn', '-movflags +frag_keyframe+empty_moov'])
-    .pipe(outputStream, { end: true })
-
-  cmd.on('error', (err) => {
-    console.error('[chat/attachment] FFmpeg error:', err.message)
-    outputStream.destroy(err)
-  })
-
-  return outputStream
+/** Stream WebM → MP4 for Safari/iOS. Returns null on Vercel (ffmpeg not available). */
+async function transcodeWebmToMp4(buffer: Buffer): Promise<ReadableStream<Uint8Array> | null> {
+  if (process.env.VERCEL) return null
+  try {
+    const { Readable, PassThrough } = await import('stream')
+    const ffmpeg = (await import('fluent-ffmpeg')).default
+    const ffmpegPath = (await import('ffmpeg-static')).default
+    const inputStream = Readable.from(buffer)
+    const outputStream = new PassThrough()
+    const path = ffmpegPath ?? 'ffmpeg'
+    const cmd = ffmpeg(inputStream)
+      .setFfmpegPath(path)
+      .inputFormat('webm')
+      .outputFormat('mp4')
+      .audioCodec('aac')
+      .audioBitrate('128k')
+      .addOutputOptions(['-vn', '-movflags +frag_keyframe+empty_moov'])
+      .pipe(outputStream, { end: true })
+    cmd.on('error', (err) => {
+      console.error('[chat/attachment] FFmpeg error:', err.message)
+      outputStream.destroy(err)
+    })
+    const webStream = Readable.toWeb(outputStream) as ReadableStream<Uint8Array>
+    return webStream
+  } catch {
+    return null
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -98,16 +102,14 @@ export async function GET(request: NextRequest) {
     const userAgent = request.headers.get('user-agent')
 
     // Transcode WebM → MP4 for Safari/iOS (WebM not supported)
-    if (isSafariOrIOS(userAgent) && isWebMAudio(path, contentType) && ffmpegPath) {
-      try {
-        const buffer = Buffer.from(await data.arrayBuffer())
-        const mp4Stream = transcodeWebmToMp4Stream(buffer)
-        const webStream = Readable.toWeb(mp4Stream) as ReadableStream<Uint8Array>
+    // Skipped on Vercel - ffmpeg exceeds 50MB serverless function limit
+    if (isSafariOrIOS(userAgent) && isWebMAudio(path, contentType)) {
+      const buffer = Buffer.from(await data.arrayBuffer())
+      const webStream = await transcodeWebmToMp4(buffer)
+      if (webStream) {
         return new NextResponse(webStream, {
           headers: { 'Content-Type': 'audio/mp4', 'Cache-Control': 'private, max-age=3600' },
         })
-      } catch (e) {
-        console.error('[chat/attachment] Transcode error:', e)
       }
     }
 

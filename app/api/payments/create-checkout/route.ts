@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createCheckout, parseAmount } from '@/lib/payments/chargily'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getRequestOrigin } from '@/lib/request-origin'
 
-// Initialize Supabase admin client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(request: NextRequest) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      { error: 'Server configuration error: Supabase credentials not configured' },
+      { status: 503 }
+    )
+  }
+  const supabase = createAdminClient()
   try {
     const body = await request.json()
     const {
