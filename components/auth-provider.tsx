@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo, useRef, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
 import type { User, Session } from '@supabase/supabase-js'
@@ -69,6 +69,7 @@ export function AuthProvider({ children, initialProfile }: { children: ReactNode
   const [profile, setProfile] = useState<Profile | null>(initialProfile ?? null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const initialLoadComplete = useRef(false)
 
   const fetchProfile = async (userId: string) => {
     if (!supabase) return
@@ -143,6 +144,7 @@ export function AuthProvider({ children, initialProfile }: { children: ReactNode
     if (!supabase) {
       // Supabase client not available - skip auth initialization
       setLoading(false)
+      initialLoadComplete.current = true
       return
     }
 
@@ -161,11 +163,14 @@ export function AuthProvider({ children, initialProfile }: { children: ReactNode
           }
           // Always set loading to false after getting session
           setLoading(false)
+          // Mark initial load complete - prevents route protection from redirecting during onAuthStateChange transient states
+          initialLoadComplete.current = true
         }
       } catch (error) {
         console.error('[AuthProvider] Auth initialization error:', error)
         if (mounted) {
           setLoading(false)
+          initialLoadComplete.current = true
         }
       }
     }
@@ -205,9 +210,9 @@ export function AuthProvider({ children, initialProfile }: { children: ReactNode
     return () => window.removeEventListener('dzd_avatar_updated', handler)
   }, [user])
 
-  // Route protection
+  // Route protection - only after initial auth load completes (prevents flash redirects from onAuthStateChange)
   useEffect(() => {
-    if (loading) return
+    if (loading || !initialLoadComplete.current) return
 
     const isPublicPath = publicPaths.some(path => 
       pathname === path || 
