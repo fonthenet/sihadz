@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/components/ui/page-loading'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/use-toast'
+import { compressImage, validateFile } from '@/lib/utils/upload-helpers'
 
 /** Professional type to icon mapping */
 const PROFESSIONAL_ICONS: Record<string, ReactNode> = {
@@ -65,11 +66,33 @@ export function EditableAvatar({
     if (!file) return
     e.target.value = ''
 
+    // Validate file
+    const validation = validateFile(file, {
+      maxSize: 2 * 1024 * 1024, // 2MB
+      allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    })
+    
+    if (!validation.valid) {
+      toast({
+        title: 'Invalid file',
+        description: validation.error,
+        variant: 'destructive',
+      })
+      return
+    }
+
     setUploading(true)
     setPreviewUrl(null)
     try {
+      // Compress image before upload
+      const compressedFile = await compressImage(file, {
+        maxWidth: 500,
+        maxHeight: 500,
+        quality: 0.9
+      })
+      
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', compressedFile)
       const res = await fetch('/api/avatar/upload', {
         method: 'POST',
         body: formData,

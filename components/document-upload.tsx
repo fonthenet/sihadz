@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Progress } from '@/components/ui/progress'
 import { DocumentViewer } from '@/components/document-viewer'
 import { useAuth } from '@/components/auth-provider'
 import {
@@ -24,8 +25,10 @@ import {
   Download,
   CreditCard,
   Shield,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react'
+import { compressImage, uploadWithProgress, validateFile, formatBytes, type UploadProgress } from '@/lib/utils/upload-helpers'
 
 export type DocumentType = 
   | 'carte_chifa'
@@ -87,6 +90,7 @@ export function DocumentUpload({
   const [selectedType, setSelectedType] = useState<DocumentType>('other')
   const [chifaNumber, setChifaNumber] = useState('')
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
+  const [uploadProgress, setUploadProgress] = useState<Map<string, UploadProgress>>(new Map())
 
   const documentTypeLabels: Record<DocumentType, { ar: string; fr: string; en: string }> = {
     carte_chifa: { ar: 'بطاقة الشفاء', fr: 'Carte Chifa', en: 'Chifa Card' },
@@ -135,27 +139,59 @@ export function DocumentUpload({
     }
 
     setIsUploading(true)
+    
     for (const file of files) {
-      const isImage = file.type.startsWith('image/')
-      const isPdf = file.type === 'application/pdf'
-
-      if (!isImage && !isPdf) {
-        alert(language === 'ar' ? 'يرجى رفع صور أو ملفات PDF فقط' : 'Please upload images or PDF files only')
+      const fileId = `${Date.now()}-${file.name}`
+      
+      // Validate file
+      const validation = validateFile(file, {
+        maxSize: 5 * 1024 * 1024,
+        allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']
+      })
+      
+      if (!validation.valid) {
+        alert(validation.error)
         continue
       }
 
       try {
+        // Initialize progress
+        setUploadProgress(prev => new Map(prev).set(fileId, {
+          progress: 0,
+          loaded: 0,
+          total: file.size,
+          status: 'idle'
+        }))
+
+        // Compress image if needed
+        let fileToUpload = file
+        if (file.type.startsWith('image/')) {
+          setUploadProgress(prev => new Map(prev).set(fileId, {
+            ...prev.get(fileId)!,
+            status: 'compressing'
+          }))
+          
+          fileToUpload = await compressImage(file, {
+            maxWidth: 1920,
+            maxHeight: 1920,
+            quality: 0.85
+          })
+        }
+
         const formData = new FormData()
-        formData.append('file', file)
+        formData.append('file', fileToUpload)
         formData.append('type', 'patient')
         formData.append('documentType', selectedType)
         formData.append('patientId', user.id)
         
-        const uploadRes = await fetch('/api/documents/upload', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
-        })
+        // Upload with progress tracking
+        const uploadRes = await uploadWithProgress(
+          '/api/documents/upload',
+          formData,
+          (progress) => {
+            setUploadProgress(prev => new Map(prev).set(fileId, progress))
+          }
+        )
         
         if (!uploadRes.ok) {
           const error = await uploadRes.json()
@@ -164,6 +200,15 @@ export function DocumentUpload({
         
         const { fileUrl } = await uploadRes.json()
         
+        // Mark as complete
+        setUploadProgress(prev => new Map(prev).set(fileId, {
+          progress: 100,
+          loaded: fileToUpload.size,
+          total: fileToUpload.size,
+          status: 'complete'
+        }))
+        
+        const isImage = fileToUpload.type.startsWith('image/')
         const newDoc: Omit<Document, 'id'> = {
           type: selectedType,
           name: file.name,
@@ -175,8 +220,22 @@ export function DocumentUpload({
         }
         
         onUpload(newDoc)
+        
+        // Remove progress after 2 seconds
+        setTimeout(() => {
+          setUploadProgress(prev => {
+            const newMap = new Map(prev)
+            newMap.delete(fileId)
+            return newMap
+          })
+        }, 2000)
       } catch (error: any) {
         console.error('[documents] Upload error:', error)
+        setUploadProgress(prev => new Map(prev).set(fileId, {
+          ...prev.get(fileId)!,
+          status: 'error',
+          error: error.message
+        }))
         alert(language === 'ar' ? `فشل الرفع: ${error.message}` : `Upload failed: ${error.message}`)
       }
     }
@@ -321,6 +380,42 @@ export function DocumentUpload({
             </div>
           </div>
 
+          {/* Upload Progress Display */}
+          {uploadProgress.size > 0 && (
+            <div className="space-y-2">
+              {Array.from(uploadProgress.entries()).map(([fileId, progress]) => (
+                <div key={fileId} className="rounded-lg border p-3 space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-foreground truncate flex-1">
+                      {fileId.split('-').slice(1).join('-')}
+                    </span>
+                    {progress.status === 'compressing' && (
+                      <span className="text-blue-600 flex items-center gap-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        {language === 'ar' ? 'جاري الضغط...' : 'Compressing...'}
+                      </span>
+                    )}
+                    {progress.status === 'uploading' && (
+                      <span className="text-primary">{progress.progress}%</span>
+                    )}
+                    {progress.status === 'complete' && (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    )}
+                    {progress.status === 'error' && (
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                    )}
+                  </div>
+                  {progress.status === 'uploading' && (
+                    <Progress value={progress.progress} className="h-1" />
+                  )}
+                  {progress.error && (
+                    <p className="text-xs text-red-600">{progress.error}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Drop Zone */}
           <div
             onDragOver={handleDragOver}
@@ -328,7 +423,7 @@ export function DocumentUpload({
             onDrop={handleDrop}
             className={`relative rounded-lg border-2 border-dashed p-8 text-center transition-colors ${
               isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
-            }`}
+            } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
           >
             <input
               type="file"
