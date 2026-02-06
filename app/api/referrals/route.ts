@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { createAdminClient } from '@/lib/supabase/server'
 
 // GET - List referrals
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createAdminClient()
     const searchParams = request.nextUrl.searchParams
     const userId = searchParams.get('userId')
     const professionalId = searchParams.get('professionalId')
@@ -51,6 +47,7 @@ export async function GET(request: NextRequest) {
 // POST - Create referral
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createAdminClient()
     const body = await request.json()
     const {
       referringDoctorId,
@@ -228,6 +225,7 @@ export async function POST(request: NextRequest) {
 // PATCH - Update referral (accept, decline, complete)
 export async function PATCH(request: NextRequest) {
   try {
+    const supabase = createAdminClient()
     const body = await request.json()
     const { 
       referralId, 
