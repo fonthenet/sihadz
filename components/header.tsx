@@ -332,7 +332,7 @@ export function Header({
             alt="Siha DZ"
             width={180}
             height={120}
-            className="h-10 sm:h-12 w-auto object-contain"
+            className="h-16 sm:h-20 w-auto object-contain"
             priority
           />
         </Link>
