@@ -48,24 +48,17 @@ export default function LandingPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
-  // Handle auth callback codes: only redirect to reset-password when type=recovery.
-  // OAuth (e.g. Google) returns code without type=recovery — forward to /auth/callback instead.
+  // Handle auth callback codes: always forward to /auth/callback.
+  // Never redirect to reset-password from here — Supabase can send type=recovery for OAuth too.
+  // Callback will exchange code, check provider, and only redirect to reset-password for real email recovery.
   React.useEffect(() => {
     const checkAuthCode = () => {
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
-      const type = urlParams.get('type')
-
       if (code) {
-        if (type === 'recovery') {
-          router.push(`/auth/reset-password?code=${code}`)
-        } else {
-          // OAuth or other callback — let /auth/callback exchange the code
-          router.replace(`/auth/callback?${urlParams.toString()}`)
-        }
+        router.replace(`/auth/callback?${urlParams.toString()}`)
       }
     }
-
     checkAuthCode()
   }, [router])
   

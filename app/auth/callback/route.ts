@@ -3,6 +3,16 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getRequestOrigin } from '@/lib/request-origin'
 
+/** Auth-related paths we must never redirect to after successful OAuth/login */
+const AUTH_PATHS = ['/auth/reset-password', '/auth/callback', '/auth/signup', '/login', '/register', '/forgot-password']
+
+function sanitizeNext(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null
+  const path = next.split('?')[0].split('#')[0]
+  if (AUTH_PATHS.some((p) => path === p || path.startsWith(p + '/'))) return null
+  return next
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   // Use public origin (handles proxy: x-forwarded-* so redirects go to sihadz.com, not localhost)
@@ -10,14 +20,10 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
   const type = requestUrl.searchParams.get('type')
   const intendedUserType = requestUrl.searchParams.get('user_type') || 'patient'
-  const next = requestUrl.searchParams.get('next')
+  const rawNext = requestUrl.searchParams.get('next')
+  const next = sanitizeNext(rawNext)
 
   if (code) {
-    // If this is a password recovery flow, redirect to reset-password page
-    if (type === 'recovery') {
-      return NextResponse.redirect(new URL(`/auth/reset-password?code=${code}`, origin))
-    }
-    
     const supabase = await createServerClient()
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
@@ -26,6 +32,14 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
+        // Only redirect to reset-password when type=recovery AND user signed in via email (not OAuth)
+        // Supabase may incorrectly send type=recovery for OAuth - check provider to be sure
+        const isOAuthUser = user.app_metadata?.provider === 'google' ||
+          user.identities?.some((i: { provider?: string }) => i.provider === 'google')
+        if (type === 'recovery' && !isOAuthUser) {
+          return NextResponse.redirect(new URL('/auth/reset-password', origin))
+        }
+
         // Super admin emails list
         const SUPER_ADMIN_EMAILS = [
           'f.onthenet@gmail.com',

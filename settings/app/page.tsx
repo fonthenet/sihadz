@@ -48,19 +48,18 @@ export default function LandingPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
-  // Check for password reset code in URL and redirect
+  // Handle auth callback codes: always forward to /auth/callback.
+  // Never redirect to reset-password from here — OAuth and email recovery both use code param.
+  // Callback will exchange code, check provider, and only redirect to reset-password for real email recovery.
   React.useEffect(() => {
-    const checkForResetCode = () => {
+    const checkAuthCode = () => {
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
-      
       if (code) {
-        console.log('[v0] Password reset code detected, redirecting...')
-        router.push(`/auth/reset-password?code=${code}`)
+        router.replace(`/auth/callback?${urlParams.toString()}`)
       }
     }
-    
-    checkForResetCode()
+    checkAuthCode()
   }, [router])
   
   const {

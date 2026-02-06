@@ -24,11 +24,31 @@ export default function ResetPasswordPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Check if there's a valid recovery session
     const checkSession = async () => {
+      // If we have a code in URL (e.g. Supabase redirected here directly), exchange it first
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+      const code = params?.get('code')
+
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (!exchangeError) {
+          // Remove code from URL to avoid re-processing
+          window.history.replaceState({}, '', window.location.pathname)
+        }
+      }
+
       const { data: { session } } = await supabase.auth.getSession()
-      console.log('[v0] Reset password session:', session?.user?.email)
-      
+
+      // If user signed in via OAuth (e.g. Google), redirect - they don't need to reset password
+      const isOAuthUser = session?.user?.app_metadata?.provider === 'google' ||
+        session?.user?.identities?.some((i: { provider?: string }) => i.provider === 'google')
+      if (session?.user && isOAuthUser) {
+        const SUPER_ADMIN_EMAILS = ['f.onthenet@gmail.com', 'info@sihadz.com']
+        const dest = SUPER_ADMIN_EMAILS.includes(session.user.email || '') ? '/super-admin' : '/dashboard'
+        router.replace(dest)
+        return
+      }
+
       if (session?.user) {
         setValidToken(true)
       } else {
@@ -37,7 +57,7 @@ export default function ResetPasswordPage() {
     }
 
     checkSession()
-  }, [supabase.auth])
+  }, [supabase.auth, router])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,9 +87,12 @@ export default function ResetPasswordPage() {
       console.log('[v0] Password updated successfully')
       setSuccess(true)
 
-      // Redirect after 2 seconds
+      // Redirect after 2 seconds — super admin → /super-admin, others → /dashboard
+      const { data: { session: s } } = await supabase.auth.getSession()
+      const SUPER_ADMIN_EMAILS = ['f.onthenet@gmail.com', 'info@sihadz.com']
+      const dest = SUPER_ADMIN_EMAILS.includes(s?.user?.email || '') ? '/super-admin' : '/dashboard'
       setTimeout(() => {
-        router.push('/super-admin')
+        router.push(dest)
       }, 2000)
 
     } catch (err: any) {
@@ -177,7 +200,7 @@ export default function ResetPasswordPage() {
           ) : (
             <div className="text-center">
               <Button
-                onClick={() => router.push('/professional/auth/login')}
+                onClick={() => router.push('/login')}
                 variant="outline"
                 className="w-full bg-transparent"
               >
