@@ -111,8 +111,7 @@ export default function RegisterPage() {
         // Check if email confirmation is required
         if (data.session) {
           // User is logged in immediately (email confirmation disabled)
-          router.push('/dashboard')
-          router.refresh()
+          window.location.href = '/dashboard'
         } else {
           // Email confirmation required
           setSuccess(true)

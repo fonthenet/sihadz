@@ -112,8 +112,7 @@ export default function RegisterPage() {
         if (data.session) {
           // Keep loading visible until redirect completes
           const path = redirectTo && typeof redirectTo === 'string' && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/dashboard'
-          router.push(path)
-          router.refresh()
+          window.location.href = path
         } else {
           setSuccess(true)
           setIsLoading(false)
