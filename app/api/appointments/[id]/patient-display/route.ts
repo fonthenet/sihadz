@@ -2,6 +2,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /** Returns patient display info for an appointment (bypasses RLS so provider can see patient vitals, age, gender). */
 export async function GET(
   _request: Request,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { FullPageLoading } from '@/components/ui/page-loading'
 
@@ -10,9 +10,11 @@ import { FullPageLoading } from '@/components/ui/page-loading'
  * Chat notifications use /messages?thread=... (from DB trigger).
  * Patients: /dashboard/messages
  * Professionals: /professional/dashboard/messages
+ * Uses router.replace for client-side navigation (no full reload).
  */
 export default function MessagesRedirectPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   useEffect(() => {
     const redirect = async () => {
@@ -22,7 +24,7 @@ export default function MessagesRedirectPage() {
       const supabase = createBrowserClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        window.location.href = '/login' + (thread ? `?next=/dashboard/messages${query}` : '')
+        router.replace('/login' + (thread ? `?next=/dashboard/messages${query}` : ''))
         return
       }
 
@@ -33,10 +35,10 @@ export default function MessagesRedirectPage() {
         .maybeSingle()
 
       const base = prof ? '/professional/dashboard/messages' : '/dashboard/messages'
-      window.location.replace(base + query)
+      router.replace(base + query)
     }
     redirect()
-  }, [searchParams])
+  }, [searchParams, router])
 
   return <FullPageLoading />
 }

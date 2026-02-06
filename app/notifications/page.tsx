@@ -40,9 +40,9 @@ const sampleNotifications: Notification[] = [
   {
     id: 'sample-1',
     type: 'system',
-    title: 'Welcome to SihaDZ!',
-    title_ar: 'مرحبًا بك في SihaDZ!',
-    title_fr: 'Bienvenue sur SihaDZ!',
+    title: 'Welcome to Siha DZ!',
+    title_ar: 'مرحبًا بك في Siha DZ!',
+    title_fr: 'Bienvenue sur Siha DZ!',
     message: 'Your account is ready. Start by booking your first appointment.',
     message_ar: 'حسابك جاهز. ابدأ بحجز موعدك الأول.',
     message_fr: 'Votre compte est prêt. Commencez par prendre votre premier rendez-vous.',

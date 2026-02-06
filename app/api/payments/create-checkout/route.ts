@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const checkout = await createCheckout({
       amount: amountInCentimes,
-      description: description || 'SihaDZ Payment',
+      description: description || 'Siha DZ Payment',
       successUrl: `${baseUrl}/payment/success?session_id={CHECKOUT_ID}`,
       failureUrl: `${baseUrl}/payment/failed?session_id={CHECKOUT_ID}`,
       webhookEndpoint: `${baseUrl}/api/webhooks/chargily`,

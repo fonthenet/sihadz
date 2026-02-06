@@ -13,7 +13,8 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const BUCKET = 'documents'
-const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+// Vercel serverless has 4.5MB body limit - keep under to avoid 413
+const MAX_SIZE = 4 * 1024 * 1024 // 4MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
 
 type UploadType = 'professional' | 'visit' | 'patient' | 'lab_request'

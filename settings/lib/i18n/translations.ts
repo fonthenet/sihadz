@@ -51,8 +51,8 @@ export const translations = {
     secureDataDesc: 'معلوماتك الطبية محمية وسرية.',
     advancedSearch: 'بحث متقدم',
     advancedSearchDesc: 'فلتر حسب التخصص، الولاية، التوفر والتقييمات.',
-    verifiedDoctors: 'أطباء معتمدون',
-    verifiedDoctorsDesc: 'جميع أطبائنا معتمدون ومؤهلون.',
+    verifiedDoctors: 'مقدمو رعاية صحية معتمدون',
+    verifiedDoctorsDesc: 'جميع مقدمو الرعاية الصحية معتمدون ومؤهلون.',
     nationalCoverage: 'تغطية وطنية',
     nationalCoverageDesc: 'متوفر في جميع ولايات الجزائر.',
     
@@ -415,8 +415,8 @@ export const translations = {
     secureDataDesc: 'Vos informations médicales sont protégées et confidentielles.',
     advancedSearch: 'Recherche avancée',
     advancedSearchDesc: 'Filtrez par spécialité, wilaya, disponibilité et avis.',
-    verifiedDoctors: 'Médecins vérifiés',
-    verifiedDoctorsDesc: 'Tous nos médecins sont certifiés et vérifiés.',
+    verifiedDoctors: 'Professionnels de santé vérifiés',
+    verifiedDoctorsDesc: 'Tous nos professionnels de santé sont certifiés et vérifiés.',
     nationalCoverage: 'Couverture nationale',
     nationalCoverageDesc: 'Disponible dans toutes les wilayas d\'Algérie.',
     
@@ -759,7 +759,7 @@ export const translations = {
     remove: 'Remove',
     
     // Landing Page
-    heroTitle: 'Search and book appointments with the best health providers in Algeria',
+    heroTitle: 'Search and book appointments with the best Health Providers in Algeria',
     heroSubtitle: 'Quick and easy medical appointment booking. Find your health provider, book your slot, and receive automatic reminders.',
     instantBooking: 'Instant Booking',
     searchPlaceholder: 'Specialty, doctor, or facility...',
@@ -779,8 +779,8 @@ export const translations = {
     secureDataDesc: 'Your medical information is protected and confidential.',
     advancedSearch: 'Advanced Search',
     advancedSearchDesc: 'Filter by specialty, region, availability and reviews.',
-    verifiedDoctors: 'Verified Doctors',
-    verifiedDoctorsDesc: 'All our doctors are certified and verified.',
+    verifiedDoctors: 'Verified Health Providers',
+    verifiedDoctorsDesc: 'All our Health Providers are certified and verified.',
     nationalCoverage: 'National Coverage',
     nationalCoverageDesc: 'Available in all wilayas of Algeria.',
     

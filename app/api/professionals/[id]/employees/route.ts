@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import { hashPin, validatePinFormat, generateRandomPin } from '@/lib/employee-auth'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/professionals/[id]/employees
  * List all employees for a professional

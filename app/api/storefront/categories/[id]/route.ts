@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getProfessionalFromRequest } from '@/lib/storefront/auth'
 import type { StorefrontCategoryFormData } from '@/lib/storefront/types'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 interface RouteParams {
   params: Promise<{ id: string }>
 }

@@ -528,7 +528,7 @@ function BookingConfirmContent() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <Stethoscope className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="text-base font-semibold text-foreground">SihaDZ</span>
+              <span className="text-base font-semibold text-foreground">Siha DZ</span>
             </Link>
           </div>
         </header>
@@ -581,7 +581,7 @@ function BookingConfirmContent() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <Stethoscope className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="text-base font-semibold text-foreground">SihaDZ</span>
+              <span className="text-base font-semibold text-foreground">Siha DZ</span>
             </Link>
           </div>
         </header>
@@ -675,7 +675,7 @@ function BookingConfirmContent() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Stethoscope className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-base font-semibold text-foreground">SihaDZ</span>
+            <span className="text-base font-semibold text-foreground">Siha DZ</span>
           </Link>
         </div>
       </header>

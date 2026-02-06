@@ -168,7 +168,9 @@ export function CalendarSlotPicker({
       
       const slots = data.slots || []
       setSlots(slots)
-      setScheduleInfo({ message: data.message })
+      // Show API message, or config error for 503 (helps diagnose production env issues)
+      const msg = data.message ?? (res.status === 503 ? data.error : undefined)
+      setScheduleInfo({ message: msg })
       
       // Only cache successful responses
       if (res.ok) {

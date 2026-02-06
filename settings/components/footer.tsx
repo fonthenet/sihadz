@@ -12,7 +12,7 @@ export function Footer() {
   const labels = {
     ar: {
       aboutUs: 'من نحن',
-      aboutDesc: 'دي زد دوك هي المنصة الرائدة لحجز المواعيد الطبية في الجزائر. نربط المرضى بأفضل الأطباء والصيدليات في جميع أنحاء الوطن.',
+      aboutDesc: 'Siha DZ هي المنصة الرائدة لحجز المواعيد الطبية في الجزائر. نربط المرضى بأفضل مقدمي الرعاية الصحية في جميع أنحاء الوطن.',
       quickLinks: 'روابط سريعة',
       findDoctor: 'البحث عن طبيب',
       eConsultation: 'استشارة عن بعد',
@@ -37,7 +37,7 @@ export function Footer() {
     },
     fr: {
       aboutUs: 'À propos',
-      aboutDesc: 'DZDoc est la plateforme leader de prise de rendez-vous médicaux en Algérie. Nous connectons les patients aux meilleurs médecins et pharmacies à travers le pays.',
+      aboutDesc: 'Siha DZ est la plateforme leader de prise de rendez-vous médicaux en Algérie. Nous connectons les patients aux meilleurs professionnels de santé à travers le pays.',
       quickLinks: 'Liens rapides',
       findDoctor: 'Trouver un médecin',
       eConsultation: 'Téléconsultation',
@@ -62,7 +62,7 @@ export function Footer() {
     },
     en: {
       aboutUs: 'About Us',
-      aboutDesc: 'DZDoc is the leading medical appointment booking platform in Algeria. We connect patients with the best doctors and pharmacies across the country.',
+      aboutDesc: 'Siha DZ is the leading medical appointment booking platform in Algeria. We connect patients with the best Health Providers across the country.',
       quickLinks: 'Quick Links',
       findDoctor: 'Find a Doctor',
       eConsultation: 'E-Consultation',

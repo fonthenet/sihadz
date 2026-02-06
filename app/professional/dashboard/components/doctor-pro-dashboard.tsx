@@ -673,7 +673,7 @@ export default function DoctorProDashboard({ professional, profile, authUserId, 
                 </Card>
               </div>
 
-              {/* Today's Schedule Row (top) */}
+              {/* Row 1: Today's Schedule + Performance */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Today's Schedule */}
                 <Card className="lg:col-span-2 shadow-sm">
@@ -733,11 +733,79 @@ export default function DoctorProDashboard({ professional, profile, authUserId, 
                   </CardContent>
                 </Card>
 
-                {/* Quick Stats & Actions */}
+                {/* Performance + Pending Tasks */}
                 <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Revenue Chart */}
-                <Card className="lg:col-span-2 shadow-sm">
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Performance</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">Completion Rate</span>
+                          <span className="font-semibold">{stats.completionRate}%</span>
+                        </div>
+                        <Progress value={stats.completionRate} className="h-2" />
+                      </div>
+                      {stats.reviewCount > 0 && (
+                        <div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span className="text-muted-foreground">Avg Rating</span>
+                            <span className="font-semibold">{stats.rating}/5</span>
+                          </div>
+                          <div className="flex gap-1">
+                            {[1,2,3,4,5].map(i => (
+                              <Star key={i} className={cn("h-4 w-4", i <= Math.round(stats.rating) ? "fill-amber-400 text-amber-400" : "text-slate-200")} />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {stats.avgWaitTime > 0 && (
+                        <div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Avg Wait</span>
+                            <span className="font-semibold">{stats.avgWaitTime} min</span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg font-semibold">Pending Tasks</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <Pill className="h-4 w-4 text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Prescriptions</p>
+                            <p className="text-xs text-muted-foreground">Awaiting review</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-amber-500 text-white">{stats.pendingPrescriptions}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-violet-50 dark:bg-violet-950/30">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                            <FlaskConical className="h-4 w-4 text-violet-600" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Lab Results</p>
+                            <p className="text-xs text-muted-foreground">Awaiting results</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-violet-500 text-white">{stats.pendingLabRequests}</Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Row 2: Revenue Overview (full width to prevent chart truncation) */}
+              <Card className="shadow-sm">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div>
                       <CardTitle className="text-lg font-semibold">Revenue Overview</CardTitle>
@@ -774,14 +842,15 @@ export default function DoctorProDashboard({ professional, profile, authUserId, 
                   </CardContent>
                 </Card>
 
-                {/* Appointment Types */}
-                <Card className="shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg font-semibold">Appointment Types</CardTitle>
-                    <CardDescription>Distribution by consultation type</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-44">
+              {/* Row 3: Appointment Types (full width to prevent truncation) */}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg font-semibold">Appointment Types</CardTitle>
+                  <CardDescription>Distribution by consultation type</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="h-44 w-44 shrink-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -801,80 +870,20 @@ export default function DoctorProDashboard({ professional, profile, authUserId, 
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="space-y-3 mt-2">
+                    <div className="space-y-3 flex-1 min-w-0 w-full sm:w-auto">
                       {appointmentTypeChart.map((type) => (
-                        <div key={type.name} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
-                            <span className="text-sm font-medium">{type.name}</span>
+                        <div key={type.name} className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: type.color }} />
+                            <span className="text-sm font-medium truncate">{type.name}</span>
                           </div>
-                          <span className="text-sm text-muted-foreground">{type.value}%</span>
+                          <span className="text-sm text-muted-foreground shrink-0">{type.value}%</span>
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-                  {/* Performance Metrics */}
-                  <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-semibold">Performance</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-sm mb-2">
-                          <span className="text-muted-foreground">Completion Rate</span>
-                          <span className="font-semibold">{stats.completionRate}%</span>
-                        </div>
-                        <Progress value={stats.completionRate} className="h-2" />
-                      </div>
-                      {stats.reviewCount > 0 && (
-                        <div>
-                          <div className="flex justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Rating</span>
-                            <span className="font-semibold">{stats.rating}/5 ({stats.reviewCount} reviews)</span>
-                          </div>
-                          <Progress value={stats.rating ? (stats.rating / 5) * 100 : 0} className="h-2" />
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Pending Tasks */}
-                  <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg font-semibold">Pending Tasks</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <Pill className="h-4 w-4 text-amber-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Prescriptions</p>
-                            <p className="text-xs text-muted-foreground">Awaiting review</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-amber-500 text-white">{stats.pendingPrescriptions}</Badge>
-                      </div>
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-violet-50 dark:bg-violet-950/30">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-violet-100 rounded-lg flex items-center justify-center">
-                            <FlaskConical className="h-4 w-4 text-violet-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Lab Results</p>
-                            <p className="text-xs text-muted-foreground">Awaiting results</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-violet-500 text-white">{stats.pendingLabRequests}</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 

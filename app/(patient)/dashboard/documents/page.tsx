@@ -54,6 +54,15 @@ interface LabResultItem {
   }
 }
 
+const mapDocType = (dt: string): Document['type'] => {
+  if (dt === 'carte_chifa') return 'chifa'
+  if (dt === 'national_id') return 'id'
+  if (dt === 'medical_records') return 'medical'
+  if (dt === 'lab_results') return 'lab'
+  if (dt === 'insurance') return 'insurance'
+  return 'other'
+}
+
 export default function DocumentsPage() {
   const { t, language } = useLanguage()
   const { user } = useAuth()
@@ -144,6 +153,35 @@ export default function DocumentsPage() {
     fetchLabResults()
   }, [])
 
+  useEffect(() => {
+    async function fetchDocuments() {
+      if (!user?.id) {
+        setDocsLoading(false)
+        return
+      }
+      try {
+        const res = await fetch(`/api/documents/patient/${user.id}`, { credentials: 'include' })
+        if (res.ok) {
+          const { documents: data } = await res.json()
+          const mapped: Document[] = (data ?? []).map((d: { id: string; file_name: string; file_url: string; document_type?: string; created_at: string }) => ({
+            id: d.id,
+            name: d.file_name,
+            type: mapDocType(d.document_type ?? 'other'),
+            uploadDate: d.created_at?.split('T')[0] ?? new Date().toISOString().split('T')[0],
+            status: 'pending' as const,
+            fileUrl: d.file_url,
+          }))
+          setDocuments(mapped)
+        }
+      } catch (e) {
+        console.error('[Documents] Failed to fetch documents:', e)
+      } finally {
+        setDocsLoading(false)
+      }
+    }
+    fetchDocuments()
+  }, [user?.id])
+
   const getStatusBadge = (status: Document['status']) => {
     switch (status) {
       case 'verified':
@@ -186,6 +224,18 @@ export default function DocumentsPage() {
     }
   })
 
+  const handleDeleteDocument = async (id: string) => {
+    if (user?.id && !id.startsWith('new-') && !id.startsWith('lab-')) {
+      try {
+        const res = await fetch(`/api/documents/patient/${user.id}/delete?id=${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' })
+        if (!res.ok) return
+      } catch {
+        return
+      }
+    }
+    setDocuments(prev => prev.filter(d => d.id !== id))
+  }
+
   const allDocuments = [...labDocsFromApi, ...(documents || [])]
   const filteredDocuments = activeTab === 'all' 
     ? allDocuments
@@ -214,7 +264,7 @@ export default function DocumentsPage() {
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4">
-              {labResultsLoading && (activeTab === 'all' || activeTab === 'lab') ? (
+              {(labResultsLoading || docsLoading) ? (
                 <Card className="rounded-none sm:rounded-xl py-8">
                   <CardContent>
                     <SectionLoading label={t('loading') || 'Loading...'} minHeight="min-h-[160px]" />
@@ -288,7 +338,7 @@ export default function DocumentsPage() {
                             </Button>
                           )}
                           {!isLabDoc && (
-                            <Button variant="ghost" size="icon" className="text-destructive">
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteDocument(doc.id) }}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
@@ -354,7 +404,7 @@ export default function DocumentsPage() {
                 documents={[]}
                 onUpload={(doc) => {
                   const newDoc: Document = {
-                    id: `new-${Date.now()}`,
+                    id: 'id' in doc && doc.id ? doc.id : `new-${Date.now()}`,
                     name: doc.name,
                     type: (doc.type === 'carte_chifa' ? 'chifa' : doc.type === 'national_id' ? 'id' : doc.type === 'lab_results' ? 'lab' : doc.type === 'medical_records' ? 'medical' : 'other') as Document['type'],
                     uploadDate: doc.uploadDate,
@@ -363,9 +413,20 @@ export default function DocumentsPage() {
                   }
                   setDocuments(prev => [newDoc, ...prev])
                 }}
-                onDelete={(id) => setDocuments(prev => prev.filter(d => d.id !== id))}
+                onDelete={async (id) => {
+                  if (user?.id && !id.startsWith('new-')) {
+                    try {
+                      const res = await fetch(`/api/documents/patient/${user.id}/delete?id=${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' })
+                      if (!res.ok) return
+                    } catch {
+                      return
+                    }
+                  }
+                  setDocuments(prev => prev.filter(d => d.id !== id))
+                }}
                 maxFiles={5}
                 showChifaCard={false}
+                uploadToServer={user?.id ? { type: 'patient', patientId: user.id } : undefined}
               />
             </CardContent>
           </Card>

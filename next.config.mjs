@@ -1,10 +1,13 @@
 import { createRequire } from 'module'
 const require = createRequire(import.meta.url)
 
+// PWA disabled by default - service worker causes navigation flashing/reloads on v0.app and similar.
+// Enable with ENABLE_PWA=true (e.g. for Capacitor/mobile deployments).
+const pwaEnabled = process.env.ENABLE_PWA === 'true'
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
+  disable: !pwaEnabled,
+  register: pwaEnabled,
   skipWaiting: true,
 })
 

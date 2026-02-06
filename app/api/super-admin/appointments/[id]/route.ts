@@ -2,6 +2,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireSuperAdmin } from '@/lib/super-admin/auth'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

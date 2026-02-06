@@ -7,6 +7,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB for voice
 
 async function ensureUserIsMember(admin: ReturnType<typeof createAdminClient>, threadId: string, userId: string) {

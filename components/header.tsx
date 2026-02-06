@@ -341,10 +341,10 @@ export function Header({
         {pathname && pathname !== '/' && variant !== 'mobile-home' && (
           <Link
             href="/"
-            className="sm:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
+            className="sm:hidden flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg"
             aria-label={language === 'ar' ? 'الرئيسية' : language === 'fr' ? 'Accueil' : 'Home'}
           >
-            <Home className="h-5 w-5" />
+            <Image src="/logo.png?v=3" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
           </Link>
         )}
 

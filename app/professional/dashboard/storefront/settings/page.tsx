@@ -291,7 +291,7 @@ export default function StorefrontSettingsPage() {
               <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
               <p className="text-blue-700 dark:text-blue-300">
                 Online payments use your existing wallet and Chargily integration. 
-                Customers can pay with BaridiMob, CIB, or their SihaDZ wallet.
+                Customers can pay with BaridiMob, CIB, or their Siha DZ wallet.
               </p>
             </div>
           )}

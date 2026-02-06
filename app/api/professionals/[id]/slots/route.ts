@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Force Node.js runtime and dynamic rendering for Vercel
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -22,23 +21,18 @@ export async function GET(request: NextRequest, { params }: Params) {
   console.log('[slots] API route hit - request URL:', request.url)
   
   try {
-    // Validate Supabase connection
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
     if (!supabaseUrl || !serviceRole) {
-      console.error('[slots] CRITICAL: Missing Supabase env vars', { 
-        hasUrl: !!supabaseUrl, 
-        hasServiceRole: !!serviceRole,
-        nodeEnv: process.env.NODE_ENV 
-      })
-      return NextResponse.json({ 
-        error: 'Server configuration error - missing database credentials',
+      console.error('[slots] CRITICAL: Missing Supabase env vars', { hasUrl: !!supabaseUrl, hasServiceRole: !!serviceRole })
+      return NextResponse.json({
+        error: 'Server configuration error',
+        code: 'MISSING_SUPABASE_CONFIG',
+        message: 'Slots API requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
         slots: [],
         availableSlots: 0
       }, { status: 503 })
     }
-    
     const { id: professionalId } = await params
     console.log('[slots] Professional ID:', professionalId)
     
@@ -76,6 +70,14 @@ export async function GET(request: NextRequest, { params }: Params) {
     })
     
     if (profError || !professional) {
+      const isAuthError = profError?.code === 'PGRST301' || profError?.message?.includes('JWT') || profError?.message?.includes('invalid')
+      if (isAuthError) {
+        console.error('[slots] Supabase auth error:', profError)
+        return NextResponse.json(
+          { error: 'Server configuration error', code: 'SUPABASE_AUTH_ERROR', message: 'Invalid Supabase credentials.' },
+          { status: 503 }
+        )
+      }
       console.error('[slots] Professional not found:', professionalId, profError)
       return NextResponse.json({ error: 'Professional not found' }, { status: 404 })
     }

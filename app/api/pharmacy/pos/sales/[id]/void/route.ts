@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getPharmacyIdFromRequest } from '@/lib/pharmacy/auth'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * POST /api/pharmacy/pos/sales/[id]/void
  * Void a completed sale - reverses inventory and marks as voided

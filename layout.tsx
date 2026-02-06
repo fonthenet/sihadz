@@ -25,7 +25,7 @@ const _tajawal = Tajawal({
 const _notoArabic = {}; // Placeholder for _notoArabic variable
 
 export const metadata: Metadata = {
-  title: 'DZDoc - حجز المواعيد الطبية في الجزائر | Book Medical Appointments',
+  title: 'Siha DZ - حجز المواعيد الطبية في الجزائر | Book Medical Appointments',
   description: 'Book medical appointments online with the best doctors in Algeria. Réservez vos rendez-vous médicaux en ligne. احجز موعدك الطبي اونلاين',
   generator: 'v0.app',
   keywords: ['medical appointments', 'doctors Algeria', 'healthcare', 'téléconsultation', 'حجز مواعيد طبية', 'أطباء الجزائر'],
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'DZDoc',
+    title: 'Siha DZ',
   },
   formatDetection: {
     telephone: true,

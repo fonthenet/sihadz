@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee-auth'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /** Per-test fulfillment from laboratory. Standard lab result format: value, unit, reference range. */
 export type LabFulfillmentItem = {
   item_id: string

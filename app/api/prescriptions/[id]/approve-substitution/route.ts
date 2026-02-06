@@ -1,6 +1,10 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * POST /api/prescriptions/[id]/approve-substitution
  * Body: { medication_index: number, approved: boolean, notes?: string }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 const getAdminClient = () => createAdminClient()
 
 // GET - Fetch a specific platform setting (public read)

@@ -31,3 +31,5 @@ docs/pharmax-research/screenshots_readable/
 
 # build logs
 build*.log
+
+.vercel

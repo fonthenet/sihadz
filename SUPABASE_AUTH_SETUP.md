@@ -134,6 +134,75 @@ VALUES (
 );
 \`\`\`
 
+## Custom Domain for Google OAuth (sihadz.com branding)
+
+**Problem:** Google consent screen shows `wfzpcwxawqzbctvfsxgb.supabase.co` instead of your brand.
+
+**Solution:** Use a Supabase custom domain (e.g. `api.sihadz.com`). Requires a **Supabase Pro plan** (paid add-on).
+
+### Prerequisites
+- Supabase project on Pro/Team plan with Custom Domains add-on
+- Domain `sihadz.com` with DNS access
+- Supabase CLI installed and logged in
+
+### Step 1: Add DNS records
+
+1. **CNAME record** – Point your subdomain to Supabase:
+   - Host: `api` (or `auth`) → creates `api.sihadz.com`
+   - Value: `wfzpcwxawqzbctvfsxgb.supabase.co`
+   - TTL: 300 (low for quick propagation)
+
+2. **TXT record** – Get verification value from Supabase:
+   ```bash
+   supabase domains create --project-ref wfzpcwxawqzbctvfsxgb --custom-hostname api.sihadz.com
+   ```
+   Add the returned TXT record for `_acme-challenge.api.sihadz.com`.
+
+### Step 2: Verify domain
+
+```bash
+supabase domains reverify --project-ref wfzpcwxawqzbctvfsxgb
+```
+
+Wait for DNS propagation (up to 30 min). Re-run if needed.
+
+### Step 3: Update Google OAuth (before activating)
+
+In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth client:
+
+- **Authorized redirect URIs:** Add `https://api.sihadz.com/auth/v1/callback` (keep the existing Supabase URL until migration is done)
+
+### Step 4: Activate custom domain
+
+```bash
+supabase domains activate --project-ref wfzpcwxawqzbctvfsxgb
+```
+
+### Step 5: Update app configuration
+
+- **`.env.local`** and **Vercel** env vars:
+  ```
+  NEXT_PUBLIC_SUPABASE_URL=https://api.sihadz.com
+  ```
+- **Supabase Dashboard** → Authentication → URL Configuration:
+  - Site URL: `https://sihadz.com`
+  - Redirect URLs: `https://sihadz.com/**`, `http://localhost:3000/**`
+
+After activation, both `wfzpcwxawqzbctvfsxgb.supabase.co` and `api.sihadz.com` work. Google will show `api.sihadz.com` on the consent screen once you use the custom URL in your app.
+
+### Alternative: Vanity subdomain (experimental)
+
+If you prefer `sihadz.supabase.co` instead of a full custom domain:
+
+```bash
+supabase vanity-subdomains --project-ref wfzpcwxawqzbctvfsxgb check-availability --desired-subdomain sihadz --experimental
+supabase vanity-subdomains --project-ref wfzpcwxawqzbctvfsxgb activate --desired-subdomain sihadz --experimental
+```
+
+Then use `https://sihadz.supabase.co` as `NEXT_PUBLIC_SUPABASE_URL` and add `https://sihadz.supabase.co/auth/v1/callback` in Google OAuth.
+
+---
+
 ## Next Steps
 1. ✅ Go to Supabase Dashboard and disable email confirmation
 2. ✅ Test professional signup with new email

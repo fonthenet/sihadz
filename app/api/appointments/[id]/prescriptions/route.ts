@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { escalateCriticalError } from '@/lib/security/data-integrity'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/appointments/[id]/prescriptions
  * Returns prescriptions for this appointment.

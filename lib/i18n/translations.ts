@@ -3,7 +3,7 @@ export type Language = 'ar' | 'fr' | 'en'
 export const translations = {
   ar: {
     // Common
-    appName: 'SihaDZ',
+    appName: 'Siha DZ',
     home: 'الرئيسية',
     login: 'تسجيل الدخول',
     register: 'إنشاء حساب',
@@ -42,7 +42,7 @@ export const translations = {
     satisfaction: 'رضا',
     
     // Features
-    whyChooseUs: 'لماذا تختار SihaDZ؟',
+    whyChooseUs: 'لماذا تختار Siha DZ؟',
     booking247: 'حجز على مدار الساعة',
     booking247Desc: 'احجز مواعيدك في أي وقت، ليلاً ونهاراً.',
     instantConfirmation: 'تأكيد فوري',
@@ -51,8 +51,8 @@ export const translations = {
     secureDataDesc: 'معلوماتك الطبية محمية وسرية.',
     advancedSearch: 'بحث متقدم',
     advancedSearchDesc: 'فلتر حسب التخصص، الولاية، التوفر والتقييمات.',
-    verifiedDoctors: 'أطباء معتمدون',
-    verifiedDoctorsDesc: 'جميع أطبائنا معتمدون ومؤهلون.',
+    verifiedDoctors: 'مقدمو رعاية صحية معتمدون',
+    verifiedDoctorsDesc: 'جميع مقدمو الرعاية الصحية معتمدون ومؤهلون.',
     nationalCoverage: 'تغطية وطنية',
     nationalCoverageDesc: 'متوفر في جميع ولايات الجزائر.',
     
@@ -75,9 +75,9 @@ export const translations = {
     startNow: 'ابدأ الآن',
     
     // Doctor Section
-    areYouDoctor: 'هل أنت طبيب؟',
+    areYouDoctor: 'هل أنت مقدم رعاية صحية؟',
     joinUs: 'انضم إلى منصتنا وابدأ في استقبال المرضى',
-    doctorSignup: 'تسجيل الأطباء',
+    doctorSignup: 'تسجيل مقدمي الرعاية الصحية',
     
     // Booking Flow
     bookAppointment: 'حجز موعد',
@@ -106,7 +106,7 @@ export const translations = {
     uploadImagesDesc: 'أضف صوراً للمنطقة المصابة أو نتائج فحوصات سابقة',
     dragDrop: 'اسحب وأفلت الملفات هنا أو',
     browse: 'تصفح',
-    maxFileSize: 'الحد الأقصى 10 ميجابايت لكل صورة',
+    maxFileSize: 'الحد الأقصى 4 ميجابايت لكل ملف',
     supportedFormats: 'الصيغ المدعومة: JPG, PNG, PDF',
     
     // Confirmation
@@ -367,7 +367,7 @@ export const translations = {
   
   fr: {
     // Common
-    appName: 'SihaDZ',
+    appName: 'Siha DZ',
     home: 'Accueil',
     login: 'Connexion',
     register: "S'inscrire",
@@ -406,7 +406,7 @@ export const translations = {
     satisfaction: 'Satisfaction',
     
     // Features
-    whyChooseUs: 'Pourquoi choisir SihaDZ?',
+    whyChooseUs: 'Pourquoi choisir Siha DZ?',
     booking247: 'Réservation 24/7',
     booking247Desc: 'Réservez vos rendez-vous à tout moment, jour et nuit.',
     instantConfirmation: 'Confirmation instantanée',
@@ -415,8 +415,8 @@ export const translations = {
     secureDataDesc: 'Vos informations médicales sont protégées et confidentielles.',
     advancedSearch: 'Recherche avancée',
     advancedSearchDesc: 'Filtrez par spécialité, wilaya, disponibilité et avis.',
-    verifiedDoctors: 'Médecins vérifiés',
-    verifiedDoctorsDesc: 'Tous nos médecins sont certifiés et vérifiés.',
+    verifiedDoctors: 'Professionnels de santé vérifiés',
+    verifiedDoctorsDesc: 'Tous nos professionnels de santé sont certifiés et vérifiés.',
     nationalCoverage: 'Couverture nationale',
     nationalCoverageDesc: 'Disponible dans toutes les wilayas d\'Algérie.',
     
@@ -439,9 +439,9 @@ export const translations = {
     startNow: 'Commencer maintenant',
     
     // Doctor Section
-    areYouDoctor: 'Vous êtes médecin?',
-    joinUs: 'Rejoignez SihaDZ et développez votre patientèle',
-    doctorSignup: 'Inscription médecin',
+    areYouDoctor: 'Êtes-vous un professionnel de santé?',
+    joinUs: 'Rejoignez Siha DZ et développez votre patientèle',
+    doctorSignup: 'Inscription professionnel de santé',
     
     // Booking Flow
     bookAppointment: 'Réserver un rendez-vous',
@@ -470,7 +470,7 @@ export const translations = {
     uploadImagesDesc: 'Ajoutez des photos de la zone affectée ou des résultats de tests',
     dragDrop: 'Glissez-déposez des fichiers ici ou',
     browse: 'Parcourir',
-    maxFileSize: 'Max 10MB par image',
+    maxFileSize: 'Max 4MB par fichier',
     supportedFormats: 'Formats supportés: JPG, PNG, PDF',
     
     // Confirmation
@@ -730,7 +730,7 @@ export const translations = {
   
   en: {
     // Common
-    appName: 'SihaDZ',
+    appName: 'Siha DZ',
     home: 'Home',
     login: 'Login',
     register: 'Sign Up',
@@ -758,7 +758,7 @@ export const translations = {
     remove: 'Remove',
     
     // Landing Page
-    heroTitle: 'Search and book appointments with the best health providers in Algeria',
+    heroTitle: 'Search and book appointments with the best Health Providers in Algeria',
     heroSubtitle: 'Quick and easy medical appointment booking. Find your health provider, book your slot, and receive automatic reminders.',
     instantBooking: 'Instant Booking',
     searchPlaceholder: 'Search doctor, clinic, pharmacy, lab...',
@@ -769,7 +769,7 @@ export const translations = {
     satisfaction: 'Satisfaction',
     
     // Features
-    whyChooseUs: 'Why Choose SihaDZ?',
+    whyChooseUs: 'Why Choose Siha DZ?',
     booking247: '24/7 Booking',
     booking247Desc: 'Book your appointments anytime, day or night.',
     instantConfirmation: 'Instant Confirmation',
@@ -778,8 +778,8 @@ export const translations = {
     secureDataDesc: 'Your medical information is protected and confidential.',
     advancedSearch: 'Advanced Search',
     advancedSearchDesc: 'Filter by specialty, region, availability and reviews.',
-    verifiedDoctors: 'Verified Doctors',
-    verifiedDoctorsDesc: 'All our doctors are certified and verified.',
+    verifiedDoctors: 'Verified Health Providers',
+    verifiedDoctorsDesc: 'All our Health Providers are certified and verified.',
     nationalCoverage: 'National Coverage',
     nationalCoverageDesc: 'Available in all wilayas of Algeria.',
     
@@ -791,7 +791,7 @@ export const translations = {
     
     // How it works
     howItWorks: 'How It Works',
-    step1Title: 'Search for a health provider',
+    step1Title: 'Search for a Health Provider',
     step1Desc: 'Search by specialty and location',
     step2Title: 'Describe Your Condition',
     step2Desc: 'Tell us about your symptoms and concerns',
@@ -802,9 +802,9 @@ export const translations = {
     startNow: 'Start Now',
     
     // Doctor Section
-    areYouDoctor: 'Are you a doctor?',
-    joinUs: 'Join SihaDZ and grow your patient base',
-    doctorSignup: 'Doctor Registration',
+    areYouDoctor: 'Are you a Health Provider?',
+    joinUs: 'Join Siha DZ and grow your patient base',
+    doctorSignup: 'Health Provider Registration',
     
     // Booking Flow
     bookAppointment: 'Book Appointment',
@@ -833,7 +833,7 @@ export const translations = {
     uploadImagesDesc: 'Add photos of the affected area or previous test results',
     dragDrop: 'Drag and drop files here or',
     browse: 'Browse',
-    maxFileSize: 'Max 10MB per image',
+    maxFileSize: 'Max 4MB per file',
     supportedFormats: 'Supported formats: JPG, PNG, PDF',
     
     // Confirmation

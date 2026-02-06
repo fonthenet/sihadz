@@ -63,7 +63,7 @@ function SuccessContent() {
               </div>
               <CardTitle className="text-2xl font-bold">Account Created Successfully!</CardTitle>
               <CardDescription className="text-base">
-                Welcome to SihaDZ Professional Network
+                Welcome to Siha DZ Professional Network
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

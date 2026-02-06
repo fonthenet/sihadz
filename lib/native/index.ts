@@ -1,5 +1,5 @@
 /**
- * Native Mobile Utilities for SihaDZ
+ * Native Mobile Utilities for Siha DZ
  * These functions work on both web and native (iOS/Android)
  * They gracefully fallback to web APIs when not on native
  */

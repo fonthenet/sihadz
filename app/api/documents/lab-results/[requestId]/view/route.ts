@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { getLabRequestPrintHtml } from '@/lib/print-prescription-lab'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 function buildLabRequestFromLabResult(lr: {
   request_id: string
   patient_id: string
