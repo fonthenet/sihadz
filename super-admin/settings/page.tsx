@@ -41,7 +41,7 @@ export default function PlatformSettingsPage() {
   // Platform settings state
   const [settings, setSettings] = useState({
     // General
-    platformName: 'DZDoc',
+    platformName: 'Siha DZ',
     platformNameAr: 'طبيب دزد',
     contactEmail: 'support@dzdoc.com',
     contactPhone: '+213 555 123 456',

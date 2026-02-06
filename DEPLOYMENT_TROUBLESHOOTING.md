@@ -60,11 +60,21 @@ Open browser DevTools (F12) and check:
 **Cause**: Server not running or wrong URL
 **Fix**: Check deployment status on hosting platform
 
+### Issue: "Orders/File Uploads Stay Pending" (sihadz.com)
+**Cause**: Patient document uploads were client-only (never sent to API). Orders may fail if env vars or auth are wrong.
+**Fix**:
+1. **Documents**: Now upload to `/api/documents/upload` and persist to Supabase. Max file size 4MB (Vercel limit).
+2. **Orders**: Ensure `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_SUPABASE_URL` are set in Vercel.
+3. **Auth cookies**: Supabase Dashboard → Auth → URL Configuration: Site URL = `https://sihadz.com`, Redirect URLs include `https://sihadz.com/**`.
+4. **Check Vercel logs**: Project → Logs to see API errors (401, 403, 500).
+
 ## Recent Changes Made
 
-1. ✅ **Middleware simplified** - No longer blocks requests
-2. ✅ **Supabase clients made defensive** - Won't crash if env vars missing
-3. ✅ **Auth provider made safe** - Handles missing Supabase gracefully
+1. ✅ **Patient document uploads** - Now persist to Supabase via API (was client-only)
+2. ✅ **File size limit** - 4MB to stay under Vercel 4.5MB body limit
+3. ✅ **Middleware simplified** - No longer blocks requests
+4. ✅ **Supabase clients made defensive** - Won't crash if env vars missing
+5. ✅ **Auth provider made safe** - Handles missing Supabase gracefully
 
 ## Next Steps
 

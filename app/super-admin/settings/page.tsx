@@ -56,7 +56,7 @@ export default function PlatformSettingsPage() {
   // Platform settings state
   const [settings, setSettings] = useState({
     // General
-    platformName: 'SihaDZ',
+    platformName: 'Siha DZ',
     platformNameAr: 'صحة دز',
     contactEmail: 'support@sihadz.com',
     contactPhone: '+213 555 123 456',

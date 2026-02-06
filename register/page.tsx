@@ -195,7 +195,7 @@ export default function RegisterPage() {
             </div>
             <CardTitle className="text-2xl">{t('createAccount')}</CardTitle>
             <CardDescription>
-              {language === 'ar' ? 'انضم إلى دي زد دوك اليوم' : language === 'fr' ? 'Rejoignez DZDoc aujourd\'hui' : 'Join DZDoc today'}
+              {language === 'ar' ? 'انضم إلى Siha DZ اليوم' : language === 'fr' ? 'Rejoignez Siha DZ aujourd\'hui' : 'Join Siha DZ today'}
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -16,7 +16,7 @@ import {
 } from '@/lib/native'
 
 /**
- * Hook to access native mobile features in DZDoc
+ * Hook to access native mobile features in Siha DZ
  * Works seamlessly on web with graceful fallbacks
  */
 export function useNative() {

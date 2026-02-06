@@ -506,7 +506,7 @@ function CheckoutPage({ professionalId }: { professionalId: string }) {
                         Pay Online
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        BaridiMob, CIB, or SihaDZ Wallet
+                        BaridiMob, CIB, or Siha DZ Wallet
                       </p>
                     </Label>
                   </div>

@@ -3,6 +3,7 @@
 import React from "react"
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
@@ -327,24 +328,23 @@ export function Header({
             pathname && pathname !== '/' && 'hidden sm:flex'
           )}
         >
-          <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg sm:rounded-xl bg-primary shadow-sm shrink-0">
-            <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">{t('appName')}</span>
-            <span className="text-[10px] text-muted-foreground leading-none hidden sm:block">
-              {language === 'ar' ? 'منصة الرعاية الصحية' : language === 'fr' ? 'Plateforme de santé' : 'Healthcare Platform'}
-            </span>
-          </div>
+          <Image
+            src="/logo.png?v=3"
+            alt={t('appName')}
+            width={44}
+            height={44}
+            className="h-9 w-auto sm:h-11 shrink-0 object-contain"
+            priority
+          />
         </Link>
         {/* Mobile: home button when logo is hidden (one-tap back to home) */}
         {pathname && pathname !== '/' && variant !== 'mobile-home' && (
           <Link
             href="/"
-            className="sm:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
+            className="sm:hidden flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg"
             aria-label={language === 'ar' ? 'الرئيسية' : language === 'fr' ? 'Accueil' : 'Home'}
           >
-            <Home className="h-5 w-5" />
+            <Image src="/logo.png?v=3" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
           </Link>
         )}
 

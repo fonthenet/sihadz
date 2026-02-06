@@ -11,7 +11,7 @@ const DEV_SERVER = process.env.CAP_SERVER_URL?.trim();
 const config: CapacitorConfig = {
   // ✅ Must be a valid reverse-domain package id
   appId: 'com.sihadz.dzdoc',
-  appName: 'SihaDZ',
+  appName: 'Siha DZ',
 
   /**
    * ✅ Must point to your web build output folder (NOT "public")

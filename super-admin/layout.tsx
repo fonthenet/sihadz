@@ -233,7 +233,7 @@ export default function SuperAdminLayout({
               </div>
               {sidebarOpen && (
                 <div>
-                  <span className="font-bold text-lg">DZDoc</span>
+                  <span className="font-bold text-lg">Siha DZ</span>
                   <span className="text-xs block text-slate-400">Super Admin</span>
                 </div>
               )}

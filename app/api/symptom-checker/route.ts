@@ -23,7 +23,7 @@ const symptomAnalysisSchema = z.object({
 export async function POST(req: Request) {
   const { symptoms, age, gender, language } = await req.json();
 
-  const systemPrompt = `You are a medical triage AI assistant for SihaDZ, a healthcare platform in Algeria. 
+  const systemPrompt = `You are a medical triage AI assistant for Siha DZ, a healthcare platform in Algeria. 
 Your role is to analyze patient symptoms and provide helpful guidance while always emphasizing the importance of professional medical consultation.
 
 IMPORTANT GUIDELINES:

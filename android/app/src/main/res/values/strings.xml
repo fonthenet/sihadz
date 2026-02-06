@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">DZDoc</string>
-    <string name="title_activity_main">DZDoc</string>
+    <string name="app_name">Siha DZ</string>
+    <string name="title_activity_main">Siha DZ</string>
     <string name="package_name">dz.dzdoc.app</string>
     <string name="custom_url_scheme">dz.dzdoc.app</string>
 </resources>

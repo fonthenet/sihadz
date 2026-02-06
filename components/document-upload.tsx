@@ -50,11 +50,24 @@ export interface Document {
 
 interface DocumentUploadProps {
   documents: Document[]
-  onUpload: (doc: Omit<Document, 'id'>) => void
+  onUpload: (doc: Omit<Document, 'id'> | Document) => void
   onDelete: (id: string) => void
   allowedTypes?: DocumentType[]
   maxFiles?: number
   showChifaCard?: boolean
+  /** When set, uploads to /api/documents/upload instead of client-only. Requires patientId for patient docs. */
+  uploadToServer?: { type: 'patient'; patientId: string }
+}
+
+const DOC_TYPE_TO_API: Record<string, string> = {
+  carte_chifa: 'other',
+  national_id: 'national_id',
+  medical_records: 'medical_records',
+  lab_results: 'lab_results',
+  xrays: 'xrays',
+  insurance: 'insurance',
+  prescription: 'prescription',
+  other: 'other',
 }
 
 export function DocumentUpload({
@@ -63,10 +76,12 @@ export function DocumentUpload({
   onDelete,
   allowedTypes = ['carte_chifa', 'national_id', 'medical_records', 'lab_results', 'xrays', 'insurance', 'other'],
   maxFiles = 10,
-  showChifaCard = true
+  showChifaCard = true,
+  uploadToServer,
 }: DocumentUploadProps) {
   const { t, language, dir } = useLanguage()
   const [isDragging, setIsDragging] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [selectedType, setSelectedType] = useState<DocumentType>('other')
   const [chifaNumber, setChifaNumber] = useState('')
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
@@ -98,7 +113,7 @@ export function DocumentUpload({
     e.preventDefault()
     setIsDragging(false)
     const files = Array.from(e.dataTransfer.files)
-    handleFiles(files)
+    void handleFiles(files)
   }, [selectedType, chifaNumber])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,36 +121,66 @@ export function DocumentUpload({
     handleFiles(files)
   }
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     if ((documents?.length || 0) + files.length > maxFiles) {
       alert(language === 'ar' ? `الحد الأقصى ${maxFiles} ملفات` : `Maximum ${maxFiles} files allowed`)
       return
     }
 
-    files.forEach(file => {
+    for (const file of files) {
       const isImage = file.type.startsWith('image/')
       const isPdf = file.type === 'application/pdf'
-      
+
       if (!isImage && !isPdf) {
         alert(language === 'ar' ? 'يرجى رفع صور أو ملفات PDF فقط' : 'Please upload images or PDF files only')
         return
       }
 
-      // Create a fake URL for demo (in production, this would upload to server)
-      const fakeUrl = URL.createObjectURL(file)
-      
-      const newDoc: Omit<Document, 'id'> = {
-        type: selectedType,
-        name: file.name,
-        fileUrl: fakeUrl,
-        fileType: isImage ? 'image' : 'pdf',
-        uploadDate: new Date().toISOString().split('T')[0],
-        status: 'pending',
-        ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {})
+      if (uploadToServer?.type === 'patient' && uploadToServer.patientId) {
+        setUploading(true)
+        try {
+          const fd = new FormData()
+          fd.append('file', file)
+          fd.append('type', 'patient')
+          fd.append('patientId', uploadToServer.patientId)
+          fd.append('documentType', DOC_TYPE_TO_API[selectedType] ?? 'other')
+          const res = await fetch('/api/documents/upload', { method: 'POST', body: fd, credentials: 'include' })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}))
+            throw new Error(err.error || 'Upload failed')
+          }
+          const json = await res.json()
+          const newDoc = {
+            id: json.id,
+            type: selectedType,
+            name: file.name,
+            fileUrl: json.fileUrl,
+            fileType: (isImage ? 'image' : 'pdf') as 'image' | 'pdf',
+            uploadDate: new Date().toISOString().split('T')[0],
+            status: 'pending' as const,
+            ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {}),
+          }
+          onUpload(newDoc)
+        } catch (e) {
+          console.error('[DocumentUpload]', e)
+          alert(language === 'ar' ? `فشل الرفع: ${String(e)}` : language === 'fr' ? `Échec: ${String(e)}` : `Upload failed: ${String(e)}`)
+        } finally {
+          setUploading(false)
+        }
+      } else {
+        const fakeUrl = URL.createObjectURL(file)
+        const newDoc: Omit<Document, 'id'> = {
+          type: selectedType,
+          name: file.name,
+          fileUrl: fakeUrl,
+          fileType: isImage ? 'image' : 'pdf',
+          uploadDate: new Date().toISOString().split('T')[0],
+          status: 'pending',
+          ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {}),
+        }
+        onUpload(newDoc)
       }
-      
-      onUpload(newDoc)
-    })
+    }
   }
 
   const getStatusBadge = (status: Document['status']) => {
@@ -288,10 +333,11 @@ export function DocumentUpload({
               type="file"
               accept="image/*,.pdf"
               multiple
-              onChange={handleFileSelect}
+              disabled={uploading}
+              onChange={(e) => { handleFileSelect(e); e.target.value = '' }}
               className="absolute inset-0 cursor-pointer opacity-0"
             />
-            <Upload className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+            <Upload className={`mx-auto mb-4 h-10 w-10 text-muted-foreground ${uploading ? 'animate-pulse' : ''}`} />
             <p className="text-foreground">
               {t('dragDrop')} <span className="text-primary font-medium">{t('browse')}</span>
             </p>

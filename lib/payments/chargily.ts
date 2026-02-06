@@ -1,6 +1,6 @@
 'use server'
 
-// Chargily Pay integration for SihaDZ
+// Chargily Pay integration for Siha DZ
 // Supports: CIB, EDAHABIA (Baridi Mob), and mobile credit (Flexy, Mobilis, Ooredoo)
 // Last updated: 2026-01-19
 

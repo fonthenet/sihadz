@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Stethoscope, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useAuth } from '@/components/auth-provider'
@@ -14,9 +15,9 @@ export function Footer() {
   const labels = {
     ar: {
       aboutUs: 'من نحن',
-      aboutDesc: 'SihaDZ هي المنصة الرائدة لحجز المواعيد الطبية في الجزائر. نربط المرضى بأفضل الأطباء والصيدليات في جميع أنحاء الوطن.',
+      aboutDesc: 'Siha DZ هي المنصة الرائدة لحجز المواعيد الطبية في الجزائر. نربط المرضى بأفضل مقدمي الرعاية الصحية في جميع أنحاء الوطن.',
       quickLinks: 'روابط سريعة',
-      findDoctor: 'البحث عن طبيب',
+      findDoctor: 'البحث عن مقدم رعاية صحية',
       eConsultation: 'استشارة عن بعد',
       findPharmacy: 'البحث عن صيدلية',
       myAppointments: 'مواعيدي',
@@ -39,9 +40,9 @@ export function Footer() {
     },
     fr: {
       aboutUs: 'À propos',
-      aboutDesc: 'SihaDZ est la plateforme leader de prise de rendez-vous médicaux en Algérie. Nous connectons les patients aux meilleurs médecins et pharmacies à travers le pays.',
+      aboutDesc: 'Siha DZ est la plateforme leader de prise de rendez-vous médicaux en Algérie. Nous connectons les patients aux meilleurs professionnels de santé à travers le pays.',
       quickLinks: 'Liens rapides',
-      findDoctor: 'Trouver un médecin',
+      findDoctor: 'Trouver un professionnel de santé',
       eConsultation: 'Téléconsultation',
       findPharmacy: 'Trouver une pharmacie',
       myAppointments: 'Mes rendez-vous',
@@ -64,9 +65,9 @@ export function Footer() {
     },
     en: {
       aboutUs: 'About Us',
-      aboutDesc: 'SihaDZ is the leading medical appointment booking platform in Algeria. We connect patients with the best doctors and pharmacies across the country.',
+      aboutDesc: 'Siha DZ is the leading medical appointment booking platform in Algeria. We connect patients with the best Health Providers across the country.',
       quickLinks: 'Quick Links',
-      findDoctor: 'Find a Doctor',
+      findDoctor: 'Find a Health Provider',
       eConsultation: 'E-Consultation',
       findPharmacy: 'Find a Pharmacy',
       myAppointments: 'My Appointments',
@@ -119,13 +120,17 @@ export function Footer() {
           {/* About */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-3 [dir=rtl]:flex-row-reverse">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-sm shrink-0">
-                <Stethoscope className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <Image
+                src="/logo.png?v=3"
+                alt={t('appName')}
+                width={44}
+                height={44}
+                className="h-11 w-auto shrink-0 object-contain"
+              />
               <div>
                 <span className="text-xl font-bold text-foreground">{t('appName')}</span>
                 <p className="text-xs text-muted-foreground">
-                  {language === 'ar' ? 'منصة الرعاية الصحية' : language === 'fr' ? 'Plateforme de santé' : 'Healthcare Platform'}
+                  {language === 'ar' ? 'منصة الرعاية الصحية الذكية' : language === 'fr' ? 'Plateforme de santé intelligente' : 'Smart Healthcare Platform'}
                 </p>
               </div>
             </div>

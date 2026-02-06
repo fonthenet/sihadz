@@ -84,7 +84,7 @@ export default function ProfessionalSignupPage() {
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
       'ar': {
-        'join_professional': 'انضم إلى SihaDZ كمحترف',
+        'join_professional': 'انضم إلى Siha DZ كمحترف',
         'register_practice': 'سجل مكتبك وابدأ في قبول المواعيد عبر الإنترنت',
         'professional_type': 'نوع الخدمة الصحية',
         'select_type': 'اختر النوع',
@@ -116,7 +116,7 @@ export default function ProfessionalSignupPage() {
         'email_already_registered': 'هذا البريد مسجل بالفعل (كمريض أو محترف). لا يمكنك إنشاء حساب جديد. يرجى تسجيل الدخول أو استخدام بريد آخر.',
       },
       'fr': {
-        'join_professional': 'Rejoindre SihaDZ en tant que professionnel',
+        'join_professional': 'Rejoindre Siha DZ en tant que professionnel',
         'register_practice': 'Enregistrez votre cabinet et commencez à accepter des rendez-vous en ligne',
         'professional_type': 'Type de service de santé',
         'select_type': 'Sélectionnez le type',
@@ -147,7 +147,7 @@ export default function ProfessionalSignupPage() {
         'check_email': 'Vous allez être redirigé pour compléter votre profil',
       },
       'en': {
-        'join_professional': 'Join SihaDZ as a Professional',
+        'join_professional': 'Join Siha DZ as a Professional',
         'register_practice': 'Register your practice and start accepting online appointments',
         'professional_type': 'Healthcare Service Type',
         'select_type': 'Select type',
