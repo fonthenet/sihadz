@@ -106,36 +106,71 @@ export function DocumentUpload({
     handleFiles(files)
   }
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     if ((documents?.length || 0) + files.length > maxFiles) {
       alert(language === 'ar' ? `الحد الأقصى ${maxFiles} ملفات` : `Maximum ${maxFiles} files allowed`)
       return
     }
 
-    files.forEach(file => {
+    for (const file of files) {
       const isImage = file.type.startsWith('image/')
       const isPdf = file.type === 'application/pdf'
       
       if (!isImage && !isPdf) {
         alert(language === 'ar' ? 'يرجى رفع صور أو ملفات PDF فقط' : 'Please upload images or PDF files only')
-        return
+        continue
       }
 
-      // Create a fake URL for demo (in production, this would upload to server)
-      const fakeUrl = URL.createObjectURL(file)
-      
-      const newDoc: Omit<Document, 'id'> = {
-        type: selectedType,
-        name: file.name,
-        fileUrl: fakeUrl,
-        fileType: isImage ? 'image' : 'pdf',
-        uploadDate: new Date().toISOString().split('T')[0],
-        status: 'pending',
-        ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {})
+      try {
+        // Actually upload to server
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('type', 'patient')
+        formData.append('documentType', selectedType)
+        
+        // Get user ID from session
+        const userRes = await fetch('/api/auth/session')
+        if (!userRes.ok) {
+          alert(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'Please log in first')
+          return
+        }
+        const { user } = await userRes.json()
+        if (!user?.id) {
+          alert(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'Please log in first')
+          return
+        }
+        
+        formData.append('patientId', user.id)
+        
+        const uploadRes = await fetch('/api/documents/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+        
+        if (!uploadRes.ok) {
+          const error = await uploadRes.json()
+          throw new Error(error.error || 'Upload failed')
+        }
+        
+        const { fileUrl, id } = await uploadRes.json()
+        
+        const newDoc: Omit<Document, 'id'> = {
+          type: selectedType,
+          name: file.name,
+          fileUrl,
+          fileType: isImage ? 'image' : 'pdf',
+          uploadDate: new Date().toISOString().split('T')[0],
+          status: 'verified',
+          ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {})
+        }
+        
+        onUpload(newDoc)
+      } catch (error: any) {
+        console.error('[v0] Upload error:', error)
+        alert(language === 'ar' ? `فشل الرفع: ${error.message}` : `Upload failed: ${error.message}`)
       }
-      
-      onUpload(newDoc)
-    })
+    }
   }
 
   const getStatusBadge = (status: Document['status']) => {
