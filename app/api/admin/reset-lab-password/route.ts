@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const LAB_PROFESSIONAL_ID = '06f7299c-85f4-45f8-b8e2-af95484a5118' // Laboratoire d'Analyses Médicales Jijel Centre
@@ -7,11 +7,7 @@ const NEW_PASSWORD = 'Rapgame.1987'
 
 export async function POST() {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
+    const supabase = createAdminClient()
 
     const { data: prof, error: profError } = await supabase
       .from('professionals')
