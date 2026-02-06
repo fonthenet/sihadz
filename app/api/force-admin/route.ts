@@ -5,11 +5,6 @@ export async function GET(request: Request) {
   const supabase = await createServerClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   
-  console.log('[v0] Force admin - User check:', { 
-    hasUser: !!user, 
-    email: user?.email,
-    authError: authError?.message 
-  })
   
   if (!user) {
     return NextResponse.json({ 
@@ -26,11 +21,6 @@ export async function GET(request: Request) {
   
   const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(user.email || '')
   
-  console.log('[v0] Force admin - Authorization check:', {
-    userEmail: user.email,
-    isSuperAdmin,
-    allowedEmails: SUPER_ADMIN_EMAILS
-  })
   
   if (!isSuperAdmin) {
     return NextResponse.json({ 
@@ -41,7 +31,6 @@ export async function GET(request: Request) {
   }
 
   // Update profile to super_admin
-  console.log('[v0] Force admin - Updating profile for:', user.id)
   
   const { error } = await supabase
     .from('profiles')
@@ -51,14 +40,11 @@ export async function GET(request: Request) {
     .eq('id', user.id)
 
   if (error) {
-    console.error('[v0] Force admin - Profile update error:', error)
     return NextResponse.json({ 
       error: 'Failed to update profile',
       details: error.message 
     }, { status: 500 })
   }
-
-  console.log('[v0] Force admin - Success! Redirecting to super-admin')
 
   // Redirect to super admin panel (use public origin when behind proxy)
   const { getRequestOrigin } = await import('@/lib/request-origin')

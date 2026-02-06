@@ -18,6 +18,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Force all server functions to use Node.js runtime (not Edge)
+  // This prevents 404 errors on Vercel for dynamic API routes
+  serverExternalPackages: ['@supabase/ssr', '@supabase/supabase-js', 'bcrypt'],
   // Static export disabled - DZDoc uses API routes that require a server
   // For Capacitor, we use server mode (app loads from deployed URL or dev server)
   // output: 'export',

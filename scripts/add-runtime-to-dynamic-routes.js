@@ -1,16 +1,17 @@
 const fs = require('fs');
 const path = require('path');
 
-// Recursively find all route.ts files that contain [id] or other dynamic segments in their path
-function findDynamicRoutes(dir, routes = []) {
+// Recursively find ALL route.ts files in app/api
+function findAllRoutes(dir, routes = []) {
+  if (!fs.existsSync(dir)) return routes;
   const files = fs.readdirSync(dir, { withFileTypes: true });
   
   for (const file of files) {
     const fullPath = path.join(dir, file.name);
     
     if (file.isDirectory()) {
-      findDynamicRoutes(fullPath, routes);
-    } else if ((file.name === 'route.ts' || file.name === 'route.tsx') && fullPath.includes('[') && fullPath.includes(']')) {
+      findAllRoutes(fullPath, routes);
+    } else if (file.name === 'route.ts' || file.name === 'route.tsx') {
       routes.push(fullPath);
     }
   }
@@ -75,9 +76,30 @@ export const dynamic = 'force-dynamic'
 }
 
 function main() {
-  const apiDir = path.join(process.cwd(), 'app/api');
-  const routes = findDynamicRoutes(apiDir);
-  console.log(`Found ${routes.length} dynamic API routes\n`);
+  // Try multiple possible locations
+  const possiblePaths = [
+    path.join(process.cwd(), 'app', 'api'),
+    path.join(__dirname, '..', 'app', 'api'),
+    '/vercel/share/v0-project/app/api',
+  ];
+  
+  let apiDir = null;
+  for (const p of possiblePaths) {
+    console.log('Checking:', p, 'exists:', fs.existsSync(p));
+    if (fs.existsSync(p)) {
+      apiDir = p;
+      break;
+    }
+  }
+  
+  if (!apiDir) {
+    console.error('Could not find app/api directory');
+    process.exit(1);
+  }
+  
+  console.log('Using:', apiDir);
+  const routes = findAllRoutes(apiDir);
+  console.log('Found ' + routes.length + ' API routes\n');
   
   let fixed = 0;
   let skipped = 0;

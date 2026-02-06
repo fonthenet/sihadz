@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DocumentViewer } from '@/components/document-viewer'
+import { useAuth } from '@/components/auth-provider'
 import {
   Upload,
   FileText,
@@ -66,7 +67,9 @@ export function DocumentUpload({
   showChifaCard = true
 }: DocumentUploadProps) {
   const { t, language, dir } = useLanguage()
+  const { user } = useAuth()
   const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const [selectedType, setSelectedType] = useState<DocumentType>('other')
   const [chifaNumber, setChifaNumber] = useState('')
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
@@ -112,6 +115,13 @@ export function DocumentUpload({
       return
     }
 
+    if (!user?.id) {
+      alert(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'Please log in first')
+      return
+    }
+
+    setIsUploading(true)
+
     for (const file of files) {
       const isImage = file.type.startsWith('image/')
       const isPdf = file.type === 'application/pdf'
@@ -122,24 +132,10 @@ export function DocumentUpload({
       }
 
       try {
-        // Actually upload to server
         const formData = new FormData()
         formData.append('file', file)
         formData.append('type', 'patient')
         formData.append('documentType', selectedType)
-        
-        // Get user ID from session
-        const userRes = await fetch('/api/auth/session')
-        if (!userRes.ok) {
-          alert(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'Please log in first')
-          return
-        }
-        const { user } = await userRes.json()
-        if (!user?.id) {
-          alert(language === 'ar' ? 'يجب تسجيل الدخول أولاً' : 'Please log in first')
-          return
-        }
-        
         formData.append('patientId', user.id)
         
         const uploadRes = await fetch('/api/documents/upload', {
@@ -153,7 +149,7 @@ export function DocumentUpload({
           throw new Error(error.error || 'Upload failed')
         }
         
-        const { fileUrl, id } = await uploadRes.json()
+        const { fileUrl } = await uploadRes.json()
         
         const newDoc: Omit<Document, 'id'> = {
           type: selectedType,
@@ -167,10 +163,12 @@ export function DocumentUpload({
         
         onUpload(newDoc)
       } catch (error: any) {
-        console.error('[v0] Upload error:', error)
+        console.error('[documents] Upload error:', error)
         alert(language === 'ar' ? `فشل الرفع: ${error.message}` : `Upload failed: ${error.message}`)
       }
     }
+
+    setIsUploading(false)
   }
 
   const getStatusBadge = (status: Document['status']) => {

@@ -20,38 +20,8 @@ interface TimeSlot {
 // ============================================================================
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    // Check environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    
-    if (!supabaseUrl || !serviceRoleKey) {
-      console.error('[slots] Missing Supabase env:', { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey })
-      return NextResponse.json(
-        { 
-          error: 'Slots API requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Check Vercel Environment Variables for Production.',
-          availableSlots: 0,
-          slots: []
-        },
-        { status: 503 }
-      )
-    }
-    
     const { id: professionalId } = await params
     const admin = createAdminClient()
-    
-    // Test Supabase auth
-    const { error: authError } = await admin.auth.getUser()
-    if (authError && authError.message.includes('JWT')) {
-      console.error('[slots] Supabase auth error:', authError.message)
-      return NextResponse.json(
-        { 
-          error: 'Invalid Supabase credentials. Verify SUPABASE_SERVICE_ROLE_KEY in Vercel.',
-          availableSlots: 0,
-          slots: []
-        },
-        { status: 503 }
-      )
-    }
     
     const { searchParams } = new URL(request.url)
     const date = searchParams.get('date')

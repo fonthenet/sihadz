@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useLanguage } from '@/lib/i18n/language-context'
+import { useAuth } from '@/components/auth-provider'
 import { DocumentUpload } from '@/components/document-upload'
+import { DocumentViewer } from '@/components/document-viewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -54,12 +56,45 @@ interface LabResultItem {
 
 export default function DocumentsPage() {
   const { t, language } = useLanguage()
+  const { user } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
+  const [docsLoading, setDocsLoading] = useState(true)
   const [labResults, setLabResults] = useState<LabResultItem[]>([])
   const [labResultsLoading, setLabResultsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null)
   const [viewerDoc, setViewerDoc] = useState<Document | null>(null)
+
+  // Fetch patient documents from database on mount
+  useEffect(() => {
+    async function fetchPatientDocs() {
+      if (!user?.id) return
+      try {
+        const res = await fetch(`/api/documents/patient/${user.id}`)
+        if (res.ok) {
+          const data = await res.json()
+          const docs: Document[] = (data.documents || []).map((d: any) => ({
+            id: d.id,
+            name: d.file_name || d.name || 'Document',
+            type: d.document_type === 'carte_chifa' ? 'chifa' :
+                  d.document_type === 'national_id' ? 'id' :
+                  d.document_type === 'lab_results' ? 'lab' :
+                  d.document_type === 'medical_records' ? 'medical' :
+                  d.document_type === 'insurance' ? 'insurance' : 'other',
+            uploadDate: d.created_at || d.upload_date || new Date().toISOString(),
+            status: 'verified' as const,
+            fileUrl: d.file_url || '',
+          }))
+          setDocuments(docs)
+        }
+      } catch (e) {
+        console.error('[Documents] Failed to fetch patient docs:', e)
+      } finally {
+        setDocsLoading(false)
+      }
+    }
+    fetchPatientDocs()
+  }, [user?.id])
 
   const handleOpenLabPdf = async (labRequestId: string) => {
     setPdfLoadingId(labRequestId)
@@ -114,7 +149,7 @@ export default function DocumentsPage() {
       case 'verified':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />{t('verified')}</Badge>
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />{t('pending')}</Badge>
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="h-3 w-3 mr-1" />{t('uploaded')}</Badge>
       case 'expired':
         return <Badge className="bg-red-100 text-red-800"><AlertCircle className="h-3 w-3 mr-1" />{t('expired')}</Badge>
     }
@@ -156,17 +191,7 @@ export default function DocumentsPage() {
     ? allDocuments
     : allDocuments.filter(d => d.type === activeTab)
 
-  const handleUpload = (files: File[], category: string) => {
-    const newDocs = files.map((file, index) => ({
-      id: `new-${Date.now()}-${index}`,
-      name: file.name,
-      type: category as Document['type'],
-      uploadDate: new Date().toISOString().split('T')[0],
-      status: 'pending' as const,
-      fileUrl: URL.createObjectURL(file)
-    }))
-    setDocuments([...newDocs, ...documents])
-  }
+
 
   return (
     <DashboardPageWrapper maxWidth="xl" showHeader={false}>
