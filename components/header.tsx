@@ -332,7 +332,7 @@ export function Header({
             alt="Siha DZ"
             width={180}
             height={120}
-            className="h-16 sm:h-20 w-auto object-contain [filter:drop-shadow(0_0_0px_transparent)]"
+            className="h-14 sm:h-16 w-auto object-contain [filter:drop-shadow(0_0_0px_transparent)]"
             style={{ backgroundColor: 'transparent', mixBlendMode: 'multiply' }}
             priority
           />
