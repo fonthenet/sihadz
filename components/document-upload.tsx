@@ -215,7 +215,7 @@ export function DocumentUpload({
           fileUrl,
           fileType: isImage ? 'image' : 'pdf',
           uploadDate: new Date().toISOString().split('T')[0],
-          status: 'verified',
+          status: 'pending',
           ...(selectedType === 'carte_chifa' && chifaNumber ? { chifaNumber } : {})
         }
         

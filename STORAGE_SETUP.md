@@ -51,7 +51,45 @@ If you prefer to create buckets manually in the Supabase Dashboard:
 | professional-services | ✅ Yes | 5 MB | JPEG, PNG, WebP, GIF |
 | backup-files | ❌ No | 100 MB | Any |
 
+## Production Setup (Vercel / sihadz.com)
+
+If you get **"Bucket not found"** (404) on production, your **production Supabase project** needs the buckets.
+
+### Option 1: Run with production credentials (recommended)
+
+1. Copy from **Vercel** → Project → **Settings** → **Environment Variables**:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+
+2. Run:
+
+**PowerShell:**
+```powershell
+$env:NEXT_PUBLIC_SUPABASE_URL="https://YOUR-PROJECT.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY="your-production-service-role-key"
+npm run storage:setup-prod
+```
+
+**Bash / macOS / Linux:**
+```bash
+NEXT_PUBLIC_SUPABASE_URL="https://YOUR-PROJECT.supabase.co" SUPABASE_SERVICE_ROLE_KEY="your-key" npm run storage:setup-prod
+```
+
+### Option 2: Use .env.production.local
+
+Create `.env.production.local` (gitignored) with production credentials, then:
+```bash
+npm run storage:setup-prod
+```
+
+### Option 3: Manual creation
+
+Create the buckets manually in **Supabase Dashboard** → **Storage** → **New bucket** for the project that sihadz.com uses.
+
 ## Troubleshooting
+
+**Error: "Bucket not found" (404) on production**
+- Production uses a different Supabase project than local. Run the setup with production credentials (see above).
 
 **Error: "Missing environment variables"**
 - Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`

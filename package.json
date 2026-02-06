@@ -13,6 +13,7 @@
     "db:run": "node scripts/run-sql.js",
     "db:pooler-url": "node scripts/pooler-url.js",
     "storage:setup-all": "node scripts/setup-all-storage-buckets.js",
+    "storage:setup-prod": "node scripts/setup-storage-prod.js",
     "storage:create-avatars": "node scripts/create-avatars-bucket.js",
     "test": "vitest run",
     "test:watch": "vitest"

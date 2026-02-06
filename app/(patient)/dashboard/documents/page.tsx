@@ -91,7 +91,7 @@ export default function DocumentsPage() {
                   d.document_type === 'medical_records' ? 'medical' :
                   d.document_type === 'insurance' ? 'insurance' : 'other',
             uploadDate: d.created_at || d.upload_date || new Date().toISOString(),
-            status: 'verified' as const,
+            status: (d.status === 'verified' || d.status === 'expired' ? d.status : 'pending') as const,
             fileUrl: d.file_url || '',
           }))
           setDocuments(docs)
