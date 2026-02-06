@@ -1,13 +1,20 @@
 const fs = require('fs');
 const path = require('path');
-const { glob } = require('glob');
 
-// Find all route.ts files that contain [id] or other dynamic segments in their path
-async function findDynamicRoutes() {
-  const routes = await glob('app/api/**/\\[*\\]/**/route.ts', { 
-    cwd: process.cwd(),
-    ignore: ['node_modules/**']
-  });
+// Recursively find all route.ts files that contain [id] or other dynamic segments in their path
+function findDynamicRoutes(dir, routes = []) {
+  const files = fs.readdirSync(dir, { withFileTypes: true });
+  
+  for (const file of files) {
+    const fullPath = path.join(dir, file.name);
+    
+    if (file.isDirectory()) {
+      findDynamicRoutes(fullPath, routes);
+    } else if ((file.name === 'route.ts' || file.name === 'route.tsx') && fullPath.includes('[') && fullPath.includes(']')) {
+      routes.push(fullPath);
+    }
+  }
+  
   return routes;
 }
 
@@ -67,8 +74,9 @@ export const dynamic = 'force-dynamic'
   return true;
 }
 
-async function main() {
-  const routes = await findDynamicRoutes();
+function main() {
+  const apiDir = path.join(process.cwd(), 'app/api');
+  const routes = findDynamicRoutes(apiDir);
   console.log(`Found ${routes.length} dynamic API routes\n`);
   
   let fixed = 0;
@@ -86,4 +94,4 @@ async function main() {
   console.log(`\nDone! Fixed: ${fixed}, Skipped: ${skipped}, Total: ${routes.length}`);
 }
 
-main().catch(console.error);
+main();
