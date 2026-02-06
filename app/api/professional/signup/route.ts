@@ -1,21 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import { getRequestOrigin } from '@/lib/request-origin'
 
-// Create a Supabase client with the service role key for admin operations
-// This bypasses RLS policies
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
-
 export async function POST(request: NextRequest) {
+  const supabaseAdmin = createAdminClient()
   try {
     const body = await request.json()
     const { email, password, phone, businessName, licenseNumber, professionalType } = body

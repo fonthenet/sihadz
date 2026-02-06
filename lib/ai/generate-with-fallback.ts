@@ -58,7 +58,7 @@ export async function generateWithFallback(prompt: string, maxTokens = 3000, opt
         model: provider.model,
         system: system ?? 'You are a helpful assistant.',
         prompt,
-        maxTokens: tokens,
+        maxOutputTokens: tokens,
       })
       console.log(`[AI] ${provider.name} succeeded`)
       return { text, provider: provider.name }

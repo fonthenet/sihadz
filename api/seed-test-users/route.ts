@@ -1,14 +1,8 @@
-import { createClient } from "@supabase/supabase-js"
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from "next/server"
 
-// Use service role key to create users via Admin API
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-)
-
 export async function POST(request: Request) {
+  const supabaseAdmin = createAdminClient()
   try {
     const { secret } = await request.json()
     

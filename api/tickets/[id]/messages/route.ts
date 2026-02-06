@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   try {
     const { data: { user } } = await supabase.auth.getUser()

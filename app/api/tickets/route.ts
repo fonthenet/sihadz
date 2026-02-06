@@ -2,7 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { searchParams } = new URL(request.url)
   
   const status = searchParams.get('status')
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
 
   try {
     const { data: { user } } = await supabase.auth.getUser()

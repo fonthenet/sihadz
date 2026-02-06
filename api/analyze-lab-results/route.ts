@@ -63,7 +63,7 @@ Format your response in JSON with these fields:
     const { text } = await generateText({
       model: 'openai/gpt-4o-mini',
       prompt,
-      maxTokens: 2000,
+      maxOutputTokens: 2000,
     })
 
     // Parse the AI response

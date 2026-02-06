@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]))
 
     const enrichedMembers = (members || []).map((m: any) => {
-      const p = profileMap.get(m.user_id)
+      const p = profileMap.get(m.user_id) as { display_name?: string; entity_type?: string; avatar_url?: string } | undefined
       return {
         ...m,
         display_name: p?.display_name || 'User',
