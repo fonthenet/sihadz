@@ -158,18 +158,30 @@ export function CalendarSlotPicker({
         { cache: 'no-store' }
       )
       const data = await res.json()
+      
+      // Show API error if request failed
+      if (!res.ok) {
+        setSlots([])
+        setScheduleInfo({ message: data.error || 'Failed to load slots' })
+        return
+      }
+      
       const slots = data.slots || []
       setSlots(slots)
       setScheduleInfo({ message: data.message })
       
-      // Cache the result
-      slotCache.set(cacheKey, {
-        slots,
-        message: data.message,
-        timestamp: Date.now()
-      })
-    } catch {
+      // Only cache successful responses
+      if (res.ok) {
+        slotCache.set(cacheKey, {
+          slots,
+          message: data.message,
+          timestamp: Date.now()
+        })
+      }
+    } catch (error) {
+      console.error('[v0] Error fetching slots:', error)
       setSlots([])
+      setScheduleInfo({ message: 'Network error. Please try again.' })
     } finally {
       setLoading(false)
     }
