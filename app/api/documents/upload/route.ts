@@ -1,6 +1,7 @@
 /**
  * Document upload API - supports professional, visit, and patient documents
  * POST: multipart form with file, type, and relevant IDs
+ * Uses Supabase Storage for file storage
  */
 
 import { createServerClient } from '@/lib/supabase/server'
