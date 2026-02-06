@@ -1,18 +1,18 @@
 /**
  * Professional service image upload
  * POST: multipart form with file + professionalId
- * Uploads to Vercel Blob, returns public URL
+ * Uploads to Supabase Storage, returns public URL
  */
 
 import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 
 // Force Node.js runtime and dynamic rendering for Vercel
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const BUCKET = 'professional-services'
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -51,10 +51,23 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = file.name.split('.').pop() || 'jpg'
-    const path = `professional-services/${professionalId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const path = `${professionalId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
 
-    const blob = await put(path, file, { access: 'public', contentType: file.type })
-    return NextResponse.json({ url: blob.url })
+    const buf = Buffer.from(await file.arrayBuffer())
+    const { error: uploadErr } = await admin.storage
+      .from(BUCKET)
+      .upload(path, buf, { contentType: file.type, upsert: false })
+
+    if (uploadErr) {
+      console.error('[professional-services/upload]', uploadErr)
+      return NextResponse.json(
+        { error: uploadErr.message || `Upload failed` },
+        { status: 500 }
+      )
+    }
+
+    const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path)
+    return NextResponse.json({ url: urlData.publicUrl })
   } catch (e) {
     console.error('[professional-services/upload]', e)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
