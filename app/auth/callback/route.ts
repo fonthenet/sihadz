@@ -15,21 +15,25 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createServerClient()
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
     // After exchanging the code, check if this is a password recovery flow
     // Only redirect to reset-password if it's an actual password recovery (not OAuth)
     if (!error && type === 'recovery') {
-      const { data: { user } } = await supabase.auth.getUser()
+      // Check the session to see the authentication method
+      // OAuth users will have a session with provider information
+      const user = data?.user
       
-      // Check if user signed in via OAuth (providers like google, github, etc.)
-      // OAuth users have app_metadata.provider or providers array
-      const isOAuthUser = user?.app_metadata?.provider || 
-                          (user?.app_metadata?.providers && user.app_metadata.providers.length > 0) ||
-                          user?.identities?.some(identity => identity.provider !== 'email')
+      // Check if user signed in via OAuth by examining identities
+      // OAuth identities have providers like 'google', 'github', etc.
+      // Email/password users have 'email' as provider
+      const hasOAuthIdentity = user?.identities?.some(identity => 
+        identity.provider !== 'email' && identity.provider !== 'phone'
+      )
       
-      // Only redirect to password reset if NOT an OAuth user
-      if (!isOAuthUser) {
+      // Only redirect to password reset if this is an email/password user
+      // OAuth users don't use passwords and should skip this flow
+      if (!hasOAuthIdentity) {
         return NextResponse.redirect(new URL(`/auth/reset-password?code=${code}`, origin))
       }
       // OAuth users skip password reset and continue to normal flow below

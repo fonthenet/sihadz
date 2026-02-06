@@ -30,6 +30,18 @@ export default function ResetPasswordPage() {
       console.log('[v0] Reset password session:', session?.user?.email)
       
       if (session?.user) {
+        // Check if this is an OAuth user (they don't need password reset)
+        const hasOAuthIdentity = session.user.identities?.some(identity => 
+          identity.provider !== 'email' && identity.provider !== 'phone'
+        )
+        
+        if (hasOAuthIdentity) {
+          // OAuth user landed here by mistake, redirect them to dashboard
+          console.log('[v0] OAuth user detected, redirecting to dashboard')
+          router.push('/dashboard')
+          return
+        }
+        
         setValidToken(true)
       } else {
         setError('Invalid or expired reset link. Please request a new password reset.')
@@ -37,7 +49,7 @@ export default function ResetPasswordPage() {
     }
 
     checkSession()
-  }, [supabase.auth])
+  }, [supabase.auth, router])
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
