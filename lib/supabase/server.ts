@@ -1,4 +1,5 @@
 import { createServerClient as createServerClientSSR } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function createServerClient() {
@@ -32,4 +33,39 @@ export async function createServerClient() {
       },
     },
   );
+}
+
+// Alias for backward compatibility
+export { createServerClient as createClient };
+
+// Admin client using service role key - bypasses RLS
+// Only use on server-side for admin operations
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error('[CRITICAL] Missing Supabase environment variables in admin client:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!serviceRoleKey,
+    });
+    // Return client with placeholders - operations will fail but site won't crash
+    return createSupabaseClient(
+      supabaseUrl || 'https://placeholder.supabase.co',
+      serviceRoleKey || 'placeholder-key',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
 }
