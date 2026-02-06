@@ -70,9 +70,10 @@ interface PatientSidebarProps {
   userName: string | null
   fallbackAddress: string | null
   userId: string | null
+  isLoading: boolean
 }
 
-function PatientSidebar({ userName, fallbackAddress, userId }: PatientSidebarProps) {
+function PatientSidebar({ userName, fallbackAddress, userId, isLoading }: PatientSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { language } = useLanguage()
@@ -115,10 +116,19 @@ function PatientSidebar({ userName, fallbackAddress, userId }: PatientSidebarPro
       <SidebarHeader className={cn('p-3 md:p-4 gap-2 md:gap-3 min-w-0', isMobile ? 'pb-1' : 'pb-2 md:pb-3')}>
         <div className="flex items-center justify-between gap-2 min-w-0">
           <Link href="/dashboard" onClick={closeMobile} className="flex items-center gap-3 min-w-0 group shrink-0 flex-1" title={userName || t('Dashboard', 'Tableau de bord', 'لوحة التحكم')}>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-md shadow-emerald-500/25 group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-200 text-sm font-semibold">
-              {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
-            </span>
-            <span className="text-sm font-bold truncate">{userName || 'DZDOC'}</span>
+            {isLoading ? (
+              <>
+                <span className="flex h-9 w-9 shrink-0 rounded-xl bg-muted animate-pulse" />
+                <span className="h-4 w-24 rounded bg-muted animate-pulse" />
+              </>
+            ) : (
+              <>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white shadow-md shadow-emerald-500/25 group-hover:shadow-lg group-hover:shadow-emerald-500/30 transition-all duration-200 text-sm font-semibold">
+                  {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
+                </span>
+                <span className="text-sm font-bold truncate">{userName || t('Profile', 'Profil', 'الملف الشخصي')}</span>
+              </>
+            )}
           </Link>
           {isMobile && (
             <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 -me-1" onClick={() => setOpenMobile(false)} aria-label="Close menu">
@@ -288,15 +298,20 @@ function PatientLayoutInner({
   userName,
   fallbackAddress,
   userId,
+  isLoading,
 }: {
   children: React.ReactNode
   userName: string | null
   fallbackAddress: string | null
   userId: string | null
+  isLoading: boolean
 }) {
   const { language } = useLanguage()
   const pathname = usePathname()
   const { level, cycleLevel } = useFontSize()
+
+  const t = (en: string, fr: string, ar: string) =>
+    language === 'ar' ? ar : language === 'fr' ? fr : en
 
   // Scroll to top when navigating to a new page
   useEffect(() => {
@@ -309,7 +324,7 @@ function PatientLayoutInner({
   return (
     <>
       <div className="flex min-h-screen bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        <PatientSidebar userName={userName} fallbackAddress={fallbackAddress} userId={userId} />
+        <PatientSidebar userName={userName} fallbackAddress={fallbackAddress} userId={userId} isLoading={isLoading} />
       </div>
       <LiveNotificationToast userId={userId} />
       <main className="flex-1 w-full min-w-0 max-w-none px-2 py-4 sm:px-4 sm:py-6 md:px-4 lg:px-6 xl:px-6">
@@ -318,10 +333,19 @@ function PatientLayoutInner({
           <div className="md:hidden flex items-center gap-2 min-w-0 flex-1">
             <SidebarTrigger className="h-9 w-9 shrink-0" aria-label="Open menu" />
             <Link href="/dashboard" className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-sm font-semibold">
-                {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
-              </span>
-              <span className="text-sm font-bold truncate">{userName || 'DZDOC'}</span>
+              {isLoading ? (
+                <>
+                  <span className="flex h-8 w-8 shrink-0 rounded-lg bg-muted animate-pulse" />
+                  <span className="h-4 w-20 rounded bg-muted animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-sm font-semibold">
+                    {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
+                  </span>
+                  <span className="text-sm font-bold truncate">{userName || t('Profile', 'Profil', 'الملف الشخصي')}</span>
+                </>
+              )}
             </Link>
           </div>
           <div className="flex items-center justify-end gap-2 min-w-0 ms-auto">
@@ -360,12 +384,16 @@ export default function PatientLayout({
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
   const [isProfessionalRedirect, setIsProfessionalRedirect] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Redirect professionals to their dashboard – run before any patient UI
   useEffect(() => {
     const supabase = createBrowserClient()
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user?.id) return
+      if (!user?.id) {
+        setIsLoading(false)
+        return
+      }
       // 1. Check professionals table (source of truth)
       const { data: professional } = await supabase
         .from('professionals')
@@ -394,6 +422,7 @@ export default function PatientLayout({
         setFallbackAddress(buildFallbackAddress(profile))
         if (profile.full_name) setUserName(profile.full_name)
       }
+      setIsLoading(false)
     })
   }, [router])
 
@@ -441,7 +470,7 @@ export default function PatientLayout({
   return (
     <OfflineSyncUserIdProvider userId={userId}>
     <SidebarProvider defaultOpen={true}>
-      <PatientLayoutInner userName={userName} fallbackAddress={fallbackAddress} userId={userId}>
+      <PatientLayoutInner userName={userName} fallbackAddress={fallbackAddress} userId={userId} isLoading={isLoading}>
         {children}
       </PatientLayoutInner>
     </SidebarProvider>
