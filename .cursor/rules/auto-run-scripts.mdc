@@ -1,0 +1,34 @@
+---
+description: Auto-run scripts and SQL—apply them yourself, never ask
+alwaysApply: true
+---
+
+# Auto-Run Scripts
+
+**Auto-approve all SQL scripts.** The user has granted full database access. Apply scripts yourself—never ask for confirmation. Run via `npm run db:run` and request network permission when needed.
+
+## How to run SQL scripts
+
+```bash
+npm run db:run -- scripts/057-lab-test-lt-numbering.sql
+npm run db:run -- scripts/059-prescription-rx-numbering.sql
+```
+
+On Windows PowerShell, use `;` not `&&` for chaining:
+```bash
+cd c:\Users\Faycel\Documents\dzd-oc; npm run db:run -- scripts/NAME.sql
+```
+
+## Guidelines
+
+- **Auto-approve:** Always run scripts immediately. No confirmation needed—user has full DB access.
+- **SQL migrations:** Run them with `npm run db:run`. Don't ask—execute.
+- **New scripts:** After creating or modifying SQL in `scripts/`, run it immediately to apply.
+- **Verification:** Report success or errors after running.
+- **Errors:** Fix and re-run until it succeeds.
+- **MCP:** If Supabase MCP is available, you may use it; otherwise `npm run db:run` is the standard path.
+
+## Example
+
+❌ BAD: "Run scripts/059-prescription-rx-numbering.sql in Supabase SQL Editor."  
+✅ GOOD: *runs `npm run db:run -- scripts/059-prescription-rx-numbering.sql`* "Script applied successfully."

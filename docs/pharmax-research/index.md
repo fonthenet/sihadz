@@ -1,0 +1,2 @@
+﻿# Transcript Index (Inabex Solutions)
+

@@ -1,0 +1,36 @@
+# Sign Out Button: Red Highlighted Everywhere
+
+## Rule
+
+**All Sign Out buttons across the platform must use the shared `SignOutButton` component** with consistent red styling (text-destructive, bg-destructive/10, hover:bg-destructive/15).
+
+## Component
+
+- **Path:** `components/sign-out-button.tsx`
+- **Variants:** `sidebar` (full button with label) | `icon` (icon-only for headers)
+
+## Usage
+
+```tsx
+import { SignOutButton } from '@/components/sign-out-button'
+
+// Sidebar footer (patient, pro, nurse, etc.)
+<SignOutButton onClick={handleSignOut} label="Sign Out" className="flex-1" />
+
+// Header icon button
+<SignOutButton variant="icon" onClick={onSignOut} label="Sign Out" />
+```
+
+## Where It Applies
+
+- Patient dashboard sidebar
+- Professional dashboard sidebar (doctor, nurse, pharmacy, clinic, laboratory, ambulance)
+- Super-admin sidebar
+- Header dropdown and mobile menu (use `text-destructive bg-destructive/10` for consistency)
+- Any new dashboard or layout added in the future
+
+## Do Not
+
+- Use raw `Button` with `LogOut` icon for Sign Out
+- Use `text-muted-foreground hover:text-destructive` for Sign Out
+- Create custom Sign Out styling—use the shared component

@@ -1,0 +1,78 @@
+# Prevent Double Submission
+
+## Rule
+
+**All buttons that trigger API requests (submit, confirm, save, etc.) MUST prevent double submission.**
+
+Double-clicks or rapid taps can send duplicate requests (e.g. two orders, two confirmations).
+
+## Implementation
+
+### 1. Submit / Create actions (orders, forms)
+
+```tsx
+const [submitting, setSubmitting] = useState(false)
+const submittingRef = useRef(false)
+
+async function handleSubmit() {
+  if (submittingRef.current) return
+  submittingRef.current = true
+  setSubmitting(true)
+  try {
+    await fetch(...)
+    // success
+  } finally {
+    submittingRef.current = false
+    setSubmitting(false)
+  }
+}
+
+<Button onClick={handleSubmit} disabled={submitting}>
+  {submitting ? 'Submitting...' : 'Submit'}
+</Button>
+```
+
+Use a **ref** for the synchronous guard (blocks rapid double-clicks before state updates).
+
+### 2. List item actions (confirm, reject, etc.)
+
+```tsx
+const [actingId, setActingId] = useState<string | null>(null)
+
+async function handleAction(id: string) {
+  if (actingId === id) return
+  setActingId(id)
+  try {
+    await fetch(...)
+  } finally {
+    setActingId(null)
+  }
+}
+
+<Button onClick={() => handleAction(item.id)} disabled={actingId === item.id}>
+  {actingId === item.id ? <Spinner /> : 'Confirm'}
+</Button>
+```
+
+### 3. Reusable hook
+
+Use `useSubmitGuard` from `@/hooks/use-submit-guard`:
+
+```tsx
+const [submitOrder, isSubmitting] = useSubmitGuard(async () => {
+  await fetch('/api/orders', { method: 'POST', ... })
+})
+<Button onClick={submitOrder} disabled={isSubmitting}>Submit</Button>
+```
+
+## Where to Apply
+
+- Order submission (supplier orders, purchase orders, etc.)
+- Form submissions (settings, profile, etc.)
+- Confirm/Reject/Accept buttons
+- Any button that triggers a mutating API call
+
+## Do NOT
+
+- Rely only on `disabled={isSubmitting}` without a ref guard (state updates are async)
+- Forget to reset the guard in `finally` (including on error)

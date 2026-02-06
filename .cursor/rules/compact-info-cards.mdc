@@ -1,0 +1,33 @@
+# Compact Info Cards — Site-Wide Pattern
+
+## Rule
+
+**Use the compact InfoCard pattern for all info display cards across the website.** Avoid verbose layouts with large padding, big boxes, or excessive spacing.
+
+## InfoCard Component
+
+- **Location:** `components/ui/info-card.tsx`
+- **Usage:** For label-value info displays (Patient Info, Appointment Details, etc.)
+- **Props:** `title`, `icon`, `items` (array of `{ label, value, icon? }`), `accent` (teal|slate|amber|blue)
+
+## Compact Styling Guidelines
+
+1. **Card headers:** `py-3 px-4` (not p-5/p-6), `text-sm font-semibold`
+2. **Info grids:** `grid-cols-2 sm:grid-cols-4`, `gap-x-4 gap-y-3` (not gap-4)
+3. **Labels:** `text-[11px] font-medium uppercase tracking-wider` (not text-xs)
+4. **Values:** `text-sm font-medium` (not text-base)
+5. **Section spacing:** `space-y-3` (not space-y-4)
+6. **Card padding:** `py-3 px-4` or `pt-4 px-4 pb-4`
+
+## When to Use InfoCard
+
+- Patient/contact information
+- Appointment details (date, time, visit type)
+- Order/prescription summaries
+- Provider info (doctor, clinic, pharmacy)
+
+## When to Use Compact Card (not InfoCard)
+
+- Form sections: keep forms readable, use `space-y-3` and `text-sm` inputs
+- Lists/tables: use compact rows
+- Alerts: keep prominent but reduce padding to `p-3`

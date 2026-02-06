@@ -1,0 +1,1 @@
+SELECT count(*) as total FROM professionals;

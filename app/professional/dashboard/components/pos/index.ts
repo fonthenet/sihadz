@@ -1,0 +1,6 @@
+export { default as POSTerminal } from './pos-terminal'
+export { default as POSUnified } from './pos-unified'
+export { default as CashManagement } from './cash-management'
+export { default as WarehouseManagement } from './warehouse-management'
+export { default as PurchaseOrders } from './purchase-orders'
+export { default as OrdersSection } from './orders-section'

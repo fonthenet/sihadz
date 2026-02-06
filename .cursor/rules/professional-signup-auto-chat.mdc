@@ -1,0 +1,68 @@
+# Professional Signup: Auto-Create Profile + Chat Access
+
+## Rule
+
+**When a professional signs up, they MUST automatically have:**
+1. A **profile** created in the `profiles` table (using their `business_name` as display name)
+2. **Chat settings** with FULL ACCESS in `chat_user_settings` (green = ready to chat)
+
+This applies to ALL professional types: doctor, pharmacy, clinic, laboratory, nurse, ambulance, pharma_supplier, equipment_supplier.
+
+## How It Works (Database Triggers)
+
+### 1. Auth Signup Trigger (`on_auth_user_created`)
+- Fires when ANY user signs up via Supabase Auth
+- Creates initial profile in `profiles` table
+- Uses email prefix as default name
+
+### 2. Professional Created Trigger (`on_professional_insert`)
+- Fires when professional record is created
+- Updates profile with `business_name` as display name
+- Creates `chat_user_settings` with:
+  - `accepting_new_chats = TRUE`
+  - `accept_from_patients = TRUE`
+  - `accept_from_providers = TRUE`
+
+### 3. Professional Auth Linked Trigger (`on_professional_auth_linked`)
+- Fires when `auth_user_id` is added/changed on professional
+- Same behavior as insert trigger
+
+### 4. Business Name Sync Trigger (`sync_profile_on_business_name_change`)
+- Keeps `profiles.full_name` in sync with `professionals.business_name`
+
+## Database Tables Involved
+
+| Table | Purpose |
+|-------|---------|
+| `auth.users` | Supabase Auth - the "account" |
+| `profiles` | User identity for chat/display (id = auth.users.id) |
+| `professionals` | Business info (auth_user_id links to auth.users.id) |
+| `chat_user_settings` | Controls who can message them |
+
+## Default Chat Settings for Professionals
+
+```sql
+accepting_new_chats = TRUE      -- Can start new conversations
+accept_from_patients = TRUE     -- Patients can message them
+accept_from_providers = TRUE    -- Other pros can message them
+```
+
+## Verification
+
+After signup, a professional should have:
+1. Row in `profiles` where `id = auth_user_id`
+2. Row in `chat_user_settings` where `user_id = auth_user_id`
+3. All chat flags set to `TRUE`
+
+## Related Scripts
+
+- `scripts/200-complete-signup-flow-fix.sql` - Complete trigger setup + backfill
+- `scripts/195-fix-missing-profiles-for-pros.sql` - Earlier partial fix
+- `scripts/151-chat-settings-all-users.sql` - Chat settings trigger
+
+## Do NOT
+
+- Create professionals without linking `auth_user_id`
+- Skip profile creation for any user type
+- Set chat settings to FALSE for new professionals
+- Assume profile exists without checking

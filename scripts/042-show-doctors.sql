@@ -1,0 +1,1 @@
+SELECT id, email, business_name, type, status, is_active FROM professionals WHERE type = 'doctor' ORDER BY created_at DESC LIMIT 20;

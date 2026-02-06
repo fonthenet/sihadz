@@ -1,0 +1,12 @@
+# Dashboard Stat Cards: Alternating Colors
+
+## Rule
+
+**All dashboard stat cards must use the shared alternating color palette** from `lib/dashboard-stat-colors.ts`. Use `getStatCardClasses(index)` and `getStatCardTextLight(index)` with index 0, 1, 2, 3, 4... to cycle through teal → cyan → emerald → violet → amber.
+
+Applies to nurse, doctor, pharmacy, clinic, laboratory, ambulance, patient—all new and old accounts.
+
+## Do Not
+
+- Hardcode gradient classes (e.g. `from-teal-500 to-teal-600`) on stat cards
+- Use different color schemes per dashboard—use the shared palette

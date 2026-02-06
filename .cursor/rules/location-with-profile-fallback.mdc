@@ -1,0 +1,31 @@
+---
+description: Platform-wide location rule - geolocation with profile fallback
+alwaysApply: true
+---
+
+# Location: Near Me with Profile Fallback
+
+## Rule
+
+**When "Near me" / auto-location is used, always follow this flow across the platform (patient and pro):**
+
+1. **Request geolocation** – Browser will prompt user to enable location.
+2. **If granted** – Use device coordinates for distance, search, weather, etc.
+3. **If denied or unavailable** – Fall back to the user's saved address from their profile.
+
+## Fallback Source
+
+- **Patients:** `profiles.address`, `profiles.default_wilaya_code`, `profiles.default_city_id`
+- **Professionals:** `professionals.address_line1`, `professionals.wilaya`, `professionals.commune`
+
+## Implementation
+
+- Use `useLocationWithProfileFallback` hook (booking, dashboards) or `useLocation({ profileFallback })` (search).
+- For inline "Near Me" buttons (clinics, pharmacies): fetch profile when user is logged in; on geolocation error, use `getWilayaByCode(profile.default_wilaya_code).coordinates` for coords.
+- Weather widget: already uses `fallbackAddress` from profile when geolocation is off.
+
+## Files
+
+- `hooks/use-location-with-profile-fallback.ts` – Shared hook for booking flow
+- `hooks/use-location.ts` – Accepts `profileFallback` for search page
+- `components/weather-widget.tsx` – Uses fallbackAddress from layout

@@ -1,0 +1,1 @@
+SELECT id, email, business_name, type, status, is_active, is_verified FROM professionals WHERE type = 'doctor' AND is_active = true;

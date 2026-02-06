@@ -1,0 +1,46 @@
+import { createRequire } from 'module'
+const require = createRequire(import.meta.url)
+
+const withPWA = require('@ducanh2912/next-pwa').default({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: true,
+  skipWaiting: true,
+})
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Allow dev requests from custom domain and local network IPs
+  allowedDevOrigins: ['sihadz.com', '*.sihadz.com', 'www.sihadz.com', '192.168.50.121', 'localhost'],
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    unoptimized: true,
+  },
+  // Static export disabled - DZDoc uses API routes that require a server
+  // For Capacitor, we use server mode (app loads from deployed URL or dev server)
+  // output: 'export',
+  
+  // Turbopack is used by default in Next.js 16 for dev
+  // Empty config to acknowledge we have webpack config for production builds only
+  turbopack: {},
+  
+  // Webpack bundle analyzer (run with ANALYZE=true npm run build)
+  // Note: This only applies to production builds (npm run build), not dev server
+  webpack: (config, { isServer }) => {
+    if (process.env.ANALYZE === 'true') {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          reportFilename: isServer ? '../analyze/server.html' : './analyze/client.html',
+          openAnalyzer: false,
+        })
+      )
+    }
+    return config
+  },
+}
+
+export default withPWA(nextConfig)

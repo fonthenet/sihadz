@@ -1,0 +1,34 @@
+---
+description: Lab request UI pattern—Documents in separate tab, PDF naming, view/download
+alwaysApply: true
+---
+
+# Lab Request UI Pattern
+
+When building or modifying **lab request** views (laboratory dashboard, doctor panel, patient workflow, ticket detail), follow this pattern for consistency across all labs—new, old, and future.
+
+## Documents in Separate Tab
+
+**Lab documents (LabRequestDocumentsAttach) must be in a dedicated "Documents" tab**, not inline in the main content.
+
+- **Laboratory dashboard** (`laboratory-pro-dashboard.tsx`): Details | Documents tabs in request dialog
+- **Ticket detail** (`ticket-detail-view.tsx`): Results | Documents tabs in lab request card
+- **Clinical orders** (`clinical-orders-panel.tsx`): Details | Documents | Messages tabs for lab requests
+- **Lab test workflow** (`lab-test-workflow.tsx`): Overview | Documents tabs
+
+When adding new lab request views, use the same tab pattern.
+
+## PDF Naming and View/Download
+
+- **Filename**: `PatientName_RequestNumber.pdf` (e.g. `Ahmed_Benali_LAB-1734567890-ABCD.pdf`)
+- **View**: In-ticket DocumentViewer with blob URL
+- **Download**: Button with custom filename via `generateLabRequestPdf` from `lib/print-prescription-lab`
+
+## Files to Keep in Sync
+
+- `app/professional/dashboard/components/laboratory-pro-dashboard.tsx`
+- `components/healthcare/ticket-detail-view.tsx`
+- `app/professional/dashboard/components/clinical-orders-panel.tsx`
+- `components/lab-test-workflow.tsx`
+- `components/lab-request-documents-attach.tsx`
+- `lib/print-prescription-lab.ts`

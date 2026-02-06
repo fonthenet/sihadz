@@ -1,0 +1,21 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @media (prefers-color-scheme: light) {
+      .background { fill: #0891B2; }
+      .foreground { fill: white; }
+    }
+    @media (prefers-color-scheme: dark) {
+      .background { fill: #0e7490; }
+      .foreground { fill: white; }
+    }
+  </style>
+  <g clip-path="url(#clip0_sihadz)">
+    <rect class="background" width="180" height="180" rx="37" />
+    <text class="foreground" x="90" y="115" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="48">SihaDZ</text>
+  </g>
+  <defs>
+    <clipPath id="clip0_sihadz">
+      <rect width="180" height="180" rx="37" fill="white" />
+    </clipPath>
+  </defs>
+</svg>

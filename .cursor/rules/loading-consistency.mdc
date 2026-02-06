@@ -1,0 +1,40 @@
+---
+description: Unified loading indicators across the entire website
+globs: 
+alwaysApply: true
+---
+
+# Loading Consistency
+
+## Rule
+
+**Use the unified border-circle loading components from `@/components/ui/page-loading` for all loading states.** Same style as patient My Appointments — applied everywhere.
+
+## Components
+
+| Component | Use case | Placement |
+|-----------|----------|-----------|
+| `FullPageLoading` | Route transitions (`loading.tsx`), Suspense fallbacks | Full screen, centered |
+| `SectionLoading` | Data fetch within a page (card, section, main content) | Centered in section, with optional label |
+| `LoadingSpinner` | Buttons, inline (size: `sm` \| `md` \| `lg`) | Inline with content |
+| `PageLoadingSkeleton` | List/card pages (search, clinics, pharmacies, labs) | Full page layout |
+
+## Placement
+
+- **Full-page**: Centered vertically and horizontally, `min-h-screen`
+- **Section**: Centered in container, `min-h-[200px]` or `min-h-[280px]` for dashboard pages
+- **Inline/buttons**: Next to button text, use `className="me-2"` for RTL-safe spacing
+
+## Implementation
+
+- **Route `loading.tsx`**: `export default function Loading() { return <FullPageLoading /> }`
+- **List pages** (search, clinics, labs, pharmacies, nurses): Use `PageLoadingSkeleton`
+- **Detail pages** (doctors/[id], clinics/[id], etc.): Use `SectionLoading` with `label` and `minHeight`
+- **Inline/buttons**: Use `LoadingSpinner` with `size="sm"` for icons, `size="md"` for section headers
+
+## Do Not
+
+- Use raw `Loader2` with `animate-spin` — use `LoadingSpinner` instead
+- Use plain text "Loading..." without a spinner
+- Return `null` from `loading.tsx` — use `FullPageLoading`
+- Mix different spinner styles — all use the border-circle (border-b-2)

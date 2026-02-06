@@ -1,0 +1,64 @@
+---
+description: Prevent infinite reload loops in chat/messages hooks
+alwaysApply: true
+---
+
+# Chat: No Reload Loops
+
+## Problem
+
+Chat hooks (`useThreads`, `useMessages`) have retry logic for handling auth session races. Without proper guards, this creates infinite reload loops for:
+- New accounts with no conversations
+- New threads with no messages yet
+- Empty results that are legitimate (not failures)
+
+## Solution
+
+**Distinguish between "empty result" and "failed load":**
+
+1. Track successful loads with a ref flag (even if result is empty)
+2. Only retry if the load actually failed, not if the result is legitimately empty
+3. Reset the flag when the user changes
+
+## Implementation Pattern
+
+```typescript
+// In useThreads
+const loadedSuccessfullyRef = useRef(false)
+
+// On successful load (even empty):
+loadedSuccessfullyRef.current = true
+
+// In retry effects, check the flag:
+if (loadedSuccessfullyRef.current) return // Don't retry - load succeeded with empty result
+```
+
+```typescript
+// In useMessages (track per-thread)
+const loadedSuccessfullyRef = useRef<Record<string, boolean>>({})
+
+// On successful load (even empty):
+if (threadId) loadedSuccessfullyRef.current[threadId] = true
+
+// In retry effects:
+if (loadedSuccessfullyRef.current[threadId]) return
+```
+
+## Where This Applies
+
+- `lib/chat/use-chat-hooks.ts` — useThreads, useMessages hooks
+- Any effect that retries when threads/messages are empty
+- Auth state change listeners
+- Visibility change handlers
+- Tab focus handlers
+
+## Do NOT
+
+- Retry loading when `loadedSuccessfullyRef.current` is true
+- Treat empty result as failed load
+- Add new retry effects without checking the success flag
+
+## Related Files
+
+- `lib/chat/use-chat-hooks.ts` — Main chat hooks
+- `contexts/chat-context.tsx` — Chat context provider

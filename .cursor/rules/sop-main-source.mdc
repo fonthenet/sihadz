@@ -1,0 +1,22 @@
+---
+description: Use SOP as main source of truth for building and fixing the platform
+alwaysApply: true
+---
+
+# SOP as Main Source of Truth
+
+## Rule
+
+**Use the Multi-Service Health Platform SOP as your main source of info when building and fixing this platform.**
+
+- **Where the SOP lives:** `app/dashboard/sop/initial-sop-data.ts` (editable SOP content). The full v6 reference includes Sections 1–21: Executive Summary, Provider Onboarding, Availability & Time-Off, Ticket System, Payment & Wallet, Cancellation/Rescheduling, Membership, Doctor Tools, Pharmacy Inventory, Learning Center, Clinical Coding & AI, System Feedback, Consent & Privacy, Disputes, Security & Audit, AI Integrations, Failure/Timeout/Escalation, Implementation Roadmap, Development Work Plan, **Platform-Wide Communication (Section 21: Threads vs Chat)**.
+- **When implementing features:** Check the SOP first. Follow its flows, states, tables, and wording (e.g. ticket states, deposit rules, cancellation timeframes, timeout tables, chat vs threads).
+- **When something doesn’t fit or is wrong:** Use your best logic: prefer the SOP’s intent, then align code/data/UX to it. If the SOP is ambiguous, choose the option that matches the rest of the SOP (e.g. Algeria-localized, deposit-based revenue, reschedule-first, audit trail).
+- **When fixing bugs or inconsistencies:** Resolve them in a way that matches the SOP (e.g. refund rules, ticket state transitions, who can chat with whom, availability behavior).
+
+## Short Reference
+
+- **Revenue:** Deposit-based (300–500 DZD); wallet top-up (BaridiMob, CCP, Cash); refunds by timeframe (48h+ = 100%, 24–48h = 50%, &lt;24h = 0%).
+- **Tickets:** Atomic unit of care; states from CREATED → DEPOSIT_PAID → ACCEPTED → … → COMPLETED/CLOSED; multiple orders per ticket; orders never edited after send.
+- **Communication:** THREADS = scoped to ticket/order, audited, no discovery. CHAT = standalone, discoverable, availability controls; Section 21 defines participants, features, and implementation.
+- **Language:** French (primary), Arabic, English where relevant; Algeria-localized (wilayas, CNAS, local payments).

@@ -1,0 +1,68 @@
+---
+description: Ensure chat always displays proper contact names, never "Contact"
+alwaysApply: true
+---
+
+# Chat: Contact Names Must Always Display
+
+## Problem
+
+Chat contacts sometimes show as "Contact" or "Unknown User" instead of the actual name. This happens when:
+1. Profile has no `full_name` set
+2. RLS policy blocks viewing other users' profiles
+3. Hydration fails to fetch profile data
+
+## Solution
+
+### 1. RLS Policy - Profiles Must Be Viewable
+
+The `profiles` table MUST have a SELECT policy that allows all authenticated users to view all profiles:
+
+```sql
+CREATE POLICY "profiles_select_all" ON public.profiles
+  FOR SELECT
+  USING (true);
+```
+
+**Script:** `scripts/098-fix-profiles-rls-for-chat.sql`
+
+### 2. Hydration Always Uses Email Fallback
+
+The `hydrateProfilesByUserId` and `hydrateSendersById` functions in `lib/chat/chat-error-and-hydrate.ts` MUST:
+- Fetch profiles with `select('*')` to get all fields including email
+- Use email as fallback when full_name is empty
+- Never return profiles with empty display names
+
+```typescript
+function getDisplayName(profile: Record<string, unknown> | null): string {
+  if (!profile) return ''
+  const fullName = ((profile.full_name as string) || '').trim()
+  if (fullName) return fullName
+  const email = ((profile.email as string) || '').trim()
+  if (email) return email.split('@')[0]
+  return ''
+}
+```
+
+### 3. Database Backfill
+
+Profiles with empty `full_name` should be backfilled using email:
+
+```sql
+UPDATE public.profiles
+SET full_name = SPLIT_PART(email, '@', 1)
+WHERE (full_name IS NULL OR TRIM(full_name) = '')
+  AND email IS NOT NULL AND TRIM(email) != '';
+```
+
+## When Adding New User Types or Chat Features
+
+1. Ensure hydration functions handle the new user type
+2. Verify RLS policies allow viewing profiles
+3. Test with new accounts that have minimal profile data
+
+## Files
+
+- `lib/chat/chat-error-and-hydrate.ts` — Hydration with email fallback
+- `lib/chat/use-chat-hooks.ts` — Thread/message loading
+- `scripts/098-fix-profiles-rls-for-chat.sql` — RLS fix and backfill

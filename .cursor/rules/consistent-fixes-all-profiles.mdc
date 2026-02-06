@@ -1,0 +1,39 @@
+---
+description: Fixes and features must apply consistently across all profiles of the same type
+alwaysApply: true
+---
+
+# Consistent Fixes Across All Profiles
+
+When implementing fixes or features, ensure they apply to **all profiles** of the same type—not just one account. **All accounts** = old, new, future, pro, and patients.
+
+## Professional Profiles
+
+If a fix or feature applies to one pro profile, it must apply to **all pro profiles** when:
+- It's a default setting or behavior
+- It's a shared feature (availability, messaging, dashboard UI, etc.)
+- It's a style or layout change
+- It's a bug fix in shared components
+
+## Patient Profiles
+
+If a fix applies to one patient, it must apply to **all patients** (old and new) when:
+- It's a messaging fix
+- It's a style or UI change
+- It's a settings change
+- It's a default behavior
+
+## Implementation
+
+- **Database fixes:** Update ALL rows, not just one user's data
+- **Code fixes:** Fix the shared component/logic, not a per-user workaround
+- **Migrations:** Apply to existing data, not just new records
+- **Defaults:** Set at the system/schema level, not per-account
+
+## Example
+
+❌ BAD: Fix message styling for user X only  
+✅ GOOD: Fix message styling in the shared component so all users benefit
+
+❌ BAD: Add default setting for new accounts only  
+✅ GOOD: Migrate existing accounts + set default for new ones

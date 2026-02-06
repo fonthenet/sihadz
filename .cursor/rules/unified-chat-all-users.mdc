@@ -1,0 +1,138 @@
+---
+description: Chat/messages must be identical for all users (patients and professionals)
+alwaysApply: true
+---
+
+# Unified Chat for All Users
+
+## Rule
+
+**The chat/messages experience must be identical for every user** — patients and all professional types (doctor, pharmacy, clinic, laboratory, ambulance, nurse). Apply the same layout to all existing and new accounts.
+
+## Source of Truth
+
+**The patient chat layout is the reference.** When the patient messages page works correctly, that is the canonical implementation. All other chat surfaces must match it exactly.
+
+## Critical Layout Structure
+
+### Dashboard Layout (MUST follow this pattern)
+
+Both patient and professional layouts MUST use this exact structure:
+
+```jsx
+<SidebarProvider defaultOpen={true}>
+  <>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar ... />
+    </div>
+    <main className="flex-1 w-full min-w-0 max-w-none px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 xl:px-10">
+      {skipWrapper ? (
+        children
+      ) : (
+        <div className="min-h-full bg-slate-50 dark:bg-slate-950 rounded-lg py-4 sm:py-6 px-0">
+          {children}
+        </div>
+      )}
+    </main>
+  </>
+</SidebarProvider>
+```
+
+**Key points:**
+- Sidebar div and main are **siblings** inside a React Fragment (`<>`)
+- This allows the main content to take full width
+- Do NOT nest main inside the flex container with the sidebar
+- **Tinted background wrapper**: Most pages get wrapped in a `bg-slate-50 dark:bg-slate-950 rounded-lg` container for visual separation
+- **Edge-to-edge layout**: Wrapper uses `py-4 sm:py-6 px-0` (zero horizontal padding) for cards to extend to the edges
+- **Skip wrapper for**: Main dashboard pages (have their own wrappers), messages pages (full-height chat)
+
+### Skip Wrapper Logic
+
+```jsx
+// Patient layout
+const isFullHeightPage = pathname?.includes('/messages') || pathname?.includes('/chat')
+
+// Professional layout
+const isMainDashboard = pathname === '/professional/dashboard' || pathname === '/professional/dashboard/'
+const isMessagesPage = searchParams.get('section') === 'messages' || pathname?.includes('/messages')
+const skipWrapper = isMainDashboard || isMessagesPage
+```
+
+### Messages Section Rendering (Professional Dashboards)
+
+Professional dashboard components MUST use an **early return** for messages:
+
+```jsx
+// At the start of the component's return, BEFORE any other JSX:
+if (activeSection === 'messages' && authUserId) {
+  return (
+    <div className="w-full min-w-0 h-[calc(100vh-5rem)] min-h-[400px] flex flex-col">
+      <EmbeddedChat
+        userId={authUserId}
+        userName={...}
+        userAvatar={...}
+        userType={...}
+      />
+    </div>
+  )
+}
+
+// Then the normal dashboard return for other sections
+return (
+  <div className="...">
+    {/* Dashboard content for non-messages sections */}
+  </div>
+)
+```
+
+**Why early return:**
+- Messages renders WITHOUT extra dashboard wrappers
+- Layout provides padding, EmbeddedChat provides the rounded card
+- Matches patient messages page exactly
+
+## Reference Layout (Apply to All)
+
+- **Left sidebar**: App navigation with Messages highlighted when active
+- **Main content**: Full-width chat with two panels:
+  - **Left panel (320px)**: Conversations list with header, search, filters
+  - **Right panel (flex-1)**: Chat display — MUST take majority of horizontal space
+- **Card appearance**: `rounded-xl border bg-white border-slate-200` (from EmbeddedChat)
+- **Separation**: Layout padding creates visual separation between chat card and background
+
+## Requirements
+
+1. **Same component**: Use `EmbeddedChat` from `@/components/chat-widget/embedded-chat` everywhere
+2. **Same wrapper**: `h-[calc(100vh-5rem)] min-h-[400px] flex flex-col`
+3. **No extra wrappers**: Messages section returns EmbeddedChat directly (early return pattern)
+4. **Full width**: Right panel must fill available space, not be cramped
+5. **Visible card border**: EmbeddedChat default styling shows rounded border
+
+## Do NOT
+
+- Nest main element inside the flex container with sidebar
+- Add extra wrapper divs around EmbeddedChat in messages section
+- Use `className="rounded-none border-0"` on EmbeddedChat (removes card appearance)
+- Add `p-0` or remove padding when messages is active
+- Constrain chat width with max-width or container classes
+- Use negative margins (e.g., `-m-4 sm:-m-6`) on dashboard containers — this causes content to touch edges and get cropped
+
+## Files to Keep in Sync
+
+**Layouts:**
+- `app/(patient)/layout.tsx` — patient layout (reference)
+- `app/professional/dashboard/layout.tsx` — professional layout (must match patient)
+
+**Messages pages:**
+- `app/(patient)/dashboard/messages/page.tsx` — patient messages (reference)
+- `app/professional/dashboard/messages/page.tsx` — professional messages page
+
+**Dashboard components (all must use early return for messages):**
+- `app/professional/dashboard/components/doctor-pro-dashboard.tsx`
+- `app/professional/dashboard/components/nurse-pro-dashboard.tsx`
+- `app/professional/dashboard/components/pharmacy-pro-dashboard.tsx`
+- `app/professional/dashboard/components/clinic-pro-dashboard.tsx`
+- `app/professional/dashboard/components/laboratory-pro-dashboard.tsx`
+- `app/professional/dashboard/components/ambulance-dashboard.tsx`
+
+**Shared component:**
+- `components/chat-widget/embedded-chat.tsx` — shared chat widget

@@ -1,0 +1,49 @@
+---
+description: Mobile-friendly patient table columns—compact date/time on small screens
+alwaysApply: true
+---
+
+# Mobile Patient Table Columns
+
+When building or modifying **patient tables** in professional dashboards (doctor, lab, nurse, clinic—old, new, future), use this pattern for "Last visit" / "Last request" columns so they display correctly on mobile.
+
+## Pattern
+
+**On mobile (< md):** Show only date and time (compact, no overflow).
+
+**On desktop (md+):** Show full details (date, time, type, notes, fee, doctor name, status, etc.).
+
+## Implementation
+
+```tsx
+<td className="p-4">
+  <div className="text-sm">
+    {lastVisitOrRequest ? (
+      <>
+        <p className="font-medium md:hidden">
+          {new Date(date).toLocaleDateString()} {time && String(time).slice(0, 5)}
+        </p>
+        <div className="hidden md:block">
+          <p className="font-medium">
+            {new Date(date).toLocaleDateString()} {time && String(time).slice(0, 5)}
+          </p>
+          {/* Full details: type, notes, fee, doctor, status, etc. */}
+        </div>
+      </>
+    ) : (
+      <span className="text-muted-foreground">—</span>
+    )}
+  </div>
+</td>
+```
+
+## Files to Keep in Sync
+
+- `app/professional/dashboard/components/doctor-pro-dashboard.tsx` — Last visit
+- `app/professional/dashboard/components/laboratory-pro-dashboard.tsx` — Last request
+- Any new professional dashboard with patient tables
+
+## Do NOT
+
+- Show full details on mobile (causes overflow, cramped layout)
+- Use `truncate` or `max-w` as the only mobile fix—use responsive visibility instead

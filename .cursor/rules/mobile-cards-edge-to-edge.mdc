@@ -1,0 +1,46 @@
+---
+description: Mobile dashboard layout for all profiles (pro, patient, new, old, future)
+alwaysApply: true
+---
+
+# Mobile Dashboard Layout — All Profiles
+
+## Rule
+
+**Apply to ALL dashboard pages for mobile viewing** — professional, patient, new, old, and future. Every dashboard page must follow these patterns.
+
+## 1. Cards
+
+- **Mobile**: `rounded-none` — cards touch left/right edges
+- **Desktop (sm+)**: `rounded-xl` — use `rounded-none sm:rounded-xl`
+- **Width**: `w-full min-w-0` — no max-width on card containers
+
+## 2. Page Containers
+
+- **No horizontal padding** on main wrapper — use `px-0`
+- **Headers**: Add `px-4 sm:px-6` where needed
+- **No** `container mx-auto` or `max-w-*` on mobile — use `max-w-none sm:max-w-*` if needed
+
+## 3. Dialogs (Lab Builder, Prescription, etc.)
+
+- **Width**: `min(preset, 95vw)` — dialogs fit on mobile
+- **Content**: Full width, `p-0` on DialogContent, padding only on header
+- **Cards inside dialogs**: `w-full min-w-0`
+
+## 4. DashboardPageWrapper
+
+- Use `max-w-none sm:max-w-*` so mobile gets full width
+
+## Do NOT
+
+- Use `rounded-xl` alone on cards — use `rounded-none sm:rounded-xl`
+- Add fixed `width: 1100px` or `min-width: 700px` to dialogs
+- Add `p-3` or extra padding to compact sections (e.g. Context for AI)
+
+## Scope
+
+All dashboard pages: appointments, tickets, documents, prescriptions, lab tests, orders, wallet, settings, SOP, data-manager, verify-data — **pro and patient, new, old, and future**.
+
+See also: `consistent-fixes-all-profiles.mdc` — fixes apply to all accounts.
+
+**Never change this rule.** Mobile-first for all dashboards.

@@ -1,0 +1,17 @@
+Email,Full Name,Role,Password
+patient1@algeriamed.test,Ahmed Benali,Patient,Test123456!
+patient2@algeriamed.test,Fatima Boudiaf,Patient,Test123456!
+patient3@algeriamed.test,Karim Hadj,Patient,Test123456!
+patient4@algeriamed.test,Amina Zerrouki,Patient,Test123456!
+patient5@algeriamed.test,Youcef Messaoud,Patient,Test123456!
+doctor1@algeriamed.test,Dr. Yacine Amrani,Doctor - Cardiology,Test123456!
+doctor2@algeriamed.test,Dr. Samia Khelifi,Doctor - Pediatrics,Test123456!
+doctor3@algeriamed.test,Dr. Rachid Benkhaled,Doctor - General Medicine,Test123456!
+doctor4@algeriamed.test,Dr. Leila Mammeri,Doctor - Gynecology,Test123456!
+doctor5@algeriamed.test,Dr. Omar Zeroual,Doctor - Dermatology,Test123456!
+clinic1@algeriamed.test,Clinique El Shifa,Clinic,Test123456!
+clinic2@algeriamed.test,Clinique Essalam,Clinic,Test123456!
+pharmacy1@algeriamed.test,Pharmacie El Nour,Pharmacy,Test123456!
+pharmacy2@algeriamed.test,Pharmacie Centrale,Pharmacy,Test123456!
+lab1@algeriamed.test,Laboratoire Central,Laboratory,Test123456!
+lab2@algeriamed.test,Laboratoire Ibn Sina,Laboratory,Test123456!

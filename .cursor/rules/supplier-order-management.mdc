@@ -1,0 +1,91 @@
+# Supplier Order Management
+
+## Rule
+
+**All supplier and buyer order views must have consistent sorting, grouping, and filtering features.** These apply to all accounts (old, new, future).
+
+## Features
+
+### 1. Sorting Options
+Orders can be sorted by:
+- **Date** (default, newest first)
+- **Total** (highest/lowest amount)
+- **Buyer/Supplier name** (alphabetical)
+- **Status** (workflow order)
+
+Toggle ascending/descending with a single click.
+
+### 2. Grouping Options
+Orders can be grouped by:
+- **None** (flat list)
+- **Buyer/Supplier** (shows grouped with subtotals)
+- **Date** (groups by day)
+- **Status** (groups by workflow stage)
+
+Each group shows count and total amount.
+
+### 3. Date Range Filtering
+- All Time
+- Today
+- Last 7 Days
+- Last 30 Days
+- Custom date range (API supports `date_from`, `date_to`)
+
+### 4. Bulk Actions (Supplier Dashboard)
+- Toggle bulk mode with switch
+- Select individual orders or "Select All"
+- Actions: Confirm All, Ship All, Mark Paid
+
+## API Parameters
+
+Both `/api/supplier/orders` and `/api/suppliers/orders` support:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Comma-separated status values |
+| `search` | string | Search by order number |
+| `sort_by` | string | `created_at`, `total`, `status` |
+| `sort_dir` | string | `asc` or `desc` |
+| `date_range` | string | `today`, `week`, `month` |
+| `date_from` | ISO date | Custom start date |
+| `date_to` | ISO date | Custom end date |
+| `buyer_id` | UUID | Filter by buyer (supplier API) |
+| `supplier_id` | UUID | Filter by supplier (buyer API) |
+
+## Files
+
+**Supplier-side:**
+- `app/professional/dashboard/components/supplier-dashboard.tsx` - Main supplier dashboard
+- `app/api/supplier/orders/route.ts` - Supplier orders API
+
+**Buyer-side:**
+- `app/professional/dashboard/components/suppliers-section.tsx` - Buyer suppliers section
+- `app/api/suppliers/orders/route.ts` - Buyer orders API
+
+## UI Components Used
+
+- `Select` for dropdowns (sort, group, date range, status)
+- `Switch` for bulk mode toggle
+- `Badge` with group counts and subtotals
+- `Card` for group headers with `bg-muted/50`
+- `Layers` icon for group headers
+
+## State Variables
+
+```typescript
+const [orderSortBy, setOrderSortBy] = useState<'date' | 'total' | 'buyer' | 'status'>('date')
+const [orderSortDir, setOrderSortDir] = useState<'asc' | 'desc'>('desc')
+const [orderGroupBy, setOrderGroupBy] = useState<'none' | 'buyer' | 'date' | 'status'>('none')
+const [orderDateRange, setOrderDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
+const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set())
+const [showBulkActions, setShowBulkActions] = useState(false)
+```
+
+## Consistency
+
+When adding new order views or modifying existing ones, ensure:
+1. Same sorting options available
+2. Same grouping options available
+3. Same date filtering options
+4. UI components match existing pattern
+5. API supports all filter/sort parameters

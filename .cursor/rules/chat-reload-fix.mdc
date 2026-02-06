@@ -1,0 +1,23 @@
+# Chat: Prevent Reload Loops for New/Empty Accounts
+
+## Rule
+
+**When loading threads or messages, mark `loadedSuccessfullyRef = true` in ALL code paths that represent valid results**—including empty results. New accounts have no conversations; new threads have no messages. These are valid states, not failures.
+
+## The Bug
+
+If you return early with empty data without setting `loadedSuccessfullyRef`, the retry logic keeps firing (auth state change, visibility change, timeout retry). Result: infinite or repeated reloading for every new account.
+
+## Fix Pattern
+
+In `lib/chat/use-chat-hooks.ts`:
+
+- **useThreads**: Set `loadedSuccessfullyRef.current = true` before returning when:
+  - `memberThreads` is empty (new account, no conversations)
+  - `threadsData` is empty
+- **useMessages**: Set `loadedSuccessfullyRef.current[threadId] = true` when load completes successfully (including empty array)
+
+## Do NOT set loadedSuccessfully when:
+
+- Auth session is missing (we want to retry when session becomes available)
+- An error is thrown (we want to allow retries on failure)

@@ -1,0 +1,8 @@
+export { default as InventoryDashboard } from './inventory-dashboard'
+export { default as ProductCatalog } from './product-catalog'
+export { default as StockLevels } from './stock-levels'
+export { default as StockAdjustment } from './stock-adjustment'
+export { default as ExpiryManagement } from './expiry-management'
+export { default as TransactionHistory } from './transaction-history'
+export { default as SupplierManagement } from './supplier-management'
+export { default as IntegrationsPanel } from './integrations-panel'

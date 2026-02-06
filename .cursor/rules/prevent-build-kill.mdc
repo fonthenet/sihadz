@@ -1,0 +1,116 @@
+# Prevent Build Process Killing
+
+## Critical Rule
+
+**NEVER use output limiters on build commands. They KILL the build process and cause data loss.**
+
+## The Problem
+
+When you pipe build output to `Select-Object -First N` or `head -N`, the consumer process exits after N lines. This closes the pipe, sending a SIGPIPE signal to npm, which **kills the build process mid-execution**. This causes:
+
+- ❌ Incomplete builds
+- ❌ Corrupted build artifacts
+- ❌ Data loss
+- ❌ Endless loops (if retried automatically)
+- ❌ System freezing
+
+## Forbidden Patterns
+
+**These commands WILL kill your build:**
+
+```powershell
+# ❌ NEVER DO THIS
+npm run build 2>&1 | Select-Object -First 50
+npm run build 2>&1 | Select-Object -Head 100
+npm run build | Select-Object -First 50
+```
+
+```bash
+# ❌ NEVER DO THIS
+npm run build 2>&1 | head -50
+npm run build | head -80
+```
+
+## Safe Alternatives
+
+### Option 1: Normal Build (Recommended)
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build
+```
+- Full output in terminal
+- Build completes normally
+- No data loss
+
+### Option 2: Safe Build Script (With Logging)
+```powershell
+npm run build:safe
+```
+- Live output in terminal
+- Also saves to `build.log`
+- Build completes normally
+
+### Option 3: Quiet Build (Log File Only)
+```powershell
+npm run build:quiet
+```
+- No terminal output
+- Saves to `build.log`
+- Check file after completion
+
+### Option 4: Manual Logging
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build 2>&1 | Tee-Object -FilePath build.log
+```
+- Live output + log file
+- Build completes normally
+
+### Option 5: Redirect to File
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build > build.log 2>&1
+```
+- No live output
+- Check `build.log` after
+
+## Why This Happens
+
+1. `Select-Object -First 50` reads 50 lines
+2. After 50 lines, it exits (closes stdout)
+3. npm's stdout pipe breaks (SIGPIPE)
+4. npm receives broken pipe signal
+5. npm terminates the build process
+6. Build artifacts are incomplete/corrupted
+7. If retried, same thing happens → endless loop
+
+## Detection
+
+If you see:
+- Build stopping unexpectedly
+- "Broken pipe" errors
+- Incomplete `.next` directory
+- Endless build retries
+- System freezing
+
+**You're using a dangerous pattern!**
+
+## Solution
+
+1. **Stop using** `Select-Object -First` or `head` on builds
+2. **Use** `npm run build:safe` instead
+3. **Check** `build.log` for full output if needed
+4. **Never** pipe long-running processes to line limiters
+
+## Enforcement
+
+- Use `npm run build:safe` for all builds
+- Never pipe build output to limiters
+- If you need limited output, use `Tee-Object` to a file, then view the file
+
+## Quick Reference
+
+| Command | Output | Log File | Safe? |
+|---------|--------|----------|-------|
+| `npm run build` | ✅ Live | ❌ No | ✅ Yes |
+| `npm run build:safe` | ✅ Live | ✅ Yes | ✅ Yes |
+| `npm run build:quiet` | ❌ No | ✅ Yes | ✅ Yes |
+| `npm run build \| Select-Object -First 50` | ⚠️ Limited | ❌ No | ❌ **KILLS BUILD** |
+| `npm run build 2>&1 \| Tee-Object -FilePath build.log` | ✅ Live | ✅ Yes | ✅ Yes |

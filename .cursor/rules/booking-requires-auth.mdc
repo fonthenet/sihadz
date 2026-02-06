@@ -1,0 +1,14 @@
+---
+description: Booking requires sign-in/sign-up; no booking without authentication
+alwaysApply: true
+---
+
+# Booking Requires Authentication
+
+**Main rule:** Users cannot book an appointment unless they are signed in (or have just signed up).
+
+- **Enforce in the app:** Redirect unauthenticated users to login/signup when they try to access the booking flow (e.g. booking confirm, or any step that leads to creating an appointment). Do not allow guest booking without an account.
+- **API:** Appointment creation endpoints (e.g. `/api/appointments/create`, `/api/appointments/create-with-wallet`) should require authentication when the product rule is "no booking without sign-in". Reject or redirect if the user is not authenticated.
+- **UI:** If the user is not logged in on a booking page, show a clear message and a link/button to sign in or sign up instead of the booking form. Do not offer "book as guest" unless the product explicitly allows it.
+
+When adding or changing booking flows, always respect this rule: **no booking without sign-in**.

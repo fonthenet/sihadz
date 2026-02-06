@@ -1,0 +1,63 @@
+# Database Schema Safety Rules
+
+## Critical Rule: Always Verify Database Schema Before Writing Queries
+
+**Healthcare data visibility bugs are unacceptable.** Before writing or modifying any Supabase query:
+
+### 1. Check Column Existence
+Before using `.select()`, verify columns exist in the actual database:
+```sql
+SELECT column_name FROM information_schema.columns WHERE table_name = 'TABLE_NAME';
+```
+
+### 2. Never Assume Column Names
+- `professional_id` vs `doctor_id` - CHECK which one exists
+- `total_price` vs `total_amount` - CHECK the actual column name
+- `estimated_ready_at` - CHECK if this column was ever created
+
+### 3. Use MCP Tools to Verify Schema
+Always run this before modifying queries:
+```
+CallMcpTool: user-supabase / execute_sql
+Query: SELECT column_name FROM information_schema.columns WHERE table_name = 'prescriptions' ORDER BY ordinal_position;
+```
+
+### 4. Handle Query Errors Explicitly
+Never silently ignore errors:
+```typescript
+// BAD - silent failure
+if (!error && data) { setData(data) }
+
+// GOOD - log and surface errors
+if (error) {
+  console.error('[Component] Query failed:', error)
+  toast({ title: 'Error loading data', description: error.message, variant: 'destructive' })
+  return
+}
+```
+
+### 5. Test All User Roles
+After any data-access change, verify visibility for:
+- [ ] Doctor who created the record
+- [ ] Patient the record belongs to
+- [ ] Pharmacy/Lab assigned to the record
+- [ ] Other doctors (should NOT see it)
+
+### 6. Key Tables Reference
+When unsure, query the schema. Common tables:
+- `appointments`: id, patient_id, doctor_id, status, ...
+- `prescriptions`: id, appointment_id, doctor_id, patient_id, pharmacy_id, medications, status, pharmacy_fulfillment, ...
+- `professionals`: id, auth_user_id, type, business_name, ...
+
+### 7. RLS Bypass for Admin Operations
+When RLS blocks legitimate access, use `createAdminClient()` but always verify user authorization first:
+```typescript
+// 1. Verify user has permission (using regular client with RLS)
+// 2. Then fetch data using admin client
+```
+
+## Why This Matters
+- Patients depend on accurate prescription visibility
+- Pharmacies need to see orders to fulfill them
+- Doctors need to track their prescriptions
+- Silent failures = invisible bugs = potential patient harm

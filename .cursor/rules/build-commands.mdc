@@ -1,0 +1,58 @@
+---
+description: Correct build and terminal commands—avoid pipes that kill long-running processes
+alwaysApply: true
+---
+
+# Build and Terminal Commands
+
+## CRITICAL: NEVER pipe build output to line limiters
+
+**These commands KILL the build** and cause "cancelled" or "spawn EPERM" errors:
+
+❌ BAD (kills build after ~80 lines):
+```powershell
+npm run build 2>&1 | Select-Object -First 80
+npm run build 2>&1 | Select-Object -First 100
+```
+```bash
+npm run build 2>&1 | head -80
+```
+
+**Why:** The consumer (`Select-Object` / `head`) exits after N lines → closes the pipe → npm receives broken pipe → build is killed. This causes repetitive build failures.
+
+## Correct commands (use these instead)
+
+✅ **Run build normally** (let it complete):
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build
+```
+
+✅ **PWA build** (generates service worker for offline app shell - use for deployment):
+```powershell
+npm run build:pwa
+```
+
+✅ **Use safe build script** (recommended - live output + log file):
+```powershell
+npm run build:safe
+```
+
+✅ **Quiet build** (log file only, no terminal output):
+```powershell
+npm run build:quiet
+```
+
+✅ **Capture to file** (build runs to completion):
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build 2>&1 | Tee-Object -FilePath build.log
+```
+
+✅ **Redirect to file** (no live output):
+```powershell
+cd c:\Users\Faycel\Documents\dzd-oc; npm run build > build.log 2>&1
+```
+
+## Windows PowerShell
+
+- Use `;` not `&&` for chaining: `cd path; npm run build`
+- Do NOT use `Select-Object -First N` on any long-running process (build, dev, etc.)

@@ -1,0 +1,66 @@
+---
+description: Arabic RTL - all titles, headers, icons, and text must align right
+alwaysApply: true
+---
+
+# Arabic RTL: Complete Right-to-Left Layout
+
+## Rule
+
+**When the app is in Arabic (RTL), the ENTIRE layout must follow RTL conventions:**
+
+1. **Titles and headers** on the RIGHT side of cards, dialogs, sheets, panels, modals
+2. **Icons** to the RIGHT of text (not left)
+3. **Text alignment** to the right
+4. **Navigation and tabs** flow right-to-left (first item on the right)
+5. **Form labels** above their inputs, aligned right
+6. **Date inputs** with calendar icon on the left, date text on the right
+
+## Global CSS Rules (in `app/globals.css`)
+
+The following rules are already implemented and MUST NOT be removed:
+
+- `[dir="rtl"] { direction: rtl !important; text-align: right !important; }` — base RTL
+- `[dir="rtl"] [data-slot="card-title"]` — card titles on right
+- `[dir="rtl"] .flex.items-center:has(> svg)` — icon+text rows reverse to put icon on right
+- `[dir="rtl"] .flex.items-center.gap-*` — all flex icon rows reverse
+- `[dir="rtl"] [data-slot="tabs-trigger"]` — tab icons on right of labels
+
+## When Adding New Components
+
+1. **Any flex row with icon + text**: The global `:has(> svg)` rule handles this automatically
+2. **New title components**: Add `data-slot="your-title"` and a rule in globals.css
+3. **Headers with text-left or text-center**: Add `rtl:text-right` override
+4. **Buttons with icons**: Icons will automatically appear on the right in RTL
+
+## Scope
+
+- **All pages**: Patient, professional, super-admin dashboards
+- **All components**: Cards, dialogs, sheets, drawers, alerts, modals, tabs, navigation
+- **All forms**: Labels, inputs, selects, date pickers
+- **All platforms**: Desktop, tablet, mobile
+
+## Logical Properties to Use
+
+Always prefer logical properties that automatically adapt to RTL:
+
+| LTR Property | Logical Property |
+|--------------|------------------|
+| `left-*` | `start-*` |
+| `right-*` | `end-*` |
+| `pl-*` | `ps-*` |
+| `pr-*` | `pe-*` |
+| `ml-*` | `ms-*` |
+| `mr-*` | `me-*` |
+| `border-l` | `border-s` |
+| `border-r` | `border-e` |
+| `inset-x-0 left-64` | `inset-y-0 start-0 end-0 md:start-64` |
+
+## Do Not
+
+- Add `text-left` without `rtl:text-right`
+- Use physical properties (`left`, `right`, `ml-`, `mr-`, `pl-`, `pr-`) instead of logical (`start`, `end`, `ms-`, `me-`, `ps-`, `pe-`)
+- Remove `!important` from globals.css RTL rules
+- Override `flex-direction: row-reverse` in RTL contexts
+- Use `justify-end` for RTL alignment (use `justify-start` — "start" is right in RTL)
+- Use `fixed inset-0 left-64` — use `fixed inset-y-0 start-0 end-0 md:start-64` instead

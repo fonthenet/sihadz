@@ -1,0 +1,26 @@
+Email,Password,Type,Name,Login URL
+patient1@algeriamed.test,Test123456!,Patient,Ahmed Benali,/login
+patient2@algeriamed.test,Test123456!,Patient,Fatima Boudiaf,/login
+patient3@algeriamed.test,Test123456!,Patient,Karim Hadj,/login
+patient4@algeriamed.test,Test123456!,Patient,Amina Zerrouki,/login
+patient5@algeriamed.test,Test123456!,Patient,Youcef Messaoud,/login
+doctor1@algeriamed.test,Test123456!,Doctor,Dr. Yacine Amrani,/professional/auth/login
+doctor2@algeriamed.test,Test123456!,Doctor,Dr. Samia Khelifi,/professional/auth/login
+doctor3@algeriamed.test,Test123456!,Doctor,Dr. Rachid Benkhaled,/professional/auth/login
+doctor4@algeriamed.test,Test123456!,Doctor,Dr. Leila Mammeri,/professional/auth/login
+doctor5@algeriamed.test,Test123456!,Doctor,Dr. Omar Zeroual,/professional/auth/login
+pharmacy1@algeriamed.test,Test123456!,Pharmacy,Pharmacie El Nour,/professional/auth/login
+pharmacy2@algeriamed.test,Test123456!,Pharmacy,Pharmacie Centrale,/professional/auth/login
+pharmacy3@algeriamed.test,Test123456!,Pharmacy,Pharmacie Essafa,/professional/auth/login
+pharmacy4@algeriamed.test,Test123456!,Pharmacy,Pharmacie du Centre,/professional/auth/login
+pharmacy5@algeriamed.test,Test123456!,Pharmacy,Pharmacie de Nuit,/professional/auth/login
+clinic1@algeriamed.test,Test123456!,Clinic,Clinique El Shifa,/professional/auth/login
+clinic2@algeriamed.test,Test123456!,Clinic,Clinique Essalam,/professional/auth/login
+clinic3@algeriamed.test,Test123456!,Clinic,Clinique Ibn Rochd,/professional/auth/login
+clinic4@algeriamed.test,Test123456!,Clinic,Clinique Avicenne,/professional/auth/login
+clinic5@algeriamed.test,Test123456!,Clinic,Clinique Parnet,/professional/auth/login
+lab1@algeriamed.test,Test123456!,Laboratory,Laboratoire Central,/professional/auth/login
+lab2@algeriamed.test,Test123456!,Laboratory,Laboratoire Ibn Sina,/professional/auth/login
+lab3@algeriamed.test,Test123456!,Laboratory,Laboratoire Pasteur,/professional/auth/login
+lab4@algeriamed.test,Test123456!,Laboratory,Laboratoire Biochimie,/professional/auth/login
+lab5@algeriamed.test,Test123456!,Laboratory,Laboratoire Analyses,/professional/auth/login

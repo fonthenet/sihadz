@@ -1,0 +1,115 @@
+{
+  "name": "DZDoc - Healthcare Platform",
+  "short_name": "DZDoc",
+  "description": "Algeria's premier digital healthcare platform connecting patients with doctors and pharmacies",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0891B2",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "auto",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home Screen"
+    },
+    {
+      "src": "/screenshots/appointments.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "My Appointments"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "short_name": "Book",
+      "description": "Book a new appointment with a doctor",
+      "url": "/booking/new",
+      "icons": [{ "src": "/icons/shortcut-book.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "My Appointments",
+      "short_name": "Appointments",
+      "description": "View your upcoming appointments",
+      "url": "/dashboard/appointments",
+      "icons": [{ "src": "/icons/shortcut-appointments.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Pharmacy",
+      "short_name": "Pharmacies",
+      "description": "Find nearby pharmacies",
+      "url": "/pharmacies",
+      "icons": [{ "src": "/icons/shortcut-pharmacy.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.dzdoc.app",
+      "id": "com.dzdoc.app"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/dzdoc/id123456789"
+    }
+  ],
+  "prefer_related_applications": false
+}

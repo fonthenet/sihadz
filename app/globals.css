@@ -1,0 +1,663 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Prevent language flicker: hide body until lang script runs */
+body { visibility: hidden; }
+html.dzdoc-lang-ready body { visibility: visible; }
+
+/* =========================
+   Theme Tokens
+========================= */
+:root {
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.2 0.01 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.01 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.01 240);
+  --primary: oklch(0.52 0.19 220);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.45 0.22 195);
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.5 0.01 240);
+  --accent: oklch(0.88 0.08 195);
+  --accent-foreground: oklch(0.2 0.01 240);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.92 0.005 240);
+  --input: oklch(0.92 0.005 240);
+  --ring: oklch(0.52 0.19 220);
+  --chart-1: oklch(0.52 0.19 220);
+  --chart-2: oklch(0.45 0.22 195);
+  --chart-3: oklch(0.6 0.15 250);
+  --chart-4: oklch(0.7 0.12 200);
+  --chart-5: oklch(0.55 0.18 210);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.2 0.01 240);
+  --sidebar-primary: oklch(0.52 0.19 220);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.005 240);
+  --sidebar-accent-foreground: oklch(0.2 0.01 240);
+  --sidebar-border: oklch(0.92 0.005 240);
+  --sidebar-ring: oklch(0.52 0.19 220);
+}
+
+.dark {
+  --background: oklch(0.14 0.03 245);
+  --foreground: oklch(0.98 0.008 240);
+  --card: oklch(0.18 0.035 245);
+  --card-foreground: oklch(0.97 0.01 240);
+  --popover: oklch(0.18 0.035 245);
+  --popover-foreground: oklch(0.97 0.01 240);
+  --primary: oklch(0.72 0.2 230);
+  --primary-foreground: oklch(0.10 0.02 245);
+  --secondary: oklch(0.42 0.1 250);
+  --secondary-foreground: oklch(0.98 0.008 240);
+  --muted: oklch(0.35 0.06 245);
+  --muted-foreground: oklch(0.72 0.04 240);
+  --accent: oklch(0.72 0.16 165);
+  --accent-foreground: oklch(0.10 0.02 245);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.98 0.008 240);
+  --border: oklch(0.32 0.06 245);
+  --input: oklch(0.26 0.04 245);
+  --ring: oklch(0.68 0.18 235);
+  --chart-1: oklch(0.70 0.2 240);
+  --chart-2: oklch(0.75 0.18 200);
+  --chart-3: oklch(0.72 0.19 260);
+  --chart-4: oklch(0.68 0.22 220);
+  --chart-5: oklch(0.70 0.21 250);
+  --sidebar: oklch(0.16 0.035 245);
+  --sidebar-foreground: oklch(0.96 0.01 240);
+  --sidebar-primary: oklch(0.70 0.2 235);
+  --sidebar-primary-foreground: oklch(0.10 0.02 245);
+  --sidebar-accent: oklch(0.32 0.06 245);
+  --sidebar-accent-foreground: oklch(0.96 0.01 240);
+  --sidebar-border: oklch(0.32 0.06 245);
+  --sidebar-ring: oklch(0.68 0.18 235);
+}
+
+@theme inline {
+  --font-sans: "Cairo", "Tajawal", "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", monospace;
+  --font-arabic: "Cairo", "Tajawal", sans-serif;
+  --font-heading: "Cairo", "Tajawal", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* =========================
+   Base / Mobile / WebView
+========================= */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-overflow-scrolling: touch;
+    /* Prevent tap highlight / make it feel like an app */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Font size levels for accessibility (sidebar button) - scales entire app via rem */
+  html[data-font-size="1"],
+  html:not([data-font-size]) {
+    font-size: 100%;
+  }
+  html[data-font-size="2"] {
+    font-size: 118.75% !important; /* ~19px base */
+  }
+  html[data-font-size="3"] {
+    font-size: 137.5% !important; /* ~22px base */
+  }
+
+  /* Apple-style layout hardening when font scales: prevent overflow, allow flex shrink */
+  html[data-font-size="2"] *,
+  html[data-font-size="3"] * {
+    overflow-wrap: break-word;
+  }
+
+  /* Flex children can shrink when content grows (prevents overflow) */
+  html[data-font-size="2"] .flex > *,
+  html[data-font-size="3"] .flex > *,
+  html[data-font-size="2"] .inline-flex > *,
+  html[data-font-size="3"] .inline-flex > * {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* Proportional heading scale (Apple Dynamic Type style) - headings scale slightly more */
+  html[data-font-size="2"] h1 { font-size: clamp(1.5rem, 2.5em, 2.5rem); }
+  html[data-font-size="2"] h2 { font-size: clamp(1.25rem, 2em, 2rem); }
+  html[data-font-size="2"] h3 { font-size: clamp(1.125rem, 1.5em, 1.5rem); }
+  html[data-font-size="3"] h1 { font-size: clamp(1.75rem, 2.75em, 3rem); }
+  html[data-font-size="3"] h2 { font-size: clamp(1.5rem, 2.25em, 2.25rem); }
+  html[data-font-size="3"] h3 { font-size: clamp(1.25rem, 1.75em, 1.75rem); }
+
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+
+    /* ✅ Capacitor safe areas */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+
+    /* ✅ Better “app” height handling (mobile address bar / WebView) */
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* ✅ Mobile: stable height when keyboard opens (prevents page shift) - svh doesn't resize like dvh */
+  @media (max-width: 768px), (hover: none) {
+    body {
+      min-height: 100svh;
+    }
+  }
+
+  /* ✅ Prevent iOS zoom on inputs + nicer touch - 16px minimum prevents Safari zoom-on-focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    touch-action: manipulation;
+  }
+
+  /* iOS-style momentum scrolling for all scroll containers */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  [data-radix-scroll-area-viewport],
+  [data-slot="scroll-area-viewport"],
+  [data-state="scrollable"] {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* High-end scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.7 0.1 220 / 0.3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6 0.15 220 / 0.5);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0.1 220 / 0.4);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.5 0.15 220 / 0.6);
+  }
+
+  /* Hide scrollbar for chat areas but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile menu sheet: smoother slide animation */
+  .mobile-menu-sheet {
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* Card tables: rounded header corners to fit card frame (all accounts, pro + patient) */
+  [data-slot="card"] table thead tr th:first-child {
+    border-start-start-radius: 0.75rem;
+  }
+  [data-slot="card"] table thead tr th:last-child {
+    border-end-start-radius: 0.75rem;
+  }
+
+  /* Smooth transitions for interactive elements (keep; good) */
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  [role="button"] {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    transition: outline-offset 0.15s ease;
+  }
+
+  ::selection {
+    background: oklch(0.52 0.19 220 / 0.3);
+    color: inherit;
+  }
+  .dark ::selection {
+    background: oklch(0.72 0.2 230 / 0.3);
+  }
+
+  /* Alternating row colors for list cards (Google Sheets style) */
+  .list-stripe > *:nth-child(even) {
+    @apply bg-slate-50/80 dark:bg-slate-800/30;
+  }
+
+}
+
+/* =========================
+   Mobile Optimizations (touch, safe areas, forms)
+   Only applies below 768px - desktop unchanged
+========================= */
+@media (max-width: 768px) {
+  /* Minimum 44px touch targets for primary actions - use .touch-target on key buttons */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger form inputs for easier tapping */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    min-height: 48px;
+  }
+
+  /* Tables: horizontal scroll on small screens */
+  .table-scroll-mobile {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Fixed bottom elements: respect safe-area on notched devices */
+.offline-panel-anchor {
+  bottom: 1rem;
+}
+@media (max-width: 768px) {
+  .offline-panel-anchor {
+    bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Safe area padding for mobile pages (min 1rem or safe area) */
+.pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* =========================
+   RTL Support
+========================= */
+html[dir="rtl"],
+html[dir="rtl"] body,
+[dir="rtl"] {
+  direction: rtl !important;
+  text-align: right !important;
+  font-family: "Cairo", "Tajawal", system-ui, sans-serif;
+}
+
+html[dir="rtl"] .text-left,
+html[dir="rtl"] [class*="text-left"],
+[dir="rtl"] .text-left,
+[dir="rtl"] [class*="text-left"] {
+  text-align: right !important;
+}
+
+[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Arabic Typography */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] h5,
+html[dir="rtl"] h6,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6 {
+  font-family: "Cairo", "Tajawal", sans-serif;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: right !important;
+}
+
+[dir="rtl"] p,
+[dir="rtl"] span,
+[dir="rtl"] div {
+  line-height: 1.8;
+}
+
+/* ========== RTL: ALL TITLES & HEADERS ON THE RIGHT ========== */
+html[dir="rtl"] [data-slot="card-title"],
+html[dir="rtl"] [data-slot="card-header"],
+html[dir="rtl"] [data-slot="card-description"],
+html[dir="rtl"] [data-slot="card-content"],
+html[dir="rtl"] [data-slot="dialog-title"],
+html[dir="rtl"] [data-slot="dialog-header"],
+html[dir="rtl"] [data-slot="sheet-title"],
+html[dir="rtl"] [data-slot="sheet-header"],
+html[dir="rtl"] [data-slot="alert-title"],
+html[dir="rtl"] [data-slot="alert-dialog-title"],
+html[dir="rtl"] [data-slot="drawer-title"],
+html[dir="rtl"] [data-slot="empty-title"],
+[dir="rtl"] [data-slot="card-title"],
+[dir="rtl"] [data-slot="card-header"],
+[dir="rtl"] [data-slot="card-description"],
+[dir="rtl"] [data-slot="card-content"],
+[dir="rtl"] [data-slot="dialog-title"],
+[dir="rtl"] [data-slot="dialog-header"],
+[dir="rtl"] [data-slot="sheet-title"],
+[dir="rtl"] [data-slot="sheet-header"],
+[dir="rtl"] [data-slot="alert-title"],
+[dir="rtl"] [data-slot="alert-dialog-title"],
+[dir="rtl"] [data-slot="drawer-title"],
+[dir="rtl"] [data-slot="empty-title"] {
+  text-align: right !important;
+}
+
+/* Card/Dialog/Sheet/AlertDialog headers */
+html[dir="rtl"] [data-slot="card-header"],
+html[dir="rtl"] [data-slot="dialog-header"],
+html[dir="rtl"] [data-slot="sheet-header"],
+html[dir="rtl"] [data-slot="alert-dialog-header"],
+[dir="rtl"] [data-slot="card-header"],
+[dir="rtl"] [data-slot="dialog-header"],
+[dir="rtl"] [data-slot="sheet-header"],
+[dir="rtl"] [data-slot="alert-dialog-header"] {
+  justify-items: start !important;
+  text-align: right !important;
+  direction: rtl;
+}
+
+/* Card title - icon right of text */
+html[dir="rtl"] [data-slot="card-title"],
+[dir="rtl"] [data-slot="card-title"] {
+  justify-self: start !important;
+  margin-inline-end: auto !important;
+  margin-inline-start: 0 !important;
+  width: fit-content !important;
+  max-width: 100%;
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 0.5rem;
+  text-align: right !important;
+}
+
+/* Dialog/Sheet/Alert/Drawer titles */
+html[dir="rtl"] [data-slot="dialog-title"],
+html[dir="rtl"] [data-slot="sheet-title"],
+html[dir="rtl"] [data-slot="alert-dialog-title"],
+html[dir="rtl"] [data-slot="drawer-title"],
+html[dir="rtl"] [data-slot="empty-title"],
+[dir="rtl"] [data-slot="dialog-title"],
+[dir="rtl"] [data-slot="sheet-title"],
+[dir="rtl"] [data-slot="alert-dialog-title"],
+[dir="rtl"] [data-slot="drawer-title"],
+[dir="rtl"] [data-slot="empty-title"] {
+  text-align: right !important;
+  width: 100%;
+}
+
+/* Form inputs RTL */
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select,
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right !important;
+  font-family: "Cairo", "Tajawal", sans-serif;
+}
+
+/* Date/datetime inputs RTL */
+html[dir="rtl"] input[type="date"],
+html[dir="rtl"] input[type="datetime-local"],
+html[dir="rtl"] input[type="time"],
+[dir="rtl"] input[type="date"],
+[dir="rtl"] input[type="datetime-local"],
+[dir="rtl"] input[type="time"] {
+  direction: rtl;
+  text-align: right !important;
+  position: relative;
+  padding-inline-end: 2.5rem;
+}
+
+/* Webkit: date value aligned right */
+html[dir="rtl"] input[type="date"]::-webkit-date-and-time-value,
+html[dir="rtl"] input[type="datetime-local"]::-webkit-date-and-time-value,
+html[dir="rtl"] input[type="time"]::-webkit-date-and-time-value,
+[dir="rtl"] input[type="date"]::-webkit-date-and-time-value,
+[dir="rtl"] input[type="datetime-local"]::-webkit-date-and-time-value,
+[dir="rtl"] input[type="time"]::-webkit-date-and-time-value {
+  text-align: right !important;
+}
+
+/* Webkit: calendar icon on left in RTL */
+html[dir="rtl"] input[type="date"]::-webkit-calendar-picker-indicator,
+html[dir="rtl"] input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+[dir="rtl"] input[type="date"]::-webkit-calendar-picker-indicator,
+[dir="rtl"] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  left: 0.5rem;
+  right: auto;
+  opacity: 1;
+}
+
+/* Button text RTL */
+[dir="rtl"] button {
+  font-family: "Cairo", "Tajawal", sans-serif;
+  font-weight: 600;
+}
+
+/* Labels RTL */
+html[dir="rtl"] label,
+[dir="rtl"] label {
+  text-align: right !important;
+}
+
+/* Main content RTL */
+html[dir="rtl"] main,
+[dir="rtl"] main {
+  text-align: right;
+}
+
+/* RTL: max-w-4xl sticks to right side */
+html[dir="rtl"] main.max-w-4xl,
+[dir="rtl"] main.max-w-4xl {
+  margin-inline-end: auto !important;
+  margin-inline-start: 0 !important;
+}
+
+/* RTL: Labels inside flex icon rows */
+html[dir="rtl"] [data-slot="label"],
+[dir="rtl"] [data-slot="label"] {
+  justify-content: flex-end;
+}
+
+/* RTL: Card content children */
+html[dir="rtl"] [data-slot="card-content"] > *,
+[dir="rtl"] [data-slot="card-content"] > * {
+  text-align: right;
+}
+
+/* RTL: icon+text rows */
+html[dir="rtl"] .flex.items-center:has(> svg),
+[dir="rtl"] .flex.items-center:has(> svg) {
+  flex-direction: row-reverse !important;
+}
+
+html[dir="rtl"] .flex.items-center.gap-0,
+html[dir="rtl"] .flex.items-center.gap-0\.5,
+html[dir="rtl"] .flex.items-center.gap-1,
+html[dir="rtl"] .flex.items-center.gap-1\.5,
+html[dir="rtl"] .flex.items-center.gap-2,
+html[dir="rtl"] .flex.items-center.gap-2\.5,
+html[dir="rtl"] .flex.items-center.gap-3,
+html[dir="rtl"] .flex.items-center.gap-4,
+html[dir="rtl"] .flex.items-center.gap-5,
+html[dir="rtl"] .flex.items-center.gap-6,
+[dir="rtl"] .flex.items-center.gap-0,
+[dir="rtl"] .flex.items-center.gap-0\.5,
+[dir="rtl"] .flex.items-center.gap-1,
+[dir="rtl"] .flex.items-center.gap-1\.5,
+[dir="rtl"] .flex.items-center.gap-2,
+[dir="rtl"] .flex.items-center.gap-2\.5,
+[dir="rtl"] .flex.items-center.gap-3,
+[dir="rtl"] .flex.items-center.gap-4,
+[dir="rtl"] .flex.items-center.gap-5,
+[dir="rtl"] .flex.items-center.gap-6 {
+  flex-direction: row-reverse !important;
+}
+
+html[dir="rtl"] .rtl-icon-row,
+[dir="rtl"] .rtl-icon-row {
+  flex-direction: row-reverse !important;
+}
+
+/* RTL: Tabs */
+html[dir="rtl"] [data-slot="tabs-list"],
+[dir="rtl"] [data-slot="tabs-list"] {
+  direction: rtl;
+  justify-content: flex-start !important;
+}
+
+html[dir="rtl"] [data-slot="tabs-trigger"],
+[dir="rtl"] [data-slot="tabs-trigger"] {
+  flex-direction: row-reverse !important;
+}
+
+/* RTL: Select trigger */
+html[dir="rtl"] [data-slot="select-trigger"],
+[dir="rtl"] [data-slot="select-trigger"] {
+  flex-direction: row-reverse !important;
+}
+
+/* RTL: Combobox */
+html[dir="rtl"] button[role="combobox"],
+[dir="rtl"] button[role="combobox"] {
+  flex-direction: row-reverse !important;
+}
+
+/* RTL: SelectItem */
+html[dir="rtl"] [data-slot="select-item"],
+[dir="rtl"] [data-slot="select-item"] {
+  padding-inline-start: 2rem !important;
+  padding-inline-end: 0.5rem !important;
+}
+
+html[dir="rtl"] [data-slot="select-item"] > span.absolute,
+[dir="rtl"] [data-slot="select-item"] > span.absolute {
+  right: auto !important;
+  left: 0.5rem !important;
+}
+
+/* =========================
+   Dark mode: higher contrast inputs
+========================= */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="tel"],
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+  background-color: var(--input) !important;
+  border-color: var(--border) !important;
+  color: var(--foreground) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-foreground) !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: var(--ring) !important;
+  background-color: var(--card) !important;
+}
+
+/* Severity slider - color changes dynamically as you slide */
+.severity-slider [data-slot="slider-range"] {
+  background: var(--severity-color, rgb(251, 146, 60)) !important;
+  transition: background 0.15s ease-out;
+}
+
+.severity-slider [data-slot="slider-track"] {
+  background: var(--severity-color, rgb(251, 146, 60)) !important;
+  opacity: 0.3;
+  transition: background 0.15s ease-out;
+}
+
+.severity-slider [data-slot="slider-thumb"] {
+  background: var(--severity-color, rgb(251, 146, 60)) !important;
+  border-color: var(--severity-color, rgb(251, 146, 60)) !important;
+  transition: background 0.15s ease-out, border-color 0.15s ease-out;
+}

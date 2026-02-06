@@ -1,0 +1,25 @@
+# Apply for All Accounts (Platform-Wide)
+
+**"All accounts"** means: **old**, **new**, **future**, **pro**, and **patients**.
+
+When the user says **"apply for all accounts"** or **"all accounts"**:
+
+- **Time scope**: old (already signed up), new (just created), future (not yet created or opened)
+- **User types**: patients + all pros (doctor, nurse, pharmacy, clinic, laboratory, ambulance)
+- Use shared components, layouts, and constants—no per-account-type branches for styling/behavior
+- Fix the source of truth once so all current and future users get it
+
+## Scope
+
+Patient dashboard, professional dashboards (all pro types), super-admin—everyone.
+
+---
+
+# Apply for Pro Only
+
+When the user says **"apply for pro only"** or **"pro accounts only"**:
+
+- Apply the change only to **professional dashboards**: doctor, nurse, pharmacy, clinic, laboratory, ambulance
+- Do NOT change patient dashboard or super-admin
+- Use `ProDashboardSidebar` or pro-specific components
+- Old and new pro accounts get it; patients are unchanged
