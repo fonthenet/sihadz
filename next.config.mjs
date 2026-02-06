@@ -12,8 +12,6 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 const nextConfig = {
   // Allow dev requests from custom domain and local network IPs
   allowedDevOrigins: ['sihadz.com', '*.sihadz.com', 'www.sihadz.com', '192.168.50.121', 'localhost'],
-  // Exclude ffmpeg from serverless bundle (exceeds Vercel 50MB limit)
-  serverExternalPackages: ['fluent-ffmpeg', 'ffmpeg-static'],
   typescript: {
     ignoreBuildErrors: true,
   },
