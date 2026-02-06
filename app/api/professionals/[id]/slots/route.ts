@@ -19,14 +19,37 @@ interface TimeSlot {
 // GET /api/professionals/[id]/slots - Get available slots for a date
 // ============================================================================
 export async function GET(request: NextRequest, { params }: Params) {
+  console.log('[slots] API route hit - request URL:', request.url)
+  
   try {
+    // Validate Supabase connection
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !serviceRole) {
+      console.error('[slots] CRITICAL: Missing Supabase env vars', { 
+        hasUrl: !!supabaseUrl, 
+        hasServiceRole: !!serviceRole,
+        nodeEnv: process.env.NODE_ENV 
+      })
+      return NextResponse.json({ 
+        error: 'Server configuration error - missing database credentials',
+        slots: [],
+        availableSlots: 0
+      }, { status: 503 })
+    }
+    
     const { id: professionalId } = await params
+    console.log('[slots] Professional ID:', professionalId)
+    
     const admin = createAdminClient()
     
     const { searchParams } = new URL(request.url)
     const date = searchParams.get('date')
     const duration = parseInt(searchParams.get('duration') || '30')
     const showAll = searchParams.get('show_all') === 'true' // Include unavailable slots
+    
+    console.log('[slots] Query params:', { date, duration, showAll })
     
     if (!date) {
       return NextResponse.json({ error: 'Date parameter required (YYYY-MM-DD)' }, { status: 400 })
@@ -39,13 +62,21 @@ export async function GET(request: NextRequest, { params }: Params) {
     }
     
     // Get professional's working hours
+    console.log('[slots] Fetching professional from database...')
     const { data: professional, error: profError } = await admin
       .from('professionals')
       .select('id, working_hours, unavailable_dates, is_active')
       .eq('id', professionalId)
       .single()
     
+    console.log('[slots] Professional query result:', { 
+      found: !!professional,
+      error: profError?.message,
+      isActive: professional?.is_active 
+    })
+    
     if (profError || !professional) {
+      console.error('[slots] Professional not found:', professionalId, profError)
       return NextResponse.json({ error: 'Professional not found' }, { status: 404 })
     }
     
@@ -238,6 +269,14 @@ export async function GET(request: NextRequest, { params }: Params) {
       }
     }
     
+    console.log('[slots] Successfully generated slots:', {
+      totalSlots: slots.length,
+      availableSlots: slots.filter(s => s.available).length,
+      openTime,
+      closeTime,
+      dayOfWeek
+    })
+    
     return NextResponse.json({
       date,
       dayOfWeek,
@@ -250,7 +289,12 @@ export async function GET(request: NextRequest, { params }: Params) {
     })
     
   } catch (error: any) {
-    console.error('Error fetching slots:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('[slots] ERROR:', error)
+    console.error('[slots] Stack:', error.stack)
+    return NextResponse.json({ 
+      error: error.message,
+      slots: [],
+      availableSlots: 0
+    }, { status: 500 })
   }
 }
