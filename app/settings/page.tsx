@@ -924,17 +924,17 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Vital Info */}
-                <div className="space-y-4 pt-4 border-t rounded-lg bg-primary/5 dark:bg-primary/10 p-4">
+                <div className="space-y-4 pt-4 border-t rounded-lg bg-primary/5 dark:bg-primary/10 p-3 sm:p-4">
                   <div className="flex items-center gap-2 text-foreground">
                     <Heart className="h-4 w-4 shrink-0 text-primary" />
                     <span className="font-medium">{l.vitalInfo}</span>
                   </div>
                   <p className="text-sm text-muted-foreground">{l.vitalInfoDesc}</p>
-                  <div className="grid grid-cols-4 gap-4 min-w-0">
-                    <div className="space-y-2 min-w-0">
-                      <Label htmlFor="gender">{l.gender}</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-3 sm:gap-1 sm:gap-y-0">
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label htmlFor="gender" className="text-xs sm:text-sm">{l.gender}</Label>
                       <Select value={gender || undefined} onValueChange={setGender} disabled={profileLoading}>
-                        <SelectTrigger id="gender" className="w-full min-w-0">
+                        <SelectTrigger id="gender" className="w-full min-w-0 h-8 py-0 px-[5px] text-sm [&_[data-slot=select-value]]:flex-1 [&_[data-slot=select-value]]:text-center">
                           <SelectValue placeholder={l.gender} />
                         </SelectTrigger>
                         <SelectContent>
@@ -943,10 +943,10 @@ export default function SettingsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2 min-w-0">
-                      <Label htmlFor="bloodType">{l.bloodType}</Label>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label htmlFor="bloodType" className="text-xs sm:text-sm">{l.bloodType}</Label>
                       <Select value={bloodType || undefined} onValueChange={setBloodType} disabled={profileLoading}>
-                        <SelectTrigger id="bloodType" className="w-full min-w-0">
+                        <SelectTrigger id="bloodType" className="w-full min-w-0 h-8 py-0 px-2 text-sm [&_[data-slot=select-value]]:flex-1 [&_[data-slot=select-value]]:text-center">
                           <SelectValue placeholder={l.bloodType} />
                         </SelectTrigger>
                         <SelectContent>
@@ -956,8 +956,8 @@ export default function SettingsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2 min-w-0">
-                      <Label htmlFor="heightCm">{l.height}</Label>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label htmlFor="heightCm" className="text-xs sm:text-sm">{l.height}</Label>
                       <Input
                         id="heightCm"
                         type="number"
@@ -968,11 +968,11 @@ export default function SettingsPage() {
                         value={heightCm}
                         onChange={(e) => setHeightCm(e.target.value)}
                         disabled={profileLoading}
-                        className="w-full min-w-0"
+                        className="w-full max-w-[70px] sm:max-w-[60px] min-w-0 h-8 py-0 ps-[2px] pe-[1px] text-sm text-center"
                       />
                     </div>
-                    <div className="space-y-2 min-w-0">
-                      <Label htmlFor="weightKg">{l.weight}</Label>
+                    <div className="space-y-1.5 sm:space-y-2 min-w-0">
+                      <Label htmlFor="weightKg" className="text-xs sm:text-sm">{l.weight}</Label>
                       <Input
                         id="weightKg"
                         type="number"
@@ -983,7 +983,7 @@ export default function SettingsPage() {
                         value={weightKg}
                         onChange={(e) => setWeightKg(e.target.value)}
                         disabled={profileLoading}
-                        className="w-full min-w-0"
+                        className="w-full max-w-[70px] sm:max-w-[50px] min-w-0 h-12 py-0 px-2 text-sm text-center"
                       />
                     </div>
                   </div>

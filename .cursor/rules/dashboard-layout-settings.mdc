@@ -1,0 +1,50 @@
+---
+description: Dashboard layout settings - sidebar width, weather widget - apply to ALL dashboards
+alwaysApply: true
+---
+
+# Dashboard Layout Settings
+
+**These settings apply to ALL dashboards** — patient, professional (doctor, pharmacy, lab, clinic, nurse, ambulance), old, new, and future accounts.
+
+## Source of Truth
+
+**`lib/dashboard-layout.ts`** — shared constants for dashboard layout.
+
+## Sidebar Width
+
+- **md (768px+):** 14rem (224px)
+- **lg (1024px+):** 16rem (256px)
+- **Collapsed (icon):** w-16 (4rem)
+
+**Usage:**
+```tsx
+import { SIDEBAR_WIDTH_CLASSES, SIDEBAR_WIDTH_RESPONSIVE } from '@/lib/dashboard-layout'
+
+// On Sidebar component:
+<Sidebar className={cn('sticky top-0 h-svh min-h-svh flex-shrink-0', SIDEBAR_WIDTH_CLASSES, ...)} />
+
+// On SidebarProvider (components/ui/sidebar.tsx):
+// Already uses SIDEBAR_WIDTH_RESPONSIVE
+```
+
+## Weather Widget
+
+- **Weather:** 1h cache (localStorage)
+- **Location (reverse geocode):** 24h cache (localStorage)
+- **Display:** Location + icon + temp only (no weather description like "Mainly clear")
+
+## Files to Keep in Sync
+
+- `lib/dashboard-layout.ts` — main config
+- `settings/lib/dashboard-layout.ts` — mirror for settings workspace
+- `components/ui/sidebar.tsx` — SidebarProvider with responsive widths
+- `settings/components/ui/sidebar.tsx` — same
+- `app/(patient)/layout.tsx` — PatientSidebar
+- `app/professional/dashboard/components/pro-dashboard-sidebar.tsx` — ProDashboardSidebar
+
+## When Adding New Dashboards
+
+1. Import `SIDEBAR_WIDTH_CLASSES` from `@/lib/dashboard-layout`
+2. Use it on the Sidebar component with the same structure as PatientSidebar/ProDashboardSidebar
+3. Use `WeatherWidget` from `@/components/weather-widget` with `variant="minimal"` (desktop) or `variant="compact"` (mobile)

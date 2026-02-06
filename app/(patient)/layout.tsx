@@ -35,7 +35,6 @@ import {
   Plus,
   Users,
   Brain,
-  ShoppingCart,
   Type,
 } from 'lucide-react'
 import { SignOutButton } from '@/components/sign-out-button'
@@ -45,6 +44,7 @@ import { NotificationCenter } from '@/components/notification-center'
 import { LiveNotificationToast } from '@/components/live-notification-toast'
 import { getWilayaByCode, getCityName } from '@/lib/data/algeria-locations'
 import { cn } from '@/lib/utils'
+import { SIDEBAR_WIDTH_CLASSES } from '@/lib/dashboard-layout'
 import { OfflineSyncUserIdProvider } from '@/contexts/offline-sync-user-context'
 
 function buildFallbackAddress(p?: {
@@ -107,7 +107,8 @@ function PatientSidebar({ userName, fallbackAddress, userId }: PatientSidebarPro
       collapsible="offcanvas"
       glass
       className={cn(
-        'sticky top-0 h-svh min-h-svh flex-shrink-0 w-16 md:w-[19rem] lg:w-[21rem]',
+        'sticky top-0 h-svh min-h-svh flex-shrink-0',
+            SIDEBAR_WIDTH_CLASSES,
         'bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60',
         'border border-border/50 shadow-xl rounded-2xl overflow-hidden'
       )}
@@ -194,15 +195,6 @@ function PatientSidebar({ userName, fallbackAddress, userId }: PatientSidebarPro
                   <Link href="/dashboard/wallet" onClick={closeMobile} className="flex items-center justify-start gap-3 w-full" title={t('Wallet', 'Portefeuille', 'المحفظة')}>
                     <Wallet className="h-4 w-4 shrink-0" />
                     <span className="truncate">{t('Wallet', 'Portefeuille', 'المحفظة')}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/dashboard/orders')} className="rounded-xl h-10 px-3 data-[active=true]:bg-primary/10 data-[active=true]:text-primary dark:data-[active=true]:text-emerald-400 hover:bg-muted/70">
-                  <Link href="/dashboard/orders" onClick={closeMobile} className="flex items-center justify-start gap-3 w-full" title={t('My Orders', 'Mes commandes', 'طلباتي')}>
-                    <ShoppingCart className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{t('My Orders', 'Mes commandes', 'طلباتي')}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

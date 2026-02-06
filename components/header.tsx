@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { SearchWithLocation } from '@/components/search-with-location'
+import { AppLogo } from '@/components/app-logo'
 import { cn } from '@/lib/utils'
 
 interface HeaderProps {
@@ -344,7 +345,7 @@ export function Header({
             className="sm:hidden flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg"
             aria-label={language === 'ar' ? 'الرئيسية' : language === 'fr' ? 'Accueil' : 'Home'}
           >
-            <Image src="/logo.png?v=3" alt="" width={36} height={36} className="h-9 w-9 object-contain" />
+            <AppLogo size="md" />
           </Link>
         )}
 

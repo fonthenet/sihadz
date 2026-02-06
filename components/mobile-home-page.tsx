@@ -63,7 +63,7 @@ export function MobileHomePage({ stats }: MobileHomePageProps) {
           {/* How it works */}
           <div className="shrink-0 pt-10 pb-4">
             <h2 className="text-sm font-bold text-foreground mb-2 text-center">{t('howItWorks')}</h2>
-            <div className="grid grid-cols-2 gap-2 pt-10 pb-10">
+            <div className="grid grid-cols-2 gap-2 pt-10 pb-10 ps-[30px] pe-[30px] mt-2.5">
               <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground mb-1">1</div>
                 <h3 className="text-xs font-semibold text-foreground mb-0.5 leading-tight">{t('step1Title')}</h3>

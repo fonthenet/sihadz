@@ -10,8 +10,9 @@ import { Input } from '@/components/ui/input'
 import { PhoneInput } from '@/components/ui/phone-input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Calendar, Clock, MapPin, Stethoscope, CheckCircle, User, Mail, Phone } from 'lucide-react'
+import { Calendar, Clock, MapPin, CheckCircle, User, Mail, Phone } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/page-loading'
+import { AppLogo } from '@/components/app-logo'
 import { PaymentMethodSelector, type PaymentMethod } from '@/components/payment/payment-method-selector'
 import { useLanguage } from '@/lib/i18n/language-context'
 
@@ -113,9 +114,7 @@ function BookingConfirmContent() {
         <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Stethoscope className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <AppLogo size="md" />
               <span className="text-xl font-semibold text-foreground">Siha DZ</span>
             </Link>
           </div>
@@ -211,9 +210,7 @@ function BookingConfirmContent() {
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Stethoscope className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <AppLogo size="md" />
             <span className="text-xl font-semibold text-foreground">Siha DZ</span>
           </Link>
         </div>

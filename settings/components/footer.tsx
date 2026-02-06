@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Stethoscope, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Button } from '@/components/ui/button'
+import { AppLogo } from '@/components/app-logo'
 import { Input } from '@/components/ui/input'
 
 export function Footer() {
@@ -117,9 +118,7 @@ export function Footer() {
           {/* About */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-3 [dir=rtl]:flex-row-reverse">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-sm shrink-0">
-                <Stethoscope className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <AppLogo size="lg" className="shrink-0" />
               <div>
                 <span className="text-xl font-bold text-foreground">{t('appName')}</span>
                 <p className="text-xs text-muted-foreground">

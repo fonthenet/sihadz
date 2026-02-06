@@ -38,6 +38,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import { AppLogo } from '@/components/app-logo'
 
 interface HeaderProps {
   showNav?: boolean
@@ -184,9 +185,7 @@ export function Header({ showNav = true }: HeaderProps) {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary shadow-sm">
-            <Stethoscope className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <AppLogo size="lg" className="shrink-0" />
           <div className="flex flex-col">
             <span className="text-xl font-bold text-foreground leading-tight">{t('appName')}</span>
             <span className="text-[10px] text-muted-foreground leading-none hidden sm:block">

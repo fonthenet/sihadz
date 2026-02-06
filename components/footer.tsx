@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
-import { Stethoscope, Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useAuth } from '@/components/auth-provider'
 import { Button } from '@/components/ui/button'
+import { AppLogo } from '@/components/app-logo'
 import { Input } from '@/components/ui/input'
 
 export function Footer() {
@@ -120,13 +120,7 @@ export function Footer() {
           {/* About */}
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-3 [dir=rtl]:flex-row-reverse">
-              <Image
-                src="/logo.png?v=3"
-                alt={t('appName')}
-                width={44}
-                height={44}
-                className="h-11 w-auto shrink-0 object-contain"
-              />
+              <AppLogo size="lg" className="h-11 w-auto" />
               <div>
                 <span className="text-xl font-bold text-foreground">{t('appName')}</span>
                 <p className="text-xs text-muted-foreground">

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Header } from '@/components/header'
+import { AppLogo } from '@/components/app-logo'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { 
   Calendar, 
@@ -376,9 +377,7 @@ export default function DoctorDashboard() {
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Stethoscope className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <AppLogo size="md" />
             <span className="text-xl font-semibold text-foreground">{t('appName')}</span>
           </Link>
           

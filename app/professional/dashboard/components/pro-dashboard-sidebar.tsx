@@ -19,6 +19,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { SIDEBAR_WIDTH_CLASSES } from '@/lib/dashboard-layout'
 import { SignOutButton } from '@/components/sign-out-button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { useFontSize } from '@/contexts/font-size-context'
@@ -350,7 +351,8 @@ export function ProDashboardSidebar({ professional, avatarUrl, authUserId, onAva
       collapsible="offcanvas"
       glass
       className={cn(
-        'sticky top-0 h-svh min-h-svh flex-shrink-0 w-16 md:w-[19rem] lg:w-[21rem]',
+        'sticky top-0 h-svh min-h-svh flex-shrink-0',
+            SIDEBAR_WIDTH_CLASSES,
         'bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60',
         'border border-border/50 shadow-xl rounded-2xl overflow-hidden'
       )}

@@ -13,10 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { Stethoscope, Mail, Lock, ArrowRight, ArrowLeft, User, Phone, Calendar, CheckCircle } from 'lucide-react'
+import { Mail, Lock, ArrowRight, ArrowLeft, User, Phone, Calendar, CheckCircle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/page-loading'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { seedNewUserData } from '@/app/actions/seed'
+import { AppLogo } from '@/components/app-logo'
 
 export default function RegisterPage() {
   const { t, language, dir } = useLanguage()
@@ -131,9 +132,7 @@ export default function RegisterPage() {
         <header className="border-b bg-card">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Stethoscope className="h-6 w-6 text-primary-foreground" />
-              </div>
+              <AppLogo size="md" />
               <span className="text-xl font-semibold text-foreground">{t('appName')}</span>
             </Link>
             <LanguageSwitcher />
@@ -176,9 +175,7 @@ export default function RegisterPage() {
       <header className="border-b bg-card">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Stethoscope className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <AppLogo size="md" />
             <span className="text-xl font-semibold text-foreground">{t('appName')}</span>
           </Link>
           <LanguageSwitcher />

@@ -34,6 +34,81 @@ function getWeatherInfo(code: number) {
   return WEATHER_MAP[code] ?? { desc: 'Unknown', Icon: Cloud }
 }
 
+const WEATHER_CACHE_KEY = 'weather_widget_cache'
+const WEATHER_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+
+interface CachedWeather {
+  lat: number
+  lon: number
+  temp: number | null
+  weatherCode: number | null
+  fetchedAt: number
+}
+
+function getCacheKey(lat: number, lon: number) {
+  return `${WEATHER_CACHE_KEY}_${lat.toFixed(2)}_${lon.toFixed(2)}`
+}
+
+function getCachedWeather(lat: number, lon: number): CachedWeather | null {
+  try {
+    const key = getCacheKey(lat, lon)
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+    if (!raw) return null
+    const cached = JSON.parse(raw) as CachedWeather
+    if (cached.fetchedAt + WEATHER_CACHE_TTL_MS < Date.now()) return null
+    return cached
+  } catch {
+    return null
+  }
+}
+
+function setCachedWeather(lat: number, lon: number, temp: number | null, weatherCode: number | null) {
+  try {
+    const key = getCacheKey(lat, lon)
+    const data: CachedWeather = { lat, lon, temp, weatherCode, fetchedAt: Date.now() }
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+const LOCATION_CACHE_KEY = 'weather_widget_location_cache'
+const LOCATION_CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+
+interface CachedLocation {
+  lat: number
+  lon: number
+  location: string | null
+  fetchedAt: number
+}
+
+function getLocationCacheKey(lat: number, lon: number) {
+  return `${LOCATION_CACHE_KEY}_${lat.toFixed(2)}_${lon.toFixed(2)}`
+}
+
+function getCachedLocation(lat: number, lon: number): CachedLocation | null {
+  try {
+    const key = getLocationCacheKey(lat, lon)
+    const raw = typeof window !== 'undefined' ? localStorage.getItem(key) : null
+    if (!raw) return null
+    const cached = JSON.parse(raw) as CachedLocation
+    if (cached.fetchedAt + LOCATION_CACHE_TTL_MS < Date.now()) return null
+    return cached
+  } catch {
+    return null
+  }
+}
+
+function setCachedLocation(lat: number, lon: number, location: string | null) {
+  try {
+    const key = getLocationCacheKey(lat, lon)
+    const data: CachedLocation = { lat, lon, location, fetchedAt: Date.now() }
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch {
+    // ignore storage errors
+  }
+}
+
 /** Geocode address via Open-Meteo (free, no key). Prefer Algeria results.
  *  Tries progressively simpler queries: full address, then last 2 parts, then last part only.
  */
@@ -157,10 +232,18 @@ export function WeatherWidget({
     return () => { cancelled = true }
   }, [fallbackAddress, resetAndFetch])
 
-  // 2. Reverse geocode when we have coords from auto-location
+  // 2. Reverse geocode when we have coords from auto-location (with 24h cache)
   useEffect(() => {
     if (!coords || !usedGeolocation || location) return
     let cancelled = false
+
+    // Check cache first
+    const cached = getCachedLocation(coords.lat, coords.lon)
+    if (cached) {
+      setLocation(cached.location)
+      return () => { cancelled = true }
+    }
+
     fetch(
       `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coords.lat}&longitude=${coords.lon}`,
       { headers: { Accept: 'application/json' } }
@@ -172,25 +255,39 @@ export function WeatherWidget({
         const sub = data.principalSubdivision
         const name = [city, sub].filter(Boolean).join(', ') || data.countryName || null
         setLocation(name)
+        setCachedLocation(coords.lat, coords.lon, name)
       })
       .catch(() => {})
     return () => { cancelled = true }
   }, [coords, usedGeolocation, location])
 
-  // 3. Fetch weather when we have coords
+  // 3. Fetch weather when we have coords (with 1h cache)
   useEffect(() => {
     if (!coords) return
     let cancelled = false
     setLoading(true)
-    // Add timestamp to bust browser cache
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code&_t=${Date.now()}`
-    fetch(url, { cache: 'no-store' })
+
+    // Check cache first
+    const cached = getCachedWeather(coords.lat, coords.lon)
+    if (cached) {
+      setTemp(cached.temp)
+      setWeatherCode(cached.weatherCode)
+      setError(null)
+      setLoading(false)
+      return () => { cancelled = true }
+    }
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,weather_code`
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return
-        setTemp(data.current?.temperature_2m ?? null)
-        setWeatherCode(data.current?.weather_code ?? null)
+        const tempVal = data.current?.temperature_2m ?? null
+        const codeVal = data.current?.weather_code ?? null
+        setTemp(tempVal)
+        setWeatherCode(codeVal)
         setError(null)
+        setCachedWeather(coords.lat, coords.lon, tempVal, codeVal)
       })
       .catch((e) => {
         if (cancelled) return
@@ -272,9 +369,6 @@ export function WeatherWidget({
       </span>
       <span className={cn('shrink-0 tabular-nums font-medium', isMinimal ? 'text-xs' : 'text-sm')}>
         {displayTemp}{tempUnit}
-      </span>
-      <span className={cn('shrink-0 text-muted-foreground', isMinimal ? 'text-[11px]' : 'text-[11px]')}>
-        {desc}
       </span>
     </div>
   )
