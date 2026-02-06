@@ -8,6 +8,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Force Node.js runtime and dynamic rendering for Vercel
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const BUCKET = 'professional-services'
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']

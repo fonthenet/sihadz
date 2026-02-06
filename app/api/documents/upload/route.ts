@@ -8,6 +8,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee-auth'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Force Node.js runtime and dynamic rendering for Vercel
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const BUCKET = 'documents'
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
