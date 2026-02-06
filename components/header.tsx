@@ -3,6 +3,7 @@
 import React from "react"
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
@@ -202,7 +203,7 @@ export function Header({
                         : 'مريض'
                     }`
                   : language === 'fr'
-                  ? `Connecté en tant que ${
+                  ? `Connect�� en tant que ${
                       profile?.user_type === 'doctor'
                         ? 'médecin'
                         : profile?.user_type === 'pharmacy'
@@ -326,15 +327,14 @@ export function Header({
             pathname && pathname !== '/' && 'hidden sm:flex'
           )}
         >
-          <div className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg sm:rounded-xl bg-primary shadow-sm shrink-0">
-            <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-lg sm:text-xl font-bold text-foreground leading-tight truncate">{t('appName')}</span>
-            <span className="text-[10px] text-muted-foreground leading-none hidden sm:block">
-              {language === 'ar' ? 'منصة الرعاية الصحية' : language === 'fr' ? 'Plateforme de santé' : 'Healthcare Platform'}
-            </span>
-          </div>
+          <Image
+            src="/siha-dz-logo.png"
+            alt="Siha DZ"
+            width={180}
+            height={120}
+            className="h-10 sm:h-12 w-auto object-contain"
+            priority
+          />
         </Link>
         {/* Mobile: home button when logo is hidden (one-tap back to home) */}
         {pathname && pathname !== '/' && variant !== 'mobile-home' && (
