@@ -73,7 +73,7 @@ export interface PaymentRecord {
 }
 
 const CHARGILY_API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://api.chargily.io/test/api/v2'
+  ? 'https://api.chargily.io/api/v2'
   : 'https://api.chargily.io/test/api/v2'
 
 const getApiKey = () => {

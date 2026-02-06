@@ -58,15 +58,13 @@ const defaultReviews: Review[] = [
   }
 ]
 
-const mockReviews = defaultReviews
-
 export function ReviewsSection({ 
   doctorId,
   doctorName,
-  reviews = defaultReviews,
-  averageRating = 4.8,
-  totalReviews = 124,
-  ratingDistribution = { 5: 85, 4: 25, 3: 10, 2: 3, 1: 1 }
+  reviews = [],
+  averageRating = 0,
+  totalReviews = 0,
+  ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
 }: ReviewsSectionProps) {
   const { language, dir } = useLanguage()
   const [showReviewForm, setShowReviewForm] = useState(false)
