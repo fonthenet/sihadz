@@ -325,51 +325,51 @@ function PatientLayoutInner({
     <>
       <div className="flex min-h-screen bg-background" dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <PatientSidebar userName={userName} fallbackAddress={fallbackAddress} userId={userId} isLoading={isLoading} />
+        <main className="flex-1 w-full min-w-0 max-w-none px-2 py-4 sm:px-4 sm:py-6 md:px-4 lg:px-6 xl:px-6">
+          {/* Top bar: notifications on far right upper corner (mobile + desktop) */}
+          <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 backdrop-blur px-4 -mx-2 sm:-mx-4 md:-mx-4 lg:-mx-6 xl:-mx-6 sm:px-4 md:px-4 lg:px-6 xl:px-6">
+            <div className="md:hidden flex items-center gap-2 min-w-0 flex-1">
+              <SidebarTrigger className="h-9 w-9 shrink-0" aria-label="Open menu" />
+              <Link href="/dashboard" className="flex items-center gap-2 min-w-0 flex-1">
+                {isLoading ? (
+                  <>
+                    <span className="flex h-8 w-8 shrink-0 rounded-lg bg-muted animate-pulse" />
+                    <span className="h-4 w-20 rounded bg-muted animate-pulse" />
+                  </>
+                ) : (
+                  <>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-sm font-semibold">
+                      {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
+                    </span>
+                    <span className="text-sm font-bold truncate">{userName || t('Profile', 'Profil', 'الملف الشخصي')}</span>
+                  </>
+                )}
+              </Link>
+            </div>
+            <div className="flex items-center justify-end gap-2 min-w-0 ms-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={cycleLevel}
+                title={language === 'ar' ? `حجم الخط: ${level === 1 ? 'عادي' : level === 2 ? 'كبير' : 'أكبر'}` : language === 'fr' ? `Taille: ${level === 1 ? 'Normal' : level === 2 ? 'Grand' : 'Très grand'}` : `Font: ${level === 1 ? 'Normal' : level === 2 ? 'Large' : 'Larger'}`}
+                aria-label={language === 'ar' ? 'تكبير النص' : language === 'fr' ? 'Agrandir le texte' : 'Increase font size'}
+              >
+                <Type className="h-4 w-4" />
+              </Button>
+              <NotificationCenter userId={userId} compact />
+            </div>
+          </div>
+          {isFullHeightPage ? (
+            children
+          ) : (
+            <div className="min-h-full bg-slate-50 dark:bg-slate-950 rounded-lg py-4 sm:py-6 px-0">
+              {children}
+            </div>
+          )}
+        </main>
       </div>
       <LiveNotificationToast userId={userId} />
-      <main className="flex-1 w-full min-w-0 max-w-none px-2 py-4 sm:px-4 sm:py-6 md:px-4 lg:px-6 xl:px-6">
-        {/* Top bar: notifications on far right upper corner (mobile + desktop) */}
-        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 backdrop-blur px-4 -mx-2 sm:-mx-4 md:-mx-4 lg:-mx-6 xl:-mx-6 sm:px-4 md:px-4 lg:px-6 xl:px-6">
-          <div className="md:hidden flex items-center gap-2 min-w-0 flex-1">
-            <SidebarTrigger className="h-9 w-9 shrink-0" aria-label="Open menu" />
-            <Link href="/dashboard" className="flex items-center gap-2 min-w-0 flex-1">
-              {isLoading ? (
-                <>
-                  <span className="flex h-8 w-8 shrink-0 rounded-lg bg-muted animate-pulse" />
-                  <span className="h-4 w-20 rounded bg-muted animate-pulse" />
-                </>
-              ) : (
-                <>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-sm font-semibold">
-                    {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
-                  </span>
-                  <span className="text-sm font-bold truncate">{userName || t('Profile', 'Profil', 'الملف الشخصي')}</span>
-                </>
-              )}
-            </Link>
-          </div>
-          <div className="flex items-center justify-end gap-2 min-w-0 ms-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={cycleLevel}
-              title={language === 'ar' ? `حجم الخط: ${level === 1 ? 'عادي' : level === 2 ? 'كبير' : 'أكبر'}` : language === 'fr' ? `Taille: ${level === 1 ? 'Normal' : level === 2 ? 'Grand' : 'Très grand'}` : `Font: ${level === 1 ? 'Normal' : level === 2 ? 'Large' : 'Larger'}`}
-              aria-label={language === 'ar' ? 'تكبير النص' : language === 'fr' ? 'Agrandir le texte' : 'Increase font size'}
-            >
-              <Type className="h-4 w-4" />
-            </Button>
-            <NotificationCenter userId={userId} compact />
-          </div>
-        </div>
-        {isFullHeightPage ? (
-          children
-        ) : (
-          <div className="min-h-full bg-slate-50 dark:bg-slate-950 rounded-lg py-4 sm:py-6 px-0">
-            {children}
-          </div>
-        )}
-      </main>
     </>
   )
 }
