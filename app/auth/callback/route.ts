@@ -13,14 +13,27 @@ export async function GET(request: NextRequest) {
   const next = requestUrl.searchParams.get('next')
 
   if (code) {
-    // If this is a password recovery flow, redirect to reset-password page
-    if (type === 'recovery') {
-      return NextResponse.redirect(new URL(`/auth/reset-password?code=${code}`, origin))
-    }
-    
     const supabase = await createServerClient()
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    // After exchanging the code, check if this is a password recovery flow
+    // Only redirect to reset-password if it's an actual password recovery (not OAuth)
+    if (!error && type === 'recovery') {
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // Check if user signed in via OAuth (providers like google, github, etc.)
+      // OAuth users have app_metadata.provider or providers array
+      const isOAuthUser = user?.app_metadata?.provider || 
+                          (user?.app_metadata?.providers && user.app_metadata.providers.length > 0) ||
+                          user?.identities?.some(identity => identity.provider !== 'email')
+      
+      // Only redirect to password reset if NOT an OAuth user
+      if (!isOAuthUser) {
+        return NextResponse.redirect(new URL(`/auth/reset-password?code=${code}`, origin))
+      }
+      // OAuth users skip password reset and continue to normal flow below
+    }
     
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
