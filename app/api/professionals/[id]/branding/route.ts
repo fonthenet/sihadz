@@ -2,6 +2,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/professionals/[id]/branding
  * Returns document_template for a professional (for printing prescriptions/lab requests).

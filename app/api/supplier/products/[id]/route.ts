@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import type { SupplierProductInput } from '@/lib/supplier/types'
 import { categoryRequiresExpiry } from '@/lib/supplier/expiry-validation'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 // GET - Get single product
 export async function GET(
   request: NextRequest,

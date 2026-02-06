@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerClient } from '@/lib/supabase/server'
 import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee-auth'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 interface Params {
   params: Promise<{ id: string }>
 }

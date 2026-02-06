@@ -9,6 +9,10 @@ import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ labRequestId: string }> }

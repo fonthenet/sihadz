@@ -4,6 +4,10 @@ import { getPharmacyIdFromRequest } from '@/lib/pharmacy/auth'
 import type { ProductFormData } from '@/lib/inventory/types'
 import { emitProductUpdated, emitWebhookEvent } from '@/lib/inventory/webhooks'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/pharmacy/inventory/products/[id]
  * Get a single product by ID (owner or employee)

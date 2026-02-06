@@ -160,16 +160,21 @@ export function CalendarSlotPicker({
       const data = await res.json()
       const slots = data.slots || []
       setSlots(slots)
-      setScheduleInfo({ message: data.message })
+      // Show API message, or config error for 503 (helps diagnose production env issues)
+      const msg = data.message ?? (res.status === 503 ? data.error : undefined)
+      setScheduleInfo({ message: msg })
       
-      // Cache the result
-      slotCache.set(cacheKey, {
-        slots,
-        message: data.message,
-        timestamp: Date.now()
-      })
+      // Don't cache errors
+      if (res.ok) {
+        slotCache.set(cacheKey, {
+          slots,
+          message: data.message,
+          timestamp: Date.now()
+        })
+      }
     } catch {
       setSlots([])
+      setScheduleInfo({ message: undefined })
     } finally {
       setLoading(false)
     }

@@ -4,6 +4,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getProfessionalFromRequest } from '@/lib/storefront/auth'
 import type { OrderStatus } from '@/lib/storefront/types'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 interface RouteParams {
   params: Promise<{ id: string }>
 }

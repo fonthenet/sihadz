@@ -2,6 +2,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/lab-requests/[id]
  * Returns a single lab request with items (test types). Uses admin to bypass RLS.

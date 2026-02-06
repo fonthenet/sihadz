@@ -2,6 +2,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET /api/appointments/[id]/lab-requests
  * Returns lab requests for this appointment with items (test types).

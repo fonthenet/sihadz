@@ -11,6 +11,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { verifyAdminAccess } from '@/lib/admin/verify-admin'
 import { decryptBackup } from '@/lib/backup/encryption'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getProfessionalFromRequest } from '@/lib/storefront/auth'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 interface RouteParams {
   params: Promise<{ id: string }>
 }

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getAvailableQuantities } from '@/lib/supplier/stock-validation'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * GET - Get available stock for products from a supplier (for buyers).
  * Query: product_ids=id1,id2,id3 (comma-separated)

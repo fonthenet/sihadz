@@ -1,6 +1,10 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /** Per-medication fulfillment from pharmacy (does not modify original medications). */
 export type PharmacyFulfillmentItem = {
   medication_index: number

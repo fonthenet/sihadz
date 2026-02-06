@@ -9,6 +9,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 const MAX_FILE_SIZE = 15 * 1024 * 1024 // 15MB
 
 async function findThreadForOrder(

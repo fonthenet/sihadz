@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 interface Params {
   params: Promise<{ id: string }>
 }
@@ -16,6 +20,21 @@ interface TimeSlot {
 // ============================================================================
 export async function GET(request: NextRequest, { params }: Params) {
   try {
+    // Fail fast if env vars missing (common in production when Vercel env not set)
+    const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!hasUrl || !hasServiceKey) {
+      console.error('[slots] Missing Supabase env in production:', { hasUrl, hasServiceKey })
+      return NextResponse.json(
+        {
+          error: 'Server configuration error',
+          code: 'MISSING_SUPABASE_CONFIG',
+          message: 'Slots API requires NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Check Vercel Environment Variables for Production.',
+        },
+        { status: 503 }
+      )
+    }
+
     const { id: professionalId } = await params
     const admin = createAdminClient()
     
@@ -42,6 +61,15 @@ export async function GET(request: NextRequest, { params }: Params) {
       .single()
     
     if (profError || !professional) {
+      // Supabase auth errors (401/403) often mean wrong/missing service role key
+      const isAuthError = profError?.code === 'PGRST301' || profError?.message?.includes('JWT') || profError?.message?.includes('invalid')
+      if (isAuthError) {
+        console.error('[slots] Supabase auth error - check SUPABASE_SERVICE_ROLE_KEY:', profError)
+        return NextResponse.json(
+          { error: 'Server configuration error', code: 'SUPABASE_AUTH_ERROR', message: 'Invalid Supabase credentials. Verify SUPABASE_SERVICE_ROLE_KEY in Vercel.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({ error: 'Professional not found' }, { status: 404 })
     }
     

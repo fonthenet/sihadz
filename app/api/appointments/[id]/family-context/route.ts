@@ -1,7 +1,9 @@
-'use server'
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 
 /**
  * GET: Fetch family member context for an appointment

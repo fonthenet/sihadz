@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 // Admin client for reading settings (bypasses RLS for reliability)
 const getAdminClient = () => {
   return createClient(

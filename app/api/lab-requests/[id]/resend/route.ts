@@ -2,6 +2,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 /**
  * Prepare a denied lab request for resending to a different laboratory.
  * Clears laboratory_id, resets status to 'pending', and posts a system message.

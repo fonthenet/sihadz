@@ -1,7 +1,9 @@
-'use server'
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 
 // GET: Get a single family member by ID
 export async function GET(

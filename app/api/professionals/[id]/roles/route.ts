@@ -3,6 +3,10 @@ import { createServerClient, createAdminClient } from '@/lib/supabase/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { DEFAULT_ROLES } from '@/lib/roles-defaults'
 
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
+
 async function bootstrapDefaultRoles(adminClient: SupabaseClient, professionalId: string) {
   // Insert only roles that don't exist yet. Do NOT overwrite existing roles so users can customize permissions.
   for (const r of DEFAULT_ROLES) {
