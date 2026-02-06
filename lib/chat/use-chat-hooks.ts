@@ -1751,40 +1751,32 @@ export function useFileUpload(threadId: string | null, userId: string | null) {
     try {
       const filePath = `chat/${threadId}/${messageId}/${Date.now()}-${file.name}`
       
-      const { error: uploadError } = await supabase.storage
-        .from('chat-attachments')
-        .upload(filePath, file)
+      // Upload to Vercel Blob via API
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('pathname', filePath)
+      formData.append('messageId', messageId)
+      
+      const uploadRes = await fetch('/api/chat/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
 
-      if (uploadError) throw uploadError
+      if (!uploadRes.ok) {
+        const error = await uploadRes.json()
+        throw new Error(error.error || 'Upload failed')
+      }
 
-      await supabase
-        .from('chat_attachments')
-        .insert({
-          message_id: messageId,
-          file_name: file.name,
-          file_type: file.type,
-          file_size: file.size,
-          storage_path: filePath
-        })
-
-      // Trigger a message UPDATE so clients can refresh attachments (realtime subscription listens to chat_messages)
-      try {
-        await supabase
-          .from('chat_messages')
-          .update({ edited_at: new Date().toISOString() })
-          .eq('id', messageId)
-      } catch (_) {}
-
-      const { data } = await getSupabase().storage.from('chat-attachments').createSignedUrl(filePath, 3600)
-      const signedUrl = data?.signedUrl || ''
+      const { url } = await uploadRes.json()
 
       setUploads(prev => {
         const updated = new Map(prev)
-        updated.set(fileId, { ...updated.get(fileId)!, progress: 100, status: 'complete', url: signedUrl })
+        updated.set(fileId, { ...updated.get(fileId)!, progress: 100, status: 'complete', url })
         return updated
       })
 
-      return { url: signedUrl }
+      return { url }
     } catch (error) {
       setUploads(prev => {
         const updated = new Map(prev)
