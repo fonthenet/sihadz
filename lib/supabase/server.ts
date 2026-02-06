@@ -1,8 +1,8 @@
 import { createServerClient as createServerClientSSR } from "@supabase/ssr";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-export async function createServerClient() {
+export async function createServerClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,18 +32,15 @@ export async function createServerClient() {
         },
       },
     },
-  );
+  ) as unknown as SupabaseClient;
 }
 
 // Alias for backward compatibility
 export { createServerClient as createClient };
 
-// Re-export the SSR createServerClient with correct types
-export { createServerClientSSR };
-
 // Admin client using service role key - bypasses RLS
 // Only use on server-side for admin operations
-export function createAdminClient() {
+export function createAdminClient(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -52,23 +49,16 @@ export function createAdminClient() {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!serviceRoleKey,
     });
-    // Return client with placeholders - operations will fail but site won't crash
-    return createSupabaseClient(
-      supabaseUrl || 'https://placeholder.supabase.co',
-      serviceRoleKey || 'placeholder-key',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
   }
 
-  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  return createSupabaseClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    serviceRoleKey || 'placeholder-key',
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
 }
