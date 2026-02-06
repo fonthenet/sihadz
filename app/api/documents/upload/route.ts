@@ -7,12 +7,12 @@ import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee-auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { put } from '@vercel/blob'
 
 // Force Node.js runtime and dynamic rendering for Vercel
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const BUCKET = 'documents'
 // Vercel serverless has 4.5MB body limit - keep under to avoid 413
 const MAX_SIZE = 4 * 1024 * 1024 // 4MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
@@ -58,15 +58,9 @@ export async function POST(request: NextRequest) {
       if (!prof && (!emp || emp.professional_id !== professionalId)) {
         return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
       }
-      const path = `professional/${professionalId}/${fileId}.${ext}`
-      const buf = Buffer.from(await file.arrayBuffer())
-      const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buf, { contentType: mime, upsert: false })
-      if (uploadErr) {
-        console.error('[documents/upload]', uploadErr)
-        return NextResponse.json({ error: uploadErr.message || 'Upload failed' }, { status: 500 })
-      }
-      const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path)
-      fileUrl = urlData.publicUrl
+      const path = `documents/professional/${professionalId}/${fileId}.${ext}`
+      const blob = await put(path, file, { access: 'public', contentType: mime })
+      fileUrl = blob.url
 
       const category = documentType === 'insurance' ? 'insurance' : documentType === 'national_id' ? 'license' : ['medical_records', 'lab_results', 'xrays', 'prescription'].includes(documentType) ? 'certificate' : 'other'
       const { data: doc, error: insertErr } = await admin.from('professional_documents').insert({
@@ -96,15 +90,9 @@ export async function POST(request: NextRequest) {
       if (!isPatient && !isDoctor) {
         return NextResponse.json({ error: 'Not authorized for this appointment' }, { status: 403 })
       }
-      const path = `visit/${appointmentId}/${fileId}.${ext}`
-      const buf = Buffer.from(await file.arrayBuffer())
-      const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buf, { contentType: mime, upsert: false })
-      if (uploadErr) {
-        console.error('[documents/upload]', uploadErr)
-        return NextResponse.json({ error: uploadErr.message || 'Upload failed' }, { status: 500 })
-      }
-      const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path)
-      fileUrl = urlData.publicUrl
+      const path = `documents/visit/${appointmentId}/${fileId}.${ext}`
+      const blob = await put(path, file, { access: 'public', contentType: mime })
+      fileUrl = blob.url
 
       const { data: doc, error: insertErr } = await admin.from('visit_documents').insert({
         appointment_id: appointmentId,
@@ -163,15 +151,9 @@ export async function POST(request: NextRequest) {
       }
       if (!isLab) return NextResponse.json({ error: 'Only the assigned laboratory can upload documents' }, { status: 403 })
       if (!uploaderUserId) return NextResponse.json({ error: 'Cannot determine uploader' }, { status: 400 })
-      const path = `lab_request/${labRequestId}/${fileId}.${ext}`
-      const buf = Buffer.from(await file.arrayBuffer())
-      const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buf, { contentType: mime, upsert: false })
-      if (uploadErr) {
-        console.error('[documents/upload]', uploadErr)
-        return NextResponse.json({ error: uploadErr.message || 'Upload failed' }, { status: 500 })
-      }
-      const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path)
-      fileUrl = urlData.publicUrl
+      const path = `documents/lab_request/${labRequestId}/${fileId}.${ext}`
+      const blob = await put(path, file, { access: 'public', contentType: mime })
+      fileUrl = blob.url
       const { data: doc, error: insertErr } = await admin.from('lab_request_documents').insert({
         lab_request_id: labRequestId,
         uploaded_by: uploaderUserId,
@@ -218,15 +200,9 @@ export async function POST(request: NextRequest) {
         const { data: prof } = await admin.from('professionals').select('id').eq('id', apt.doctor_id).eq('auth_user_id', user.id).maybeSingle()
         if (!prof) return NextResponse.json({ error: 'Not authorized' }, { status: 403 })
       }
-      const path = `patient/${patientId}/${fileId}.${ext}`
-      const buf = Buffer.from(await file.arrayBuffer())
-      const { error: uploadErr } = await admin.storage.from(BUCKET).upload(path, buf, { contentType: mime, upsert: false })
-      if (uploadErr) {
-        console.error('[documents/upload]', uploadErr)
-        return NextResponse.json({ error: uploadErr.message || 'Upload failed' }, { status: 500 })
-      }
-      const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(path)
-      fileUrl = urlData.publicUrl
+      const path = `documents/patient/${patientId}/${fileId}.${ext}`
+      const blob = await put(path, file, { access: 'public', contentType: mime })
+      fileUrl = blob.url
 
       const { data: doc, error: insertErr } = await admin.from('patient_documents').insert({
         patient_id: patientId,

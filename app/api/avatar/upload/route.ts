@@ -1,12 +1,12 @@
 /**
  * Avatar upload API - updates profiles.avatar_url
- * POST: Accept multipart form with "file" (image), uploads to avatars bucket, updates profile
- * Requires: Supabase Storage bucket "avatars" with public read access
+ * POST: Accept multipart form with "file" (image), uploads to Vercel Blob, updates profile
  */
 
 import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
+import { put } from '@vercel/blob'
 
 // Force Node.js runtime and dynamic rendering for Vercel
 export const runtime = 'nodejs'
@@ -34,25 +34,12 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = file.name.split('.').pop() || 'jpg'
-    const path = `${user.id}/avatar.${ext}`
+    const path = `avatars/${user.id}/avatar.${ext}`
 
     const admin = createAdminClient()
-    const buf = Buffer.from(await file.arrayBuffer())
 
-    const { error: uploadErr } = await admin.storage
-      .from('avatars')
-      .upload(path, buf, { contentType: file.type, upsert: true })
-
-    if (uploadErr) {
-      console.error('[avatar/upload] Storage error:', uploadErr)
-      return NextResponse.json(
-        { error: uploadErr.message || 'Upload failed. Ensure storage bucket "avatars" exists and is configured.' },
-        { status: 500 }
-      )
-    }
-
-    const { data: urlData } = admin.storage.from('avatars').getPublicUrl(path)
-    const avatarUrl = urlData.publicUrl
+    const blob = await put(path, file, { access: 'public', contentType: file.type })
+    const avatarUrl = blob.url
 
     // Ensure profile row exists (professionals may not have one from signup trigger) then set avatar_url
     const { data: existing } = await admin.from('profiles').select('id').eq('id', user.id).maybeSingle()

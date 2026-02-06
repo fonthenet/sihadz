@@ -1,14 +1,13 @@
 /**
  * GET /api/documents/proxy?type=professional|visit|patient&id=xxx
- * Streams document file for inline viewing. Verifies user has access.
+ * Redirects to Vercel Blob URL after verifying user has access.
+ * Now uses Vercel Blob instead of Supabase Storage.
  */
 
 import { createServerClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { validateEmployeeSession, EMPLOYEE_SESSION_COOKIE } from '@/lib/employee-auth'
 import { NextRequest, NextResponse } from 'next/server'
-
-const BUCKET = 'documents'
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,50 +34,33 @@ export async function GET(request: NextRequest) {
     if (type === 'professional') {
       const { data: doc, error } = await admin
         .from('professional_documents')
-        .select('storage_path, file_name, file_type')
+        .select('file_url, professional_id')
         .eq('id', id)
         .single()
 
-      if (error || !doc?.storage_path) {
+      if (error || !doc?.file_url) {
         return NextResponse.json({ error: 'Document not found' }, { status: 404 })
       }
 
-      const profId = (await admin.from('professional_documents').select('professional_id').eq('id', id).single()).data?.professional_id
-      const { data: prof } = await admin.from('professionals').select('id').eq('id', profId).maybeSingle()
-      const isOwner = prof && user && (await admin.from('professionals').select('auth_user_id').eq('id', profId).single()).data?.auth_user_id === user.id
-      const isEmployee = empSession?.professional?.id === profId
+      const { data: prof } = await admin.from('professionals').select('auth_user_id').eq('id', doc.professional_id).maybeSingle()
+      const isOwner = user && prof?.auth_user_id === user.id
+      const isEmployee = empSession?.professional?.id === doc.professional_id
       if (!isOwner && !isEmployee) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
 
-      const { data: fileData, error: downloadErr } = await admin.storage.from(BUCKET).download(doc.storage_path)
-      if (downloadErr || !fileData) {
-        return NextResponse.json({ error: 'Failed to load file' }, { status: 500 })
-      }
-      const ext = (doc.file_name || '').split('.').pop()?.toLowerCase()
-      const contentType = doc.file_type === 'pdf' ? 'application/pdf'
-        : ext === 'png' ? 'image/png'
-        : ext === 'webp' ? 'image/webp'
-        : ext === 'gif' ? 'image/gif'
-        : 'image/jpeg'
-      const headers: Record<string, string> = {
-        'Content-Type': contentType,
-        'Cache-Control': 'private, max-age=3600',
-      }
-      if (forceDownload && doc.file_name) {
-        headers['Content-Disposition'] = `attachment; filename="${doc.file_name.replace(/"/g, '\\"')}"`
-      }
-      return new NextResponse(fileData, { headers })
+      // Redirect to Vercel Blob URL
+      return NextResponse.redirect(doc.file_url)
     }
 
     if (type === 'visit') {
       const { data: doc, error } = await admin
         .from('visit_documents')
-        .select('storage_path, appointment_id')
+        .select('file_url, appointment_id')
         .eq('id', id)
         .single()
 
-      if (error || !doc?.storage_path) {
+      if (error || !doc?.file_url) {
         return NextResponse.json({ error: 'Document not found' }, { status: 404 })
       }
 
@@ -95,35 +77,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
 
-      const { data: docFull } = await admin.from('visit_documents').select('file_type, file_name').eq('id', id).single()
-      const { data: fileData, error: downloadErr } = await admin.storage.from(BUCKET).download(doc.storage_path)
-      if (downloadErr || !fileData) {
-        return NextResponse.json({ error: 'Failed to load file' }, { status: 500 })
-      }
-      const ext = (docFull?.file_name || '').split('.').pop()?.toLowerCase()
-      const contentType = docFull?.file_type === 'pdf' ? 'application/pdf'
-        : ext === 'png' ? 'image/png'
-        : ext === 'webp' ? 'image/webp'
-        : ext === 'gif' ? 'image/gif'
-        : 'image/jpeg'
-      const headers: Record<string, string> = {
-        'Content-Type': contentType,
-        'Cache-Control': 'private, max-age=3600',
-      }
-      if (forceDownload && docFull?.file_name) {
-        headers['Content-Disposition'] = `attachment; filename="${docFull.file_name.replace(/"/g, '\\"')}"`
-      }
-      return new NextResponse(fileData, { headers })
+      // Redirect to Vercel Blob URL
+      return NextResponse.redirect(doc.file_url)
     }
 
     if (type === 'patient') {
       const { data: doc, error } = await admin
         .from('patient_documents')
-        .select('storage_path, patient_id')
+        .select('file_url, patient_id')
         .eq('id', id)
         .single()
 
-      if (error || !doc?.storage_path) {
+      if (error || !doc?.file_url) {
         return NextResponse.json({ error: 'Document not found' }, { status: 404 })
       }
 
@@ -136,35 +101,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
 
-      const { data: docFull } = await admin.from('patient_documents').select('file_type, file_name').eq('id', id).single()
-      const { data: fileData, error: downloadErr } = await admin.storage.from(BUCKET).download(doc.storage_path)
-      if (downloadErr || !fileData) {
-        return NextResponse.json({ error: 'Failed to load file' }, { status: 500 })
-      }
-      const ext = (docFull?.file_name || '').split('.').pop()?.toLowerCase()
-      const contentType = docFull?.file_type === 'pdf' ? 'application/pdf'
-        : ext === 'png' ? 'image/png'
-        : ext === 'webp' ? 'image/webp'
-        : ext === 'gif' ? 'image/gif'
-        : 'image/jpeg'
-      const headers: Record<string, string> = {
-        'Content-Type': contentType,
-        'Cache-Control': 'private, max-age=3600',
-      }
-      if (forceDownload && docFull?.file_name) {
-        headers['Content-Disposition'] = `attachment; filename="${docFull.file_name.replace(/"/g, '\\"')}"`
-      }
-      return new NextResponse(fileData, { headers })
+      // Redirect to Vercel Blob URL
+      return NextResponse.redirect(doc.file_url)
     }
 
     if (type === 'lab_request') {
       const { data: doc, error } = await admin
         .from('lab_request_documents')
-        .select('storage_path, file_name, file_type, lab_request_id')
+        .select('file_url, lab_request_id')
         .eq('id', id)
         .single()
 
-      if (error || !doc?.storage_path) {
+      if (error || !doc?.file_url) {
         return NextResponse.json({ error: 'Document not found' }, { status: 404 })
       }
 
@@ -181,24 +129,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
 
-      const { data: fileData, error: downloadErr } = await admin.storage.from(BUCKET).download(doc.storage_path)
-      if (downloadErr || !fileData) {
-        return NextResponse.json({ error: 'Failed to load file' }, { status: 500 })
-      }
-      const ext = (doc.file_name || '').split('.').pop()?.toLowerCase()
-      const contentType = doc.file_type === 'pdf' ? 'application/pdf'
-        : ext === 'png' ? 'image/png'
-        : ext === 'webp' ? 'image/webp'
-        : ext === 'gif' ? 'image/gif'
-        : 'image/jpeg'
-      const headers: Record<string, string> = {
-        'Content-Type': contentType,
-        'Cache-Control': 'private, max-age=3600',
-      }
-      if (forceDownload && doc.file_name) {
-        headers['Content-Disposition'] = `attachment; filename="${doc.file_name.replace(/"/g, '\\"')}"`
-      }
-      return new NextResponse(fileData, { headers })
+      // Redirect to Vercel Blob URL
+      return NextResponse.redirect(doc.file_url)
     }
 
     return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
