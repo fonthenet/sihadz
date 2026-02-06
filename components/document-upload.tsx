@@ -254,7 +254,7 @@ export function DocumentUpload({
         )
       case 'pending':
         return (
-          <Badge variant="secondary" className="bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20">
+          <Badge className="bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20">
             <CheckCircle className="h-3 w-3 me-1" />
             {t('uploaded')}
           </Badge>

@@ -62,19 +62,25 @@ export default function LandingPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
 
-  // Check for password reset code in URL and redirect
+  // Handle auth callback codes: only redirect to reset-password when type=recovery.
+  // OAuth (e.g. Google) returns code without type=recovery — forward to /auth/callback instead.
   React.useEffect(() => {
-    const checkForResetCode = () => {
+    const checkAuthCode = () => {
       const urlParams = new URLSearchParams(window.location.search)
       const code = urlParams.get('code')
-      
+      const type = urlParams.get('type')
+
       if (code) {
-        console.log('[v0] Password reset code detected, redirecting...')
-        router.push(`/auth/reset-password?code=${code}`)
+        if (type === 'recovery') {
+          router.push(`/auth/reset-password?code=${code}`)
+        } else {
+          // OAuth or other callback — let /auth/callback exchange the code
+          router.replace(`/auth/callback?${urlParams.toString()}`)
+        }
       }
     }
-    
-    checkForResetCode()
+
+    checkAuthCode()
   }, [router])
 
   const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight
@@ -130,31 +136,15 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-10 sm:py-16 md:py-24">
         <div className="flex flex-col items-center text-center space-y-4 sm:space-y-6">
-          <h1 className="text-balance text-3xl sm:text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl max-w-4xl">
+          <h1 className="hidden md:block text-balance text-2xl sm:text-3xl font-bold leading-tight text-foreground md:text-4xl lg:text-5xl max-w-4xl">
             {t('heroTitle')}
           </h1>
-          <p className="text-pretty text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
+          <p className="hidden md:block text-pretty text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl">
             {t('heroSubtitle')}
           </p>
 
           {/* Search Bar with Location - unified bar, autocomplete, location priority */}
           <HeroSearchBar />
-
-          {/* Visit Type Badges - flex-nowrap keeps them side by side on mobile */}
-          <div className="flex flex-nowrap justify-center gap-3 sm:gap-6">
-            <Link href="/search?type=in-person" className="shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3 rounded-full border border-primary/20 bg-primary/5 px-4 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-medium text-primary transition-colors hover:bg-primary/10">
-                <Building className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
-                {t('inPerson')}
-              </div>
-            </Link>
-            <Link href="/search?type=e-visit" className="shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3 rounded-full border border-secondary/20 bg-secondary/5 px-4 py-3 sm:px-8 sm:py-4 text-base sm:text-lg font-medium text-secondary transition-colors hover:bg-secondary/10">
-                <Video className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
-                {t('eVisit')}
-              </div>
-            </Link>
-          </div>
 
           {/* Stats – real counts from DB */}
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 pt-4">

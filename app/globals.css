@@ -661,3 +661,9 @@ html[dir="rtl"] [data-slot="select-item"] > span.absolute,
   border-color: var(--severity-color, rgb(251, 146, 60)) !important;
   transition: background 0.15s ease-out, border-color 0.15s ease-out;
 }
+
+/* Next.js portal positioning (dev overlay alignment) */
+nextjs-portal {
+  left: -2px !important;
+  top: -1px !important;
+}

@@ -22,7 +22,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  FlaskConical
+  FlaskConical,
+  LayoutGrid,
+  List
 } from 'lucide-react'
 import { SectionLoading, LoadingSpinner } from '@/components/ui/page-loading'
 import { formatDateAlgeria } from '@/lib/date-algeria'
@@ -71,6 +73,7 @@ export default function DocumentsPage() {
   const [labResults, setLabResults] = useState<LabResultItem[]>([])
   const [labResultsLoading, setLabResultsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null)
   const [viewerDoc, setViewerDoc] = useState<Document | null>(null)
 
@@ -187,7 +190,7 @@ export default function DocumentsPage() {
       case 'verified':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />{t('verified')}</Badge>
       case 'pending':
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="h-3 w-3 mr-1" />{t('uploaded')}</Badge>
+        return <Badge className="bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"><CheckCircle className="h-3 w-3 me-1" />{t('uploaded')}</Badge>
       case 'expired':
         return <Badge className="bg-red-100 text-red-800"><AlertCircle className="h-3 w-3 mr-1" />{t('expired')}</Badge>
     }
@@ -246,9 +249,31 @@ export default function DocumentsPage() {
   return (
     <DashboardPageWrapper maxWidth="xl" showHeader={false}>
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('myDocuments')}</h1>
-        <p className="text-muted-foreground text-sm mt-0.5">{t('manageDocuments')}</p>
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{t('myDocuments')}</h1>
+          <p className="text-muted-foreground text-sm mt-0.5">{t('manageDocuments')}</p>
+        </div>
+        <div className="flex items-center gap-1 p-1 rounded-lg border bg-muted/30">
+          <Button
+            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-8 px-2"
+            onClick={() => setViewMode('grid')}
+            title={language === 'ar' ? 'عرض شبكي' : language === 'fr' ? 'Vue grille' : 'Grid view'}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-8 px-2"
+            onClick={() => setViewMode('list')}
+            title={language === 'ar' ? 'عرض قائمة' : language === 'fr' ? 'Vue liste' : 'List view'}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -278,7 +303,9 @@ export default function DocumentsPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
+                <div className={viewMode === 'grid' 
+                  ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2' 
+                  : 'flex flex-col gap-2'}>
                   {filteredDocuments.map((doc) => {
                     const labDocHref = doc.labRequestId && doc.appointmentId
                       ? `/dashboard/appointments/${doc.appointmentId}?labRequest=${doc.labRequestId}`
