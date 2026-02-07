@@ -32,19 +32,34 @@ function AuthCallbackHandler() {
     const rawNext = searchParams.get('next')
     const next = sanitizeNext(rawNext)
 
+    const supabase = createBrowserClient()
+
+    async function redirectToMainIfSignedIn(): Promise<boolean> {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        router.replace('/')
+        return true
+      }
+      return false
+    }
+
     // OAuth error from Supabase (e.g. redirect URL not allowed)
     if (errorParam) {
       const msg = errorDescription || errorParam
-      router.replace(`/login?error=auth_callback_error&details=${encodeURIComponent(msg)}`)
+      ;(async () => {
+        if (await redirectToMainIfSignedIn()) return
+        router.replace(`/login?error=auth_callback_error&details=${encodeURIComponent(msg)}`)
+      })()
       return
     }
 
     if (!code) {
-      router.replace('/login?error=auth_callback_error')
+      ;(async () => {
+        if (await redirectToMainIfSignedIn()) return
+        router.replace('/login?error=auth_callback_error')
+      })()
       return
     }
-
-    const supabase = createBrowserClient()
 
     ;(async () => {
       // Client-side exchange: PKCE code_verifier is in browser cookies, so this succeeds
@@ -52,12 +67,14 @@ function AuthCallbackHandler() {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
 
       if (error) {
+        if (await redirectToMainIfSignedIn()) return
         router.replace(`/login?error=auth_callback_error&details=${encodeURIComponent(error.message)}`)
         return
       }
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
+        if (await redirectToMainIfSignedIn()) return
         router.replace('/login?error=auth_callback_error')
         return
       }

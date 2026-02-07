@@ -38,9 +38,15 @@ export default function LoginPage() {
     const err = searchParams.get('error')
     const details = searchParams.get('details')
     if (err === 'auth_callback_error') {
-      setError(details || (language === 'ar' ? 'فشل تسجيل الدخول عبر جوجل. تحقق من إعدادات Supabase (Redirect URLs).' : language === 'fr' ? 'Échec de la connexion Google. Vérifiez les paramètres Supabase (Redirect URLs).' : 'Google sign-in failed. Check Supabase Redirect URLs in Auth settings.'))
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          router.replace('/')
+          return
+        }
+        setError(details || (language === 'ar' ? 'فشل تسجيل الدخول عبر جوجل. تحقق من إعدادات Supabase (Redirect URLs).' : language === 'fr' ? 'Échec de la connexion Google. Vérifiez les paramètres Supabase (Redirect URLs).' : 'Google sign-in failed. Check Supabase Redirect URLs in Auth settings.'))
+      })
     }
-  }, [searchParams, language])
+  }, [searchParams, language, supabase, router])
   const [accountType, setAccountType] = useState('patient') // Declare accountType and setAccountType
 
   const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight
