@@ -29,6 +29,17 @@ import {
 } from 'lucide-react'
 import type { SupplierPurchaseOrder } from '@/lib/supplier/types'
 
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-slate-100 text-slate-700',
+  accepted: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  substitution_offered: 'bg-amber-100 text-amber-700',
+  substitution_accepted: 'bg-green-100 text-green-700',
+  substitution_rejected: 'bg-red-100 text-red-700',
+  quantity_adjusted: 'bg-blue-100 text-blue-700',
+  price_adjusted: 'bg-blue-100 text-blue-700',
+}
+
 interface OrderItem {
   id: string
   product_name?: string
@@ -56,16 +67,6 @@ interface BuyerOrderDetailSheetProps {
   onConfirmDelivery?: (orderId: string) => Promise<void>
   onMarkPaid?: (orderId: string) => Promise<void>
   loading?: boolean
-}
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-700',
-  accepted: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
-  substitution_offered: 'bg-amber-100 text-amber-700',
-  substitution_rejected: 'bg-red-100 text-red-700',
-  quantity_adjusted: 'bg-blue-100 text-blue-700',
-  price_adjusted: 'bg-blue-100 text-blue-700',
 }
 
 export function BuyerOrderDetailSheet({
@@ -186,7 +187,7 @@ export function BuyerOrderDetailSheet({
             <ScrollArea className="h-[40vh] pr-4">
               <div className="space-y-3">
                 {items.map((item) => {
-                  const status = item.item_status || 'pending'
+                  const status = item.item_status ?? 'pending'
                   const isRejected = status === 'rejected' || status === 'substitution_rejected'
                   const isSubstitution = status === 'substitution_offered'
                   const isAdjusted = status === 'quantity_adjusted' || status === 'price_adjusted'

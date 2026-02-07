@@ -475,6 +475,14 @@ export async function PATCH(request: NextRequest) {
           })
         }
         console.log('=========== [SupplierOrders] ORDER SUBMIT END ===========')
+        // When order is submitted or confirmed, update pending items to accepted
+        if (updates.status === 'submitted' || updates.status === 'confirmed') {
+          await supabase
+            .from('supplier_purchase_order_items')
+            .update({ item_status: 'accepted' })
+            .eq('order_id', order_id)
+            .eq('item_status', 'pending')
+        }
         break
 
       case 'cancel':
@@ -527,7 +535,6 @@ export async function PATCH(request: NextRequest) {
                 .eq('id', it.id)
               continue
             }
-            // Apply substitution: replace product, qty, price
             await supabase
               .from('supplier_purchase_order_items')
               .update({

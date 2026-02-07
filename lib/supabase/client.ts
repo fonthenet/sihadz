@@ -1,5 +1,5 @@
-import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createPkceStorage } from "./pkce-storage";
 
 let client: SupabaseClient | null = null;
 
@@ -22,14 +22,23 @@ export function createClient() {
     return client;
   }
 
-  // CRITICAL: Always use @supabase/ssr createBrowserClient with cookies.
-  // Do NOT fall back to createSupabaseClient - that uses localStorage, which breaks
-  // PKCE: code_verifier is stored in localStorage but server/callback expects cookies.
-  client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
-    cookieOptions: {
-      path: '/',
-      sameSite: 'lax',
-      secure: typeof window !== 'undefined' && window.location?.protocol === 'https:',
+  // PKCE fix: Use custom storage with sessionStorage fallback for code verifier.
+  // Cookies can fail in some browsers (e.g. after logout, in-app browsers).
+  // sessionStorage reliably persists across OAuth redirect in same tab.
+  const storageKey =
+    "sb-" + (supabaseUrl ? new URL(supabaseUrl).hostname.split(".")[0] : "auth") + "-auth-token";
+  const { storage } = createPkceStorage(storageKey);
+
+  const isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
+
+  client = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      flowType: "pkce",
+      autoRefreshToken: isBrowser,
+      detectSessionInUrl: isBrowser,
+      persistSession: true,
+      storage,
+      storageKey,
     },
   }) as SupabaseClient;
   

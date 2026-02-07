@@ -172,6 +172,12 @@ export async function PATCH(request: NextRequest) {
         if (updateData.supplier_notes) {
           updates.supplier_notes = updateData.supplier_notes
         }
+        // Update pending items to accepted when supplier confirms the order
+        await supabase
+          .from('supplier_purchase_order_items')
+          .update({ item_status: 'accepted' })
+          .eq('order_id', order_id)
+          .eq('item_status', 'pending')
         break
 
       case 'reject':
