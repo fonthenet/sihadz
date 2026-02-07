@@ -43,7 +43,6 @@ import {
   MessageSquare,
   Loader2,
 } from 'lucide-react'
-import { useSubmitGuard } from '@/hooks/use-submit-guard'
 import type { SupplierPurchaseOrder } from '@/lib/supplier/types'
 
 const STATUS_COLORS: Record<string, string> = {
@@ -116,11 +115,11 @@ export function SupplierOrderDetailSheet({
   const [rejectReason, setRejectReason] = useState('')
   const [noteText, setNoteText] = useState('')
   const [changesSummary, setChangesSummary] = useState('')
-  const { guard, wrap } = useSubmitGuard()
 
   useEffect(() => {
     if (open && order?.id) {
       setOrderData(order)
+      setSendForReviewSuccess(false)
       fetch(`/api/supplier/orders?order_id=${order.id}`)
         .then((r) => r.json())
         .then((d) => {
@@ -185,39 +184,43 @@ export function SupplierOrderDetailSheet({
     }
   }
 
+  const [sendForReviewSuccess, setSendForReviewSuccess] = useState(false)
+  const [sendingForReview, setSendingForReview] = useState(false)
+
   async function sendForReview() {
     if (!order?.id) return
-    const doSend = wrap(async () => {
-      setLoading(true)
-      try {
-        const res = await fetch(`/api/supplier/orders/${order.id}/items`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'send_for_review',
-            changes_summary: changesSummary || undefined,
-          }),
-        })
-        const result = await res.json()
-        if (res.ok) {
-          setOrderData(result)
-          toast({ title: 'Success', description: 'Sent for buyer review' })
-          onSuccess()
+    setSendingForReview(true)
+    setSendForReviewSuccess(false)
+    try {
+      const res = await fetch(`/api/supplier/orders/${order.id}/items`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_for_review',
+          changes_summary: changesSummary || undefined,
+        }),
+      })
+      const result = await res.json()
+      if (res.ok) {
+        setOrderData(result)
+        setSendForReviewSuccess(true)
+        toast({ title: 'Sent for review', description: 'The pharmacy will be notified to review your changes.' })
+        onSuccess()
+        setTimeout(() => {
           onOpenChange(false)
-        } else {
-          throw new Error(result.error || 'Failed')
-        }
-      } catch (e: unknown) {
-        toast({
-          title: 'Error',
-          description: e instanceof Error ? e.message : 'Failed to send',
-          variant: 'destructive',
-        })
-      } finally {
-        setLoading(false)
+        }, 1500)
+      } else {
+        throw new Error(result.error || 'Failed')
       }
-    })
-    await doSend()
+    } catch (e: unknown) {
+      toast({
+        title: 'Error',
+        description: e instanceof Error ? e.message : 'Failed to send',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingForReview(false)
+    }
   }
 
   function openSubstitute(item: OrderItem) {
@@ -309,6 +312,15 @@ export function SupplierOrderDetailSheet({
               <p className="text-xl font-bold">{orderData?.total?.toLocaleString()} DZD</p>
             </div>
 
+            {orderData?.status === 'pending_buyer_review' && (
+              <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 p-4 text-sm">
+                <p className="font-semibold text-amber-800 dark:text-amber-200">Awaiting buyer review</p>
+                <p className="text-muted-foreground mt-1">Your changes have been sent to the pharmacy. They will approve or reject.</p>
+                {orderData.review_requested_at && (
+                  <p className="text-xs text-muted-foreground mt-2">Sent on {new Date(orderData.review_requested_at).toLocaleString()}</p>
+                )}
+              </div>
+            )}
             {orderData?.supplier_changes_summary && (
               <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm">
                 <p className="font-medium text-amber-800 dark:text-amber-200">Changes summary</p>
@@ -456,7 +468,7 @@ export function SupplierOrderDetailSheet({
               </div>
             </ScrollArea>
 
-            {canEdit && hasChanges && orderData?.status === 'submitted' && (
+            {canEdit && hasChanges && ['submitted', 'pending_buyer_review'].includes(orderData?.status || '') && (
               <div className="space-y-2 pt-4 border-t">
                 <Label>Changes summary (optional)</Label>
                 <Textarea
@@ -470,17 +482,28 @@ export function SupplierOrderDetailSheet({
           </div>
 
           <SheetFooter className="mt-6 flex flex-wrap gap-2">
-            {canEdit && hasChanges && orderData?.status === 'submitted' && (
+            {canEdit && hasChanges && ['submitted', 'pending_buyer_review'].includes(orderData?.status || '') && (
               <Button
                 onClick={sendForReview}
-                disabled={guard || loading}
+                disabled={loading || sendingForReview}
+                className={sendForReviewSuccess ? 'bg-green-600 hover:bg-green-700' : ''}
               >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                {sendingForReview ? (
+                  <>
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : sendForReviewSuccess ? (
+                  <>
+                    <CheckCircle className="h-4 w-4 me-2" />
+                    Sent
+                  </>
                 ) : (
-                  <Send className="h-4 w-4 me-2" />
+                  <>
+                    <Send className="h-4 w-4 me-2" />
+                    Send for Buyer Review
+                  </>
                 )}
-                Send for Buyer Review
               </Button>
             )}
             <Button variant="outline" onClick={() => onOpenChange(false)}>

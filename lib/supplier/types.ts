@@ -17,6 +17,7 @@ export type PaymentTerms = 'cash' | '15_days' | '30_days' | '60_days' | '90_days
 export type OrderStatus = 
   | 'draft'
   | 'submitted'
+  | 'pending_buyer_review'
   | 'confirmed'
   | 'processing'
   | 'shipped'
@@ -275,6 +276,10 @@ export interface SupplierPurchaseOrder {
   
   // Payment (for credit terms: pay after N orders)
   paid_at?: string | null
+
+  // Review (supplier changes)
+  supplier_changes_summary?: string | null
+  review_requested_at?: string | null
 
   // Timestamps
   created_at: string

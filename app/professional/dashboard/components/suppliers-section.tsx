@@ -275,6 +275,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
   const [actingLinkId, setActingLinkId] = useState<string | null>(null)
   const [orderForReview, setOrderForReview] = useState<SupplierPurchaseOrder | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<SupplierPurchaseOrder | null>(null)
+  const [editingOrder, setEditingOrder] = useState<SupplierPurchaseOrder | null>(null)
   const [unpaidOrdersCount, setUnpaidOrdersCount] = useState(0)
   const [unpaidAmount, setUnpaidAmount] = useState(0)
   const [orderStockMap, setOrderStockMap] = useState<Record<string, { available: number | null; inStock: boolean }>>({})
@@ -610,20 +611,53 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
     }
   }
 
-  // Submit order
+  // Submit order (create new or update existing)
   async function submitOrder() {
     if (!selectedSupplier || orderItems.length === 0 || submittingOrderRef.current) return
     submittingOrderRef.current = true
     setSubmittingOrder(true)
     setOrderError(null)
     try {
+      const itemsPayload = orderItems.map(i => ({ product_id: i.product.id, quantity: i.quantity }))
+
+      if (editingOrder) {
+        const res = await fetch('/api/suppliers/orders', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: editingOrder.id,
+            action: 'update_items',
+            items: itemsPayload,
+            buyer_notes: orderNotes,
+          }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          const msg = data.error || 'Failed to update order'
+          const validationErrors = data.validationErrors as Array<{ productName: string; error: string }> | undefined
+          const detail = validationErrors?.length
+            ? validationErrors.map(e => `${e.productName}: ${e.error}`).join('; ')
+            : msg
+          setOrderError(detail)
+          toast({ title: l.orderError, description: detail, variant: 'destructive' })
+          return
+        }
+        setShowOrderDialog(false)
+        setOrderItems([])
+        setOrderNotes('')
+        setSelectedSupplier(null)
+        setEditingOrder(null)
+        setOrderError(null)
+        setActiveTab('orders')
+        loadData()
+        toast({ title: l.orderSuccess, description: lang === 'ar' ? 'تم تحديث الطلب' : lang === 'fr' ? 'Commande mise à jour' : 'Order updated' })
+        return
+      }
+
       const orderData: OrderInput = {
         supplier_id: selectedSupplier.id,
         buyer_notes: orderNotes,
-        items: orderItems.map(i => ({
-          product_id: i.product.id,
-          quantity: i.quantity,
-        })),
+        items: itemsPayload,
       }
 
       const res = await fetch('/api/suppliers/orders', {
@@ -700,6 +734,9 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
         }
         if (action === 'approve_changes') {
           toast({ title: l.orderSuccess, description: lang === 'ar' ? 'تمت الموافقة على التعديلات' : lang === 'fr' ? 'Modifications approuvées' : 'Changes approved' })
+        }
+        if (action === 'cancel') {
+          toast({ title: l.orderSuccess, description: lang === 'ar' ? 'تم إلغاء الطلب' : lang === 'fr' ? 'Commande annulée' : 'Order cancelled' })
         }
       } else {
         const msg = json.error || (lang === 'ar' ? 'فشل تنفيذ الإجراء' : lang === 'fr' ? 'Échec de l\'action' : 'Action failed')
@@ -1200,6 +1237,23 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
+                          {(order.status === 'submitted' || order.status === 'pending_buyer_review') && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/20"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (confirm(language === 'ar' ? 'هل تريد إلغاء هذا الطلب؟' : language === 'fr' ? 'Annuler cette commande ?' : 'Cancel this order? The supplier has not processed it yet.')) {
+                                  handleOrderAction(order.id, 'cancel')
+                                }
+                              }}
+                              disabled={actingOrderId === order.id}
+                            >
+                              {actingOrderId === order.id ? <RefreshCw className="h-4 w-4 me-1 animate-spin" /> : <XCircle className="h-4 w-4 me-1" />}
+                              {language === 'ar' ? 'إلغاء' : language === 'fr' ? 'Annuler' : 'Cancel'}
+                            </Button>
+                          )}
                           {order.status === 'pending_buyer_review' && (
                             <Button
                               size="sm"
@@ -1375,6 +1429,24 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
         open={!!selectedOrder}
         onOpenChange={(open) => !open && setSelectedOrder(null)}
         onReview={(o) => setOrderForReview(o)}
+        onEdit={(o) => {
+          setEditingOrder(o)
+          setSelectedOrder(null)
+          const sup = suppliers.find((s) => s.id === o.supplier_id)
+          setSelectedSupplier(sup ?? null)
+          const items = (o.items || []) as Array<{ product_id: string; product_name?: string; product_sku?: string; unit_price: number; quantity: number; product?: { id: string; name?: string; sku?: string } }>
+          setOrderItems(items.map((item) => ({
+            product: { id: item.product_id, name: item.product?.name || item.product_name || 'Product', sku: item.product?.sku || item.product_sku, unit_price: item.unit_price } as SupplierProduct,
+            quantity: item.quantity,
+          })))
+          setOrderNotes(o.buyer_notes || '')
+          setShowOrderDialog(true)
+          if (sup) loadSupplierProducts(sup.id, 1, false)
+        }}
+        onCancel={async (orderId) => {
+          await handleOrderAction(orderId, 'cancel')
+          setSelectedOrder(null)
+        }}
         onConfirmDelivery={async (orderId) => {
           await handleOrderAction(orderId, 'confirm_delivery')
           setSelectedOrder(null)
@@ -1387,11 +1459,11 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
       />
 
       {/* Bulk Order Sheet - full-width for large orders */}
-      <Sheet open={showOrderDialog} onOpenChange={setShowOrderDialog}>
+      <Sheet open={showOrderDialog} onOpenChange={(open) => { setShowOrderDialog(open); if (!open) setEditingOrder(null) }}>
         <SheetContent side="right" className="w-full sm:max-w-2xl md:max-w-4xl lg:max-w-5xl overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>{l.placeOrder} - {selectedSupplier?.business_name}</SheetTitle>
-            <SheetDescription>Bulk ordering: manual selection, CSV import, or copy from previous order</SheetDescription>
+            <SheetTitle>{editingOrder ? (language === 'ar' ? 'تعديل الطلب' : language === 'fr' ? 'Modifier la commande' : 'Edit order') : l.placeOrder} - {selectedSupplier?.business_name}</SheetTitle>
+            <SheetDescription>{editingOrder ? 'Modify items before the supplier processes. Changes apply immediately.' : 'Bulk ordering: manual selection, CSV import, or copy from previous order'}</SheetDescription>
           </SheetHeader>
 
           <Tabs value={orderMode} onValueChange={(v) => setOrderMode(v as 'manual' | 'import' | 'copy')} className="mt-4">
@@ -1633,12 +1705,12 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
               {submittingOrder ? (
                 <>
                   <RefreshCw className="h-4 w-4 me-2 animate-spin" />
-                  {l.submitting}
+                  {editingOrder ? (language === 'ar' ? 'جاري التحديث...' : language === 'fr' ? 'Mise à jour...' : 'Updating...') : l.submitting}
                 </>
               ) : (
                 <>
                   <Send className="h-4 w-4 me-2" />
-                  {l.submit}
+                  {editingOrder ? (language === 'ar' ? 'تحديث الطلب' : language === 'fr' ? 'Mettre à jour' : 'Update order') : l.submit}
                 </>
               )}
             </Button>

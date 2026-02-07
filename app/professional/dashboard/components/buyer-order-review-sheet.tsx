@@ -24,7 +24,6 @@ import {
   Edit,
   Loader2,
 } from 'lucide-react'
-import { useSubmitGuard } from '@/hooks/use-submit-guard'
 import type { SupplierPurchaseOrder } from '@/lib/supplier/types'
 
 interface OrderItem {
@@ -66,19 +65,29 @@ export function BuyerOrderReviewSheet({
   const { toast } = useToast()
   const [rejectReason, setRejectReason] = useState('')
   const [substitutionDecisions, setSubstitutionDecisions] = useState<Record<string, 'accept' | 'reject'>>({})
-  const { guard, wrap } = useSubmitGuard()
+  const [isApproving, setIsApproving] = useState(false)
 
   const items = (order?.items || []) as OrderItem[]
   const substitutionItems = items.filter((i) => i.item_status === 'substitution_offered')
+  const hasSubstitutions = substitutionItems.length > 0
+  const isBusy = loading || isApproving
+
+  function setAllSubstitutions(decision: 'accept' | 'reject') {
+    const next: Record<string, 'accept' | 'reject'> = {}
+    substitutionItems.forEach((i) => { next[i.id] = decision })
+    setSubstitutionDecisions(next)
+  }
 
   async function handleApprove() {
     if (!order?.id) return
-    const doApprove = wrap(async () => {
+    setIsApproving(true)
+    try {
       await onApprove(order.id, substitutionDecisions)
       onOpenChange(false)
       setSubstitutionDecisions({})
-    })
-    await doApprove()
+    } finally {
+      setIsApproving(false)
+    }
   }
 
   async function handleReject() {
@@ -99,15 +108,25 @@ export function BuyerOrderReviewSheet({
         <SheetHeader>
           <SheetTitle>Review Supplier Changes</SheetTitle>
           <SheetDescription>
-            Order {order.order_number} from {order.supplier?.business_name} — the supplier has modified items. Review and approve or reject.
+            Order {order.order_number} from {order.supplier?.business_name}. The supplier has modified items. Review each change and approve or reject.
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
           {order.supplier_changes_summary && (
-            <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm">
-              <p className="font-medium text-amber-800 dark:text-amber-200">Supplier summary</p>
+            <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 p-4 text-sm">
+              <p className="font-semibold text-amber-800 dark:text-amber-200">Supplier summary</p>
               <p className="text-muted-foreground mt-1">{order.supplier_changes_summary}</p>
+            </div>
+          )}
+          {hasSubstitutions && (
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => setAllSubstitutions('accept')}>
+                Accept all substitutions
+              </Button>
+              <Button size="sm" variant="outline" className="text-red-600" onClick={() => setAllSubstitutions('reject')}>
+                Reject all substitutions
+              </Button>
             </div>
           )}
 
@@ -211,7 +230,7 @@ export function BuyerOrderReviewSheet({
         <SheetFooter className="mt-6 flex flex-wrap gap-2">
           <Button
             onClick={handleApprove}
-            disabled={guard || loading}
+            disabled={isBusy}
           >
             {loading ? (
               <Loader2 className="h-4 w-4 me-2 animate-spin" />
@@ -231,7 +250,7 @@ export function BuyerOrderReviewSheet({
             <Button
               variant="destructive"
               onClick={handleReject}
-              disabled={guard || loading}
+              disabled={isBusy}
             >
               {loading ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <XCircle className="h-4 w-4 me-2" />}
               Reject Changes

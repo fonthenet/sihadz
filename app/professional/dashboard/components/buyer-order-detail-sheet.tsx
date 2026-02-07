@@ -64,6 +64,8 @@ interface BuyerOrderDetailSheetProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onReview?: (order: SupplierPurchaseOrder) => void
+  onEdit?: (order: SupplierPurchaseOrder) => void
+  onCancel?: (orderId: string) => Promise<void>
   onConfirmDelivery?: (orderId: string) => Promise<void>
   onMarkPaid?: (orderId: string) => Promise<void>
   loading?: boolean
@@ -74,6 +76,8 @@ export function BuyerOrderDetailSheet({
   open,
   onOpenChange,
   onReview,
+  onEdit,
+  onCancel,
   onConfirmDelivery,
   onMarkPaid,
   loading = false,
@@ -103,6 +107,8 @@ export function BuyerOrderDetailSheet({
   if (!order) return null
 
   const canReview = order.status === 'pending_buyer_review' && onReview
+  const canEdit = order.status === 'submitted' && onEdit
+  const canCancel = (order.status === 'submitted' || order.status === 'pending_buyer_review') && onCancel
   const canConfirmDelivery = order.status === 'shipped' && onConfirmDelivery
   const canMarkPaid = ['delivered', 'completed', 'shipped'].includes(order.status) && !order.paid_at && onMarkPaid
 
@@ -146,13 +152,19 @@ export function BuyerOrderDetailSheet({
             <p className="text-xl font-bold">{order.total?.toLocaleString()} {l.dzd}</p>
           </div>
 
-          {/* Supplier changes summary */}
+          {/* Supplier changes summary - shown when supplier has modified items */}
           {order.supplier_changes_summary && order.status === 'pending_buyer_review' && (
-            <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm">
-              <p className="font-medium text-amber-800 dark:text-amber-200">
-                {language === 'ar' ? 'ملخص تغييرات المورد' : language === 'fr' ? 'Résumé des modifications' : 'Supplier changes summary'}
+            <div className="rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700 p-4 text-sm">
+              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                {language === 'ar' ? 'تغييرات المورد تحتاج موافقتك' : language === 'fr' ? 'Modifications du fournisseur — à approuver' : 'Supplier changes need your approval'}
               </p>
               <p className="text-muted-foreground mt-1">{order.supplier_changes_summary}</p>
+              {order.review_requested_at && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {language === 'ar' ? 'طلب المراجعة في' : language === 'fr' ? 'Demandé le' : 'Requested on'}{' '}
+                  {new Date(order.review_requested_at).toLocaleString()}
+                </p>
+              )}
             </div>
           )}
 
@@ -285,10 +297,37 @@ export function BuyerOrderDetailSheet({
         </div>
 
         <SheetFooter className="mt-6 flex flex-wrap gap-2">
+          {canEdit && (
+            <Button
+              variant="outline"
+              onClick={() => { onEdit?.(order); onOpenChange(false) }}
+              disabled={loading}
+            >
+              <Edit className="h-4 w-4 me-2" />
+              {language === 'ar' ? 'تعديل الطلب' : language === 'fr' ? 'Modifier la commande' : 'Edit order'}
+            </Button>
+          )}
+          {canCancel && (
+            <Button
+              variant="outline"
+              className="text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/20"
+              onClick={async () => {
+                const msg = language === 'ar' ? 'هل تريد إلغاء هذا الطلب؟ لم يقم المورد بمعالجته بعد.' : language === 'fr' ? 'Annuler cette commande ? Le fournisseur ne l\'a pas encore traitée.' : 'Cancel this order? The supplier has not processed it yet.'
+                if (order?.id && onCancel && confirm(msg)) {
+                  await onCancel(order.id)
+                  onOpenChange(false)
+                }
+              }}
+              disabled={loading}
+            >
+              <XCircle className="h-4 w-4 me-2" />
+              {language === 'ar' ? 'إلغاء الطلب' : language === 'fr' ? 'Annuler la commande' : 'Cancel order'}
+            </Button>
+          )}
           {canReview && (
             <Button
               className="bg-amber-600 hover:bg-amber-700"
-              onClick={() => { onReview(order); onOpenChange(false) }}
+              onClick={() => { onReview?.(order); onOpenChange(false) }}
               disabled={loading}
             >
               <Edit className="h-4 w-4 me-2" />
