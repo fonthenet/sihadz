@@ -43,8 +43,8 @@ export async function GET(request: NextRequest) {
     }
     
     const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
+
+    if (user) {
         // Only redirect to reset-password when type=recovery AND user signed in via email (not OAuth)
         // Supabase may incorrectly send type=recovery for OAuth - check provider to be sure
         const isOAuthUser = user.app_metadata?.provider === 'google' ||
@@ -174,10 +174,9 @@ export async function GET(request: NextRequest) {
 
         // Default: patient dashboard
         return NextResponse.redirect(new URL('/dashboard', origin))
-      }
     }
   }
 
-  // Return the user to an error page with instructions
+  // Fallback: no code, or code exchange failed, or no user after exchange
   return NextResponse.redirect(new URL('/login?error=auth_callback_error', origin))
 }
