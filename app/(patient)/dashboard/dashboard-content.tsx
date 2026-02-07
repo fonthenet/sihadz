@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -52,22 +52,24 @@ export default function PatientDashboard() {
   const [vitals, setVitals] = useState<PatientVitals | null>(null)
   const [vitalsLoading, setVitalsLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadVitals() {
-      if (!user?.id) {
-        setVitalsLoading(false)
-        return
-      }
-      const { data } = await supabase
-        .from('profiles')
-        .select('blood_type, height_cm, weight_kg, allergies, chronic_conditions, current_medications, date_of_birth, gender')
-        .eq('id', user.id)
-        .maybeSingle()
-      setVitals(data || null)
+  const loadVitals = useCallback(async () => {
+    if (!user?.id) {
       setVitalsLoading(false)
+      return
     }
-    loadVitals()
+    setVitalsLoading(true)
+    const { data } = await supabase
+      .from('profiles')
+      .select('blood_type, height_cm, weight_kg, allergies, chronic_conditions, current_medications, date_of_birth, gender')
+      .eq('id', user.id)
+      .maybeSingle()
+    setVitals(data || null)
+    setVitalsLoading(false)
   }, [user?.id, supabase])
+
+  useEffect(() => {
+    loadVitals()
+  }, [loadVitals])
 
   useEffect(() => {
     async function loadPrescriptions() {
@@ -181,8 +183,8 @@ export default function PatientDashboard() {
 
   return (
     <DashboardPageWrapper maxWidth="xl" showHeader={false}>
-      {/* Hero / Welcome */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 dark:from-primary/30 dark:via-primary/20 dark:to-primary/10 border border-primary/25 shadow-sm shadow-primary/5 dark:shadow-primary/10 p-5 md:p-6">
+      {/* Hero / Welcome - responsive for 320px-428px */}
+      <section className="relative overflow-hidden rounded-none min-[375px]:rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 dark:from-primary/30 dark:via-primary/20 dark:to-primary/10 border border-primary/25 shadow-sm shadow-primary/5 dark:shadow-primary/10 p-4 min-[375px]:p-5 md:p-6">
         <div className="absolute top-0 right-0 w-72 h-72 bg-primary/15 dark:bg-primary/25 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative space-y-0.5">
           <div className="flex items-center gap-2 text-primary">
@@ -191,7 +193,7 @@ export default function PatientDashboard() {
               {language === 'ar' ? 'نظرة عامة' : language === 'fr' ? 'Vue d\'ensemble' : 'Overview'}
             </span>
           </div>
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+          <h1 className="text-lg min-[375px]:text-xl md:text-2xl font-bold tracking-tight">
             {greeting}
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl">
@@ -210,19 +212,21 @@ export default function PatientDashboard() {
           vitals={vitals}
           loading={vitalsLoading}
           language={language === 'ar' ? 'ar' : language === 'fr' ? 'fr' : 'en'}
+          userId={user?.id}
+          onSaved={loadVitals}
         />
       </section>
 
-      {/* Quick Stats */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Quick Stats - responsive for 320px-428px */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-2 min-[375px]:gap-3">
         <Link href="/dashboard/appointments" className="group">
           <Card className="rounded-none sm:rounded-xl h-full border-primary/20 hover:border-primary/40 hover:shadow-md transition-all duration-200 overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
-                <Calendar className="h-5 w-5 text-primary" />
+            <CardContent className="p-3 min-[375px]:p-4 flex items-center gap-3 min-[375px]:gap-4">
+              <div className="flex h-9 w-9 min-[375px]:h-11 min-[375px]:w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                <Calendar className="h-4 w-4 min-[375px]:h-5 min-[375px]:w-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-2xl font-bold tabular-nums">{upcomingItems.length}</p>
+                <p className="text-xl min-[375px]:text-2xl font-bold tabular-nums">{upcomingItems.length}</p>
                 <p className="text-xs text-muted-foreground truncate">
                   {language === 'ar' ? 'القادم' : language === 'fr' ? 'À venir' : 'Upcoming'}
                 </p>
@@ -232,12 +236,12 @@ export default function PatientDashboard() {
         </Link>
         <Link href="/dashboard/prescriptions" className="group">
           <Card className="rounded-none sm:rounded-xl h-full hover:shadow-md transition-all duration-200 overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 group-hover:bg-amber-500/15 transition-colors">
-                <Pill className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <CardContent className="p-3 min-[375px]:p-4 flex items-center gap-3 min-[375px]:gap-4">
+              <div className="flex h-9 w-9 min-[375px]:h-11 min-[375px]:w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 group-hover:bg-amber-500/15 transition-colors">
+                <Pill className="h-4 w-4 min-[375px]:h-5 min-[375px]:w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="min-w-0">
-                <p className="text-2xl font-bold tabular-nums">{activePrescriptions.length}</p>
+                <p className="text-xl min-[375px]:text-2xl font-bold tabular-nums">{activePrescriptions.length}</p>
                 <p className="text-xs text-muted-foreground truncate">{t('prescriptions')}</p>
               </div>
             </CardContent>
@@ -245,9 +249,9 @@ export default function PatientDashboard() {
         </Link>
         <Link href="/dashboard/messages" className="group">
           <Card className="rounded-none sm:rounded-xl h-full hover:shadow-md transition-all duration-200 overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/15 transition-colors">
-                <MessageCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <CardContent className="p-3 min-[375px]:p-4 flex items-center gap-3 min-[375px]:gap-4">
+              <div className="flex h-9 w-9 min-[375px]:h-11 min-[375px]:w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/15 transition-colors">
+                <MessageCircle className="h-4 w-4 min-[375px]:h-5 min-[375px]:w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate">
@@ -259,12 +263,12 @@ export default function PatientDashboard() {
         </Link>
         <Link href="/dashboard/prescriptions?tab=labtests" className="group">
           <Card className="rounded-none sm:rounded-xl h-full hover:shadow-md transition-all duration-200 overflow-hidden">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 group-hover:bg-violet-500/15 transition-colors">
-                <FlaskConical className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+            <CardContent className="p-3 min-[375px]:p-4 flex items-center gap-3 min-[375px]:gap-4">
+              <div className="flex h-9 w-9 min-[375px]:h-11 min-[375px]:w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 group-hover:bg-violet-500/15 transition-colors">
+                <FlaskConical className="h-4 w-4 min-[375px]:h-5 min-[375px]:w-5 text-violet-600 dark:text-violet-400" />
               </div>
               <div className="min-w-0">
-                <p className="text-2xl font-bold tabular-nums">
+                <p className="text-xl min-[375px]:text-2xl font-bold tabular-nums">
                   {labRequestsLoading ? '–' : labRequestsCount}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
@@ -284,7 +288,7 @@ export default function PatientDashboard() {
               href="/dashboard/appointments"
               className="inline-flex items-center gap-1.5 min-w-0 text-primary hover:text-primary/80 hover:underline underline-offset-2 transition-colors cursor-pointer"
             >
-              <h2 className="text-xl font-semibold tracking-tight min-w-0">
+              <h2 className="text-lg min-[375px]:text-xl font-semibold tracking-tight min-w-0">
                 {language === 'ar' ? 'مواعيدي' : language === 'fr' ? 'Mes Rendez-vous' : 'My Appointments'}
               </h2>
               <ArrowIcon className="h-4 w-4 shrink-0 opacity-70" />
@@ -353,7 +357,7 @@ export default function PatientDashboard() {
         </div>
 
         <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList className="h-auto min-h-10 p-1 rounded-xl bg-muted/50 border flex flex-wrap sm:inline-flex w-full sm:w-fit gap-1">
+          <TabsList className="h-auto min-h-9 min-[375px]:min-h-10 p-1 rounded-lg min-[375px]:rounded-xl bg-muted/50 border flex flex-wrap sm:inline-flex w-full sm:w-fit gap-1">
             <TabsTrigger
               value="upcoming"
               className="gap-2 text-sm rounded-lg px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -474,11 +478,11 @@ export default function PatientDashboard() {
         </Tabs>
       </section>
 
-      {/* Quick Links */}
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Quick Links - responsive for 320px-428px */}
+      <section className="grid gap-3 min-[375px]:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/dashboard/prescriptions">
           <Card className="rounded-none sm:rounded-xl group h-full overflow-hidden transition-all hover:shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
+            <CardContent className="p-4 min-[375px]:p-5 flex items-center gap-3 min-[375px]:gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/15 transition-colors">
                 <Pill className="h-6 w-6 text-primary" />
               </div>
@@ -494,7 +498,7 @@ export default function PatientDashboard() {
         </Link>
         <Link href="/dashboard/documents">
           <Card className="rounded-none sm:rounded-xl group h-full overflow-hidden transition-all hover:shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
+            <CardContent className="p-4 min-[375px]:p-5 flex items-center gap-3 min-[375px]:gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary/10 group-hover:bg-secondary/15 transition-colors">
                 <FolderHeart className="h-6 w-6 text-secondary" />
               </div>
@@ -510,7 +514,7 @@ export default function PatientDashboard() {
         </Link>
         <Link href="/dashboard/wallet">
           <Card className="rounded-none sm:rounded-xl group h-full overflow-hidden transition-all hover:shadow-md">
-            <CardContent className="p-5 flex items-center gap-4">
+            <CardContent className="p-4 min-[375px]:p-5 flex items-center gap-3 min-[375px]:gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/15 transition-colors">
                 <Wallet className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </div>

@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Heart, Droplet, Ruler, Scale, AlertTriangle, Pill, FileText } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Heart, Droplet, Ruler, Scale, AlertTriangle, Pill, FileText, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { VitalUpdateDialog } from './vital-update-dialog'
 
 export interface PatientVitals {
   blood_type?: string | null
@@ -19,6 +22,10 @@ interface VitalCardProps {
   vitals: PatientVitals | null
   loading?: boolean
   language: 'ar' | 'fr' | 'en'
+  /** User ID for update dialog. When provided, shows add/update button. */
+  userId?: string
+  /** Called after vitals are saved. Use to refetch vitals. */
+  onSaved?: () => void
 }
 
 const labels = {
@@ -32,6 +39,9 @@ const labels = {
     chronicConditions: 'أمراض مزمنة',
     currentMedications: 'الأدوية الحالية',
     notRecorded: 'غير مسجّل',
+    addSuggestion: 'أضف معلوماتك الصحية لتُشارك مع طبيبك عند الحاجة',
+    addButton: 'أضف المعلومات',
+    updateButton: 'تحديث',
   },
   fr: {
     title: 'Informations vitales',
@@ -43,6 +53,9 @@ const labels = {
     chronicConditions: 'Affections chroniques',
     currentMedications: 'Médicaments actuels',
     notRecorded: 'Non renseigné',
+    addSuggestion: 'Ajoutez vos informations de santé pour les partager avec votre médecin',
+    addButton: 'Ajouter les informations',
+    updateButton: 'Modifier',
   },
   en: {
     title: 'Vital Information',
@@ -54,6 +67,9 @@ const labels = {
     chronicConditions: 'Chronic Conditions',
     currentMedications: 'Current Medications',
     notRecorded: 'Not recorded',
+    addSuggestion: 'Add your health info to share with your doctor during visits',
+    addButton: 'Add information',
+    updateButton: 'Update',
   },
 }
 
@@ -63,8 +79,9 @@ function formatAllergies(val: string | string[] | null | undefined): string {
   return String(val)
 }
 
-export function VitalCard({ vitals, loading, language }: VitalCardProps) {
+export function VitalCard({ vitals, loading, language, userId, onSaved }: VitalCardProps) {
   const l = labels[language]
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   const hasAny =
     vitals &&
@@ -75,9 +92,11 @@ export function VitalCard({ vitals, loading, language }: VitalCardProps) {
       vitals.chronic_conditions ||
       vitals.current_medications)
 
+  const canUpdate = !!userId
+
   if (loading) {
     return (
-      <Card className="overflow-hidden border-primary/25 bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 dark:from-primary/25 dark:via-primary/15 dark:to-primary/10">
+      <Card className="overflow-hidden rounded-none sm:rounded-xl border-primary/25 bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 dark:from-primary/25 dark:via-primary/15 dark:to-primary/10">
         <CardContent className="pt-2 px-4 pb-2">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-primary/20" />
@@ -92,15 +111,16 @@ export function VitalCard({ vitals, loading, language }: VitalCardProps) {
   }
 
   return (
+    <>
     <Card
       className={cn(
-        'overflow-hidden transition-all duration-200 pt-0 pb-2',
+        'overflow-hidden rounded-none sm:rounded-xl transition-all duration-200 pt-0 pb-2',
         hasAny
           ? 'border-primary/25 bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 dark:from-primary/25 dark:via-primary/15 dark:to-primary/10 hover:border-primary/40 hover:shadow-md shadow-sm shadow-primary/5'
           : 'border-dashed border-primary/35 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent dark:from-primary/20 dark:via-primary/10 hover:border-primary/45'
       )}
     >
-      <CardContent className="pt-2 px-4 pb-2 sm:px-5 sm:pb-2">
+      <CardContent className="pt-2 px-3 min-[375px]:px-4 pb-2 sm:px-5 sm:pb-2">
         <div className="flex items-start gap-3 sm:gap-4 min-w-0">
           <div
             className={cn(
@@ -114,6 +134,17 @@ export function VitalCard({ vitals, loading, language }: VitalCardProps) {
             <h3 className="font-semibold text-base">{l.title}</h3>
             <p className="text-sm text-muted-foreground mt-0.5">{l.subtitle}</p>
           </div>
+          {canUpdate && hasAny && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 h-8 px-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setDialogOpen(true)}
+              aria-label={l.updateButton}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
 
         {hasAny ? (
@@ -164,11 +195,34 @@ export function VitalCard({ vitals, loading, language }: VitalCardProps) {
               />
             )}
           </div>
+        ) : canUpdate ? (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm text-muted-foreground">{l.addSuggestion}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+              onClick={() => setDialogOpen(true)}
+            >
+              {l.addButton}
+            </Button>
+          </div>
         ) : (
           <p className="mt-4 text-sm text-muted-foreground">{l.notRecorded}</p>
         )}
       </CardContent>
     </Card>
+    {canUpdate && userId && (
+      <VitalUpdateDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        userId={userId}
+        vitals={vitals}
+        language={language}
+        onSaved={onSaved}
+      />
+    )}
+    </>
   )
 }
 
