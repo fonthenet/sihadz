@@ -1,6 +1,6 @@
-# Exclude from deployment to reduce package size (build still uses app/, components/, lib/)
-# Root settings/ is a standalone workspace duplicate - not used by main app
-settings/
+# Exclude from deployment to reduce package size
+# /settings = root-level settings workspace only (app/professional/settings and components/settings are needed!)
+/settings/
 # Android native - not needed for web deployment
 android/
 # IDE and tooling
@@ -10,4 +10,3 @@ android/
 __tests__/
 # Documentation
 docs/
-# Development scripts (keep scripts/write-build-info.js via negation - .vercelignore doesn't support that, so we can't exclude scripts)
