@@ -556,11 +556,13 @@ export async function PATCH(request: NextRequest) {
               .eq('id', it.id)
             newSubtotal += it.substitute_line_total || 0
           } else if (it.item_status === 'quantity_adjusted' && it.adjusted_quantity != null) {
-            const lineTotal = it.adjusted_quantity * (it.adjusted_unit_price ?? it.unit_price)
+            const newUnitPrice = it.adjusted_unit_price ?? it.unit_price
+            const lineTotal = it.adjusted_quantity * newUnitPrice
             await supabase
               .from('supplier_purchase_order_items')
               .update({
                 quantity: it.adjusted_quantity,
+                unit_price: newUnitPrice,
                 line_total: lineTotal,
                 item_status: 'accepted',
                 adjusted_quantity: null,

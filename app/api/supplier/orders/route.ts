@@ -25,9 +25,28 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status')
     const search = searchParams.get('search')
+    const orderId = searchParams.get('order_id')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = (page - 1) * limit
+    
+    // Single order by id (for detail refresh)
+    if (orderId) {
+      const { data: order, error } = await supabase
+        .from('supplier_purchase_orders')
+        .select(`
+          *,
+          buyer:professionals!supplier_purchase_orders_buyer_id_fkey(id, business_name, email, phone, wilaya, commune),
+          items:supplier_purchase_order_items(*, product:supplier_product_catalog!supplier_purchase_order_items_product_id_fkey(id, name, name_fr, sku, barcode))
+        `)
+        .eq('id', orderId)
+        .eq('supplier_id', professional.id)
+        .single()
+      if (error || !order) {
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      }
+      return NextResponse.json(order)
+    }
     
     // Sorting parameters
     const sortBy = searchParams.get('sort_by') || 'created_at'

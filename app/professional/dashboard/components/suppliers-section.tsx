@@ -692,14 +692,22 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderId, action, ...data }),
       })
+      const json = await res.json().catch(() => ({}))
       if (res.ok) {
         loadData()
         if (action === 'approve_changes' || action === 'reject_changes') {
           setOrderForReview(null)
         }
+        if (action === 'approve_changes') {
+          toast({ title: l.orderSuccess, description: lang === 'ar' ? 'تمت الموافقة على التعديلات' : lang === 'fr' ? 'Modifications approuvées' : 'Changes approved' })
+        }
+      } else {
+        const msg = json.error || (lang === 'ar' ? 'فشل تنفيذ الإجراء' : lang === 'fr' ? 'Échec de l\'action' : 'Action failed')
+        toast({ title: l.orderError, description: msg, variant: 'destructive' })
       }
     } catch (error) {
       console.error('Error updating order:', error)
+      toast({ title: l.orderError, description: error instanceof Error ? error.message : 'An unexpected error occurred', variant: 'destructive' })
     } finally {
       setActingOrderId(null)
     }

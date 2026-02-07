@@ -164,10 +164,18 @@ export async function PATCH(
         .select('*')
         .eq('order_id', orderId)
 
-      let subtotal = 0
       const acceptedItems = (items || []).filter(
         (i: any) => ['accepted', 'pending', 'substitution_offered', 'quantity_adjusted', 'price_adjusted'].includes(i.item_status)
       )
+
+      if (acceptedItems.length === 0) {
+        return NextResponse.json(
+          { error: 'Cannot send for review: all items are rejected. Accept, substitute, or adjust at least one item.' },
+          { status: 400 }
+        )
+      }
+
+      let subtotal = 0
       for (const it of acceptedItems) {
         if (it.item_status === 'substitution_offered' && it.substitute_line_total != null) {
           subtotal += it.substitute_line_total

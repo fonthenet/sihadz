@@ -52,6 +52,17 @@ cd c:\Users\Faycel\Documents\dzd-oc; npm run build 2>&1 | Tee-Object -FilePath b
 cd c:\Users\Faycel\Documents\dzd-oc; npm run build > build.log 2>&1
 ```
 
+## Need to see only last N lines?
+
+**Use `npm run build:tail`** instead of piping to Select-Object:
+
+```powershell
+npm run build:tail
+# Shows last 100 lines after build completes. Full log in build.log
+```
+
+**Why:** Piping to `Select-Object -First 100` KILLS the build. The pipe closes after 100 lines → npm gets broken pipe → build cancelled. Use `build:tail` to get limited output without killing the build.
+
 ## Windows PowerShell
 
 - Use `;` not `&&` for chaining: `cd path; npm run build`

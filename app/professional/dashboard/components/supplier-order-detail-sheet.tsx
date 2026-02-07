@@ -119,13 +119,16 @@ export function SupplierOrderDetailSheet({
   const { guard, wrap } = useSubmitGuard()
 
   useEffect(() => {
-    if (open && order) {
+    if (open && order?.id) {
       setOrderData(order)
-      fetch(`/api/supplier/orders?limit=1`)
+      fetch(`/api/supplier/orders?order_id=${order.id}`)
         .then((r) => r.json())
         .then((d) => {
-          const o = d.data?.find((x: { id: string }) => x.id === order.id)
-          if (o) setOrderData(o)
+          if (d.id) setOrderData(d)
+          else if (d.data?.length) {
+            const o = d.data.find((x: { id: string }) => x.id === order.id)
+            if (o) setOrderData(o)
+          }
         })
     }
   }, [open, order?.id])
