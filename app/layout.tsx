@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/lib/i18n/language-context"
 import { AuthProvider } from "@/components/auth-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
+import { DeploymentIndicator } from "@/components/deployment-indicator"
 import { FloatingChatWidget } from "@/components/floating-chat-widget"
 import { OfflineSyncProvider } from "@/components/offline-sync-provider"
 import { FontSizeProvider } from "@/contexts/font-size-context"
@@ -116,6 +117,7 @@ export default async function RootLayout({
                 {children}
               <FloatingChatWidget />
               <OfflineSyncProvider />
+              <DeploymentIndicator />
               <Toaster />
             </AuthProvider>
               </FontSizeProvider>

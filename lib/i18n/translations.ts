@@ -29,6 +29,9 @@ export const translations = {
     close: 'إغلاق',
     add: 'إضافة',
     remove: 'إزالة',
+    newVersionAvailable: 'نسخة جديدة متاحة',
+    newVersionDescription: 'حدّث الصفحة للحصول على آخر التحديثات.',
+    refresh: 'تحديث',
     
     // Landing Page
     heroTitle: 'ابحث واحجز موعدك مع أفضل مقدمي الرعاية الصحية في الجزائر',
@@ -393,6 +396,9 @@ export const translations = {
     close: 'Fermer',
     add: 'Ajouter',
     remove: 'Retirer',
+    newVersionAvailable: 'Nouvelle version disponible',
+    newVersionDescription: 'Rafraîchissez la page pour obtenir les dernières mises à jour.',
+    refresh: 'Actualiser',
     
     // Landing Page
     heroTitle: 'Recherchez et prenez rendez-vous avec les meilleurs professionnels de santé d\'Algérie',
@@ -756,6 +762,9 @@ export const translations = {
     close: 'Close',
     add: 'Add',
     remove: 'Remove',
+    newVersionAvailable: 'New version available',
+    newVersionDescription: 'Refresh the page to get the latest updates.',
+    refresh: 'Refresh',
     
     // Landing Page
     heroTitle: 'Search and book appointments with the best Health Providers in Algeria',

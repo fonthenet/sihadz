@@ -1,59 +1,10 @@
-import { createBrowserClient as createSupabaseBrowserClient } from "@supabase/ssr";
+import { createBrowserClient as createBrowserClientSSR } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
-import * as cookie from "cookie";
 
 let client: SupabaseClient | null = null;
 
-function isCodeVerifierName(name: string): boolean {
-  return name.includes("-code-verifier");
-}
-
-/**
- * Custom cookies for @supabase/ssr that mirror PKCE code verifier to sessionStorage.
- * Cookies can fail in production (e.g. cross-subdomain, strict browsers).
- * sessionStorage reliably persists across OAuth redirect in same tab.
- */
-function createPkceCookies() {
-  const defaults = {
-    path: "/",
-    sameSite: "lax" as const,
-    secure: typeof window !== "undefined" && window.location?.protocol === "https:",
-  };
-
-  return {
-    getAll: () => {
-      const parsed = cookie.parse(typeof document !== "undefined" ? document.cookie : "");
-      const list = Object.keys(parsed).map((name) => ({ name, value: parsed[name] ?? "" }));
-      // Fallback: code verifier from sessionStorage when cookie missing (production edge cases)
-      if (typeof window !== "undefined") {
-        for (const key of Object.keys(window.sessionStorage)) {
-          if (isCodeVerifierName(key) && !list.some((c) => c.name === key || c.name.startsWith(key + "."))) {
-            const v = window.sessionStorage.getItem(key);
-            if (v) list.push({ name: key, value: v });
-          }
-        }
-      }
-      return list;
-    },
-    setAll: (cookiesToSet: { name: string; value: string; options?: object }[]) => {
-      if (typeof document === "undefined") return;
-      cookiesToSet.forEach(({ name, value, options }) => {
-        const opts = { ...defaults, ...options };
-        document.cookie = cookie.serialize(name, value, opts);
-        if (isCodeVerifierName(name)) {
-          try {
-            window.sessionStorage.setItem(name, value);
-          } catch {
-            // ignore
-          }
-        }
-      });
-    },
-  };
-}
-
 export function createClient() {
-  if (client) return client;
+  if (client && typeof window !== "undefined") return client;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -71,20 +22,37 @@ export function createClient() {
     return client;
   }
 
-  // Use @supabase/ssr (recommended) with custom cookies that mirror PKCE code verifier to sessionStorage.
-  const pkceCookies = createPkceCookies();
-
-  client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll: pkceCookies.getAll,
-      setAll: pkceCookies.setAll,
-    },
-    cookieOptions: {
-      path: "/",
-      sameSite: "lax",
-      secure: typeof window !== "undefined" && window.location?.protocol === "https:",
-    },
-  }) as SupabaseClient;
+  if (typeof window !== "undefined") {
+    // @supabase/ssr with simple document.cookie–based storage for PKCE
+    // Matches v0 fix: explicit getAll/setAll so verifier persists across OAuth redirect
+    client = createBrowserClientSSR(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return document.cookie
+            .split(";")
+            .map((c) => {
+              const [name, ...rest] = c.trim().split("=");
+              return { name: name ?? "", value: rest.join("=").trim() || "" };
+            })
+            .filter((c) => c.name);
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const opts = (options ?? {}) as { maxAge?: number; path?: string; domain?: string; sameSite?: string; secure?: boolean };
+            let cookie = `${name}=${value}`;
+            if (opts.maxAge != null) cookie += `; max-age=${opts.maxAge}`;
+            if (opts.path) cookie += `; path=${opts.path}`;
+            if (opts.domain) cookie += `; domain=${opts.domain}`;
+            if (opts.sameSite) cookie += `; samesite=${opts.sameSite}`;
+            if (opts.secure) cookie += "; secure";
+            document.cookie = cookie;
+          });
+        },
+      },
+    }) as SupabaseClient;
+  } else {
+    client = createSupabaseClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
+  }
 
   return client;
 }
