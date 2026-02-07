@@ -22,10 +22,8 @@ const nextConfig = {
     unoptimized: true,
   },
   // Reduce serverless function size - exclude unused dirs from trace
-  experimental: {
-    outputFileTracingExcludes: {
-      '*': ['settings/**', 'android/**', '.cursor/**', '__tests__/**', 'docs/**'],
-    },
+  outputFileTracingExcludes: {
+    '*': ['settings/**', 'android/**', '.cursor/**', '__tests__/**', 'docs/**'],
   },
   // Force all server functions to use Node.js runtime (not Edge)
   // This prevents 404 errors on Vercel for dynamic API routes
