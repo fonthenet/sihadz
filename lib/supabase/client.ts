@@ -24,7 +24,28 @@ export function createClient() {
   }
 
   try {
-    client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
+    // Create browser client with cookie storage for PKCE flow
+    client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return document.cookie.split(';').map(cookie => {
+            const [name, ...rest] = cookie.trim().split('=');
+            return { name, value: rest.join('=') };
+          });
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            let cookie = `${name}=${value}`;
+            if (options?.maxAge) cookie += `; max-age=${options.maxAge}`;
+            if (options?.path) cookie += `; path=${options.path}`;
+            if (options?.domain) cookie += `; domain=${options.domain}`;
+            if (options?.sameSite) cookie += `; samesite=${options.sameSite}`;
+            if (options?.secure) cookie += '; secure';
+            document.cookie = cookie;
+          });
+        },
+      },
+    }) as SupabaseClient;
   } catch {
     // Fallback if SSR browser client throws
     client = createSupabaseClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
