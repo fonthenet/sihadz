@@ -17,12 +17,17 @@ Password reset links (and OAuth callbacks) redirect to `http://localhost:3000` i
 4. Click **Save**
 
 ### Step 2: Update Redirect URLs (if needed)
-In the same section, add these to **Redirect URLs**:
+In the same section, add these to **Redirect URLs** (include both www and non-www if your site uses both):
 \`\`\`
 https://sihadz.com/auth/callback
+https://www.sihadz.com/auth/callback
 https://sihadz.com/auth/reset-password
+https://www.sihadz.com/auth/reset-password
 https://sihadz.com/**
+https://www.sihadz.com/**
 \`\`\`
+
+**Important:** If users land on `https://www.sihadz.com/login` and click "Continue with Google", Supabase redirects to `https://www.sihadz.com/auth/callback`. That exact URL must be in the Redirect URLs list, or the code exchange will fail with `auth_callback_error`.
 
 ### Step 3: Set production env
 In your production environment, set:

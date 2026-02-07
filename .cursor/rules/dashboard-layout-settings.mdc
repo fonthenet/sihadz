@@ -47,4 +47,4 @@ import { SIDEBAR_WIDTH_CLASSES, SIDEBAR_WIDTH_RESPONSIVE } from '@/lib/dashboard
 
 1. Import `SIDEBAR_WIDTH_CLASSES` from `@/lib/dashboard-layout`
 2. Use it on the Sidebar component with the same structure as PatientSidebar/ProDashboardSidebar
-3. Use `WeatherWidget` from `@/components/weather-widget` with `variant="minimal"` (desktop) or `variant="compact"` (mobile)
+3. Use `WeatherWidget` from `@/components/weather-widget` with `variant="minimal"` (shows location + temp for desktop and mobile)

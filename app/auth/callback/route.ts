@@ -19,17 +19,30 @@ export async function GET(request: NextRequest) {
   const origin = getRequestOrigin(request)
   const code = requestUrl.searchParams.get('code')
   const type = requestUrl.searchParams.get('type')
+  const errorParam = requestUrl.searchParams.get('error')
+  const errorDescription = requestUrl.searchParams.get('error_description')
   const intendedUserType = requestUrl.searchParams.get('user_type') || 'patient'
   const rawNext = requestUrl.searchParams.get('next')
   const next = sanitizeNext(rawNext)
+
+  // Supabase sends error/error_description in URL when OAuth fails (e.g. redirect URL not allowed)
+  if (errorParam) {
+    console.error('[auth/callback] OAuth error from Supabase:', errorParam, errorDescription)
+    const msg = errorDescription || errorParam
+    return NextResponse.redirect(new URL(`/login?error=auth_callback_error&details=${encodeURIComponent(msg)}`, origin))
+  }
 
   if (code) {
     const supabase = await createServerClient()
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error) {
-      const { data: { user } } = await supabase.auth.getUser()
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession failed:', error.message, error.status)
+      return NextResponse.redirect(new URL(`/login?error=auth_callback_error&details=${encodeURIComponent(error.message)}`, origin))
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser()
       
       if (user) {
         // Only redirect to reset-password when type=recovery AND user signed in via email (not OAuth)
@@ -112,8 +125,9 @@ export async function GET(request: NextRequest) {
           return NextResponse.redirect(new URL('/professional/dashboard', origin))
         }
 
-        // Not a professional - this is a patient
-        if (!profile?.user_type || profile.user_type === 'patient') {
+        // Not a professional - this is a patient (ALWAYS redirect to /dashboard, never to professional)
+        // intendedUserType=patient from URL when they used patient login/register - ensures we never send to pro signup
+        if (!profile?.user_type || profile.user_type === 'patient' || intendedUserType === 'patient') {
           await supabase
             .from('profiles')
             .update({

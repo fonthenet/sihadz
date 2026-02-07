@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -34,6 +34,13 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    const err = searchParams.get('error')
+    const details = searchParams.get('details')
+    if (err === 'auth_callback_error') {
+      setError(details || (language === 'ar' ? 'فشل تسجيل الدخول عبر جوجل. تحقق من إعدادات Supabase (Redirect URLs).' : language === 'fr' ? 'Échec de la connexion Google. Vérifiez les paramètres Supabase (Redirect URLs).' : 'Google sign-in failed. Check Supabase Redirect URLs in Auth settings.'))
+    }
+  }, [searchParams, language])
   const [accountType, setAccountType] = useState('patient') // Declare accountType and setAccountType
 
   const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight
@@ -257,7 +264,7 @@ export default function LoginPage() {
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${window.location.origin}/auth/callback`,
+                      redirectTo: `${window.location.origin}/auth/callback?user_type=patient`,
                       queryParams: {
                         access_type: 'offline',
                         prompt: 'consent',

@@ -128,7 +128,7 @@ function PatientSidebar({ userName, fallbackAddress, userId }: PatientSidebarPro
           )}
         </div>
         <div className="min-w-0 overflow-hidden shrink-0">
-          <WeatherWidget className="w-full text-sm font-medium min-w-0 max-w-full truncate" fallbackAddress={fallbackAddress} variant={isMobile ? 'compact' : 'minimal'} />
+          <WeatherWidget className="w-full text-sm font-medium min-w-0 max-w-full truncate" fallbackAddress={fallbackAddress} variant="minimal" />
         </div>
       </SidebarHeader>
 

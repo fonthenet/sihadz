@@ -384,7 +384,7 @@ export function ProDashboardSidebar({ professional, avatarUrl, authUserId, onAva
           )}
         </div>
         <div className="min-w-0 overflow-hidden shrink-0">
-          <WeatherWidget className="w-full text-sm font-medium min-w-0 max-w-full truncate" fallbackAddress={getFallbackAddress(professional)} variant={isMobile ? 'compact' : 'minimal'} />
+          <WeatherWidget className="w-full text-sm font-medium min-w-0 max-w-full truncate" fallbackAddress={getFallbackAddress(professional)} variant="minimal" />
         </div>
       </SidebarHeader>
 
