@@ -81,8 +81,8 @@ export function DashboardPageWrapper({
         </header>
       )}
 
-      {/* Main content */}
-      <div className="space-y-6">{children}</div>
+      {/* Main content - responsive spacing for 320px-428px */}
+      <div className="space-y-4 min-[375px]:space-y-5 sm:space-y-6">{children}</div>
     </div>
   )
 }

@@ -26,7 +26,8 @@ import {
   LayoutGrid,
   List
 } from 'lucide-react'
-import { SectionLoading, LoadingSpinner } from '@/components/ui/page-loading'
+import { SectionLoading } from '@/components/ui/page-loading'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 import { formatDateAlgeria } from '@/lib/date-algeria'
 import type { AlgeriaLang } from '@/lib/date-algeria'
 
@@ -37,6 +38,10 @@ interface Document {
   uploadDate: string
   status: 'verified' | 'pending' | 'expired'
   fileUrl: string
+  /** Override for viewer (e.g. text/html for lab results) */
+  fileType?: string
+  /** For proxy: use when fileUrl is storage URL (patient/pro uploads) */
+  documentType?: 'patient' | 'professional' | 'visit' | 'lab_request'
   /** For lab results from API: request_id to link to appointment view */
   labRequestId?: string
   /** For lab results from API: appointment_id if available */
@@ -74,7 +79,6 @@ export default function DocumentsPage() {
   const [labResultsLoading, setLabResultsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null)
   const [viewerDoc, setViewerDoc] = useState<Document | null>(null)
 
   // Fetch patient documents from database on mount
@@ -96,6 +100,7 @@ export default function DocumentsPage() {
             uploadDate: d.created_at || d.upload_date || new Date().toISOString(),
             status: (d.status === 'verified' || d.status === 'expired' ? d.status : 'pending') as const,
             fileUrl: d.file_url || '',
+            documentType: 'patient' as const,
           }))
           setDocuments(docs)
         }
@@ -108,35 +113,14 @@ export default function DocumentsPage() {
     fetchPatientDocs()
   }, [user?.id])
 
-  const handleOpenLabPdf = async (labRequestId: string) => {
-    setPdfLoadingId(labRequestId)
-    // Open blank window immediately (synchronously on user click) to avoid popup blockers
-    // on production (e.g. sihadz.com with Cloudflare). We'll navigate it when PDF is ready.
-    const targetWindow = window.open('', '_blank', 'noopener,noreferrer')
-    if (targetWindow) {
-      targetWindow.document.write('<html><body style="font-family:sans-serif;padding:2rem;text-align:center;">Loading PDF...</body></html>')
-      targetWindow.document.close()
-    }
-    try {
-      const res = await fetch(`/api/lab-requests/${labRequestId}`)
-      if (!res.ok) throw new Error('Failed to load lab results')
-      const labRequest = await res.json()
-      const { openPdfLabRequest, getLabRequestPrintHtml, openPrintWindow } = await import('@/lib/print-prescription-lab')
-      const labTemplate = labRequest.laboratory ? { labName: labRequest.laboratory.business_name } : {}
-      const ok = await openPdfLabRequest(labRequest, null, { labReportTemplate: labTemplate, targetWindow })
-      if (!ok) {
-        openPrintWindow(getLabRequestPrintHtml(labRequest, null, { labReportTemplate: labTemplate }), 'Lab Results', targetWindow)
-      }
-    } catch (e) {
-      console.error('[Documents] PDF error:', e)
-      if (targetWindow && !targetWindow.closed) {
-        targetWindow.location.href = `/api/documents/lab-results/${labRequestId}/view`
-      } else {
-        window.open(`/api/documents/lab-results/${labRequestId}/view`, '_blank')
-      }
-    } finally {
-      setPdfLoadingId(null)
-    }
+  /** Open lab result in-page DocumentViewer (no new window / external URLs) */
+  const openLabResultViewer = (doc: Document) => {
+    if (!doc.labRequestId) return
+    setViewerDoc({
+      ...doc,
+      fileUrl: `/api/documents/lab-results/${doc.labRequestId}/view`,
+      fileType: 'text/html',
+    })
   }
 
   useEffect(() => {
@@ -173,6 +157,7 @@ export default function DocumentsPage() {
             uploadDate: d.created_at?.split('T')[0] ?? new Date().toISOString().split('T')[0],
             status: 'pending' as const,
             fileUrl: d.file_url,
+            documentType: 'patient' as const,
           }))
           setDocuments(mapped)
         }
@@ -186,14 +171,11 @@ export default function DocumentsPage() {
   }, [user?.id])
 
   const getStatusBadge = (status: Document['status']) => {
-    switch (status) {
-      case 'verified':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />{t('verified')}</Badge>
-      case 'pending':
-        return <Badge className="bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"><CheckCircle className="h-3 w-3 me-1" />{t('uploaded')}</Badge>
-      case 'expired':
-        return <Badge className="bg-red-100 text-red-800"><AlertCircle className="h-3 w-3 mr-1" />{t('expired')}</Badge>
-    }
+    const labels: Record<Document['status'], string> = { verified: t('verified'), pending: t('uploaded'), expired: t('expired') }
+    const label = labels[status]
+    const className = getStatusBadgeClassName(status, 'solid')
+    const Icon = status === 'expired' ? AlertCircle : CheckCircle
+    return <Badge className={className}><Icon className="h-3 w-3 me-1" />{label}</Badge>
   }
 
   const getDocumentIcon = (type: Document['type']) => {
@@ -256,7 +238,7 @@ export default function DocumentsPage() {
         </div>
         <div className="flex items-center gap-1 p-1 rounded-lg border bg-muted/30">
           <Button
-            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            variant={viewMode === 'grid' ? 'secondary' : 'outline'}
             size="sm"
             className="h-8 px-2"
             onClick={() => setViewMode('grid')}
@@ -265,7 +247,7 @@ export default function DocumentsPage() {
             <LayoutGrid className="h-4 w-4" />
           </Button>
           <Button
-            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            variant={viewMode === 'list' ? 'secondary' : 'outline'}
             size="sm"
             className="h-8 px-2"
             onClick={() => setViewMode('list')}
@@ -318,7 +300,6 @@ export default function DocumentsPage() {
                     const useClientPdf = isLabDoc && doc.labRequestId && !hasPdfUrl
                     const cardHref = isLabDoc && hasPdfUrl ? doc.fileUrl! : !useClientPdf ? labDocHref : null
                     const openInNewTab = isLabDoc && hasPdfUrl
-                    const isPdfLoading = pdfLoadingId === doc.labRequestId
                     const cardContent = (
                       <CardContent className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-2.5 sm:p-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -337,32 +318,29 @@ export default function DocumentsPage() {
                           <div className="flex items-center gap-1" onClick={(e) => isLabDoc && e.stopPropagation()}>
                           {isLabDoc && (cardHref || useClientPdf) ? (
                             <>
-                              {useClientPdf ? (
-                                <Button variant="ghost" size="icon" disabled={isPdfLoading} onClick={(e) => { e.stopPropagation(); handleOpenLabPdf(doc.labRequestId!) }}>
-                                  {isPdfLoading ? <LoadingSpinner size="sm" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                              ) : (
-                                <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setViewerDoc(doc) }}>
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {useClientPdf ? (
-                                <Button variant="ghost" size="icon" disabled={isPdfLoading} onClick={(e) => { e.stopPropagation(); handleOpenLabPdf(doc.labRequestId!) }}>
-                                  {isPdfLoading ? <LoadingSpinner size="sm" /> : <Download className="h-4 w-4" />}
-                                </Button>
-                              ) : (
+                              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openLabResultViewer(doc) }}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" asChild>
+                                <a href={`/api/documents/lab-results/${doc.labRequestId}/view?download=1`} download>
+                                  <Download className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            </>
+                          ) : null}
+                          {!isLabDoc && (doc.fileUrl !== '#' || doc.documentType) && (
+                            <>
+                              <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setViewerDoc(doc) }}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {doc.documentType && (
                                 <Button variant="ghost" size="icon" asChild>
-                                  <a href={cardHref!} download={doc.name}>
+                                  <a href={`/api/documents/proxy?type=${doc.documentType}&id=${encodeURIComponent(doc.id)}&download=1`} download={doc.name}>
                                     <Download className="h-4 w-4" />
                                   </a>
                                 </Button>
                               )}
                             </>
-                          ) : null}
-                          {!isLabDoc && doc.fileUrl && doc.fileUrl !== '#' && (
-                            <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setViewerDoc(doc) }}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
                           )}
                           {!isLabDoc && (
                             <Button variant="ghost" size="icon" className="text-destructive" onClick={(e) => { e.stopPropagation(); handleDeleteDocument(doc.id) }}>
@@ -382,8 +360,8 @@ export default function DocumentsPage() {
                           <div
                             role="button"
                             tabIndex={0}
-                            onClick={() => handleOpenLabPdf(doc.labRequestId!)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleOpenLabPdf(doc.labRequestId!)}
+                            onClick={() => openLabResultViewer(doc)}
+                            onKeyDown={(e) => e.key === 'Enter' && openLabResultViewer(doc)}
                             className="block"
                           >
                             {cardContent}
@@ -393,8 +371,8 @@ export default function DocumentsPage() {
                             <div
                               role="button"
                               tabIndex={0}
-                              onClick={() => setViewerDoc(doc)}
-                              onKeyDown={(e) => e.key === 'Enter' && setViewerDoc(doc)}
+                              onClick={() => isLabDoc ? openLabResultViewer(doc) : setViewerDoc(doc)}
+                              onKeyDown={(e) => e.key === 'Enter' && (isLabDoc ? openLabResultViewer(doc) : setViewerDoc(doc))}
                               className="block"
                             >
                               {cardContent}
@@ -436,7 +414,8 @@ export default function DocumentsPage() {
                     type: (doc.type === 'carte_chifa' ? 'chifa' : doc.type === 'national_id' ? 'id' : doc.type === 'lab_results' ? 'lab' : doc.type === 'medical_records' ? 'medical' : 'other') as Document['type'],
                     uploadDate: doc.uploadDate,
                     status: doc.status,
-                    fileUrl: doc.fileUrl
+                    fileUrl: doc.fileUrl,
+                    documentType: 'patient' as const,
                   }
                   setDocuments(prev => [newDoc, ...prev])
                 }}
@@ -477,13 +456,15 @@ export default function DocumentsPage() {
           </Card>
         </div>
       </div>
-      {viewerDoc && viewerDoc.fileUrl && viewerDoc.fileUrl !== '#' && (
+      {viewerDoc && (viewerDoc.fileUrl !== '#' || (viewerDoc.documentType && viewerDoc.id)) && (
         <DocumentViewer
           open={!!viewerDoc}
           onOpenChange={(open) => !open && setViewerDoc(null)}
-          fileUrl={viewerDoc.fileUrl}
+          fileUrl={viewerDoc.labRequestId ? viewerDoc.fileUrl : (viewerDoc.documentType ? '' : viewerDoc.fileUrl)}
           fileName={viewerDoc.name}
-          fileType={viewerDoc.name?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : ''}
+          fileType={viewerDoc.fileType ?? (viewerDoc.name?.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '')}
+          documentId={viewerDoc.documentType || (!viewerDoc.labRequestId && viewerDoc.id) ? viewerDoc.id : undefined}
+          documentType={viewerDoc.documentType ?? (!viewerDoc.labRequestId ? 'patient' : undefined)}
         />
       )}
     </DashboardPageWrapper>

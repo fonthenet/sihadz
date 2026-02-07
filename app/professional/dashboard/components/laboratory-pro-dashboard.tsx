@@ -41,6 +41,7 @@ import {
   CheckCircle2, XCircle, UserCircle
 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/page-loading'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAutoRefresh } from '@/hooks/use-auto-refresh'
@@ -1149,7 +1150,7 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
                                     <div className="text-sm space-y-4">
                                       <div className="flex gap-1 border-b pb-3">
                                         <Button
-                                          variant={expandedPatientTab === 'requests' ? 'secondary' : 'ghost'}
+                                          variant={expandedPatientTab === 'requests' ? 'secondary' : 'outline'}
                                           size="sm"
                                           onClick={() => setExpandedPatientTab('requests')}
                                         >
@@ -1157,7 +1158,7 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
                                           Requests
                                         </Button>
                                         <Button
-                                          variant={expandedPatientTab === 'documents' ? 'secondary' : 'ghost'}
+                                          variant={expandedPatientTab === 'documents' ? 'secondary' : 'outline'}
                                           size="sm"
                                           onClick={() => setExpandedPatientTab('documents')}
                                         >
@@ -1866,13 +1867,7 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
               return matchesSearch && matchesFilter
             })
 
-            const statusColors: Record<string, string> = {
-              operational: 'bg-green-100 text-green-700',
-              maintenance: 'bg-amber-100 text-amber-700',
-              repair: 'bg-red-100 text-red-700',
-              calibration: 'bg-blue-100 text-blue-700',
-              offline: 'bg-slate-100 text-slate-700',
-            }
+            const getEquipmentStatusClass = (s: string) => getStatusBadgeClassName(s, 'solid')
 
             const categoryIcons: Record<string, any> = {
               analyzer: Activity,
@@ -2015,7 +2010,7 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
                                   <div>
                                     <div className="flex items-center gap-2">
                                       <h4 className="font-semibold">{eq.name}</h4>
-                                      <Badge className={statusColors[eq.status] || statusColors.offline}>
+                                      <Badge className={getEquipmentStatusClass(eq.status)}>
                                         {eq.status.charAt(0).toUpperCase() + eq.status.slice(1)}
                                       </Badge>
                                       {needsMaintenance && (
@@ -2437,14 +2432,14 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
             <div className="flex-1 flex flex-col min-h-0">
               <div className="flex gap-1 shrink-0 mb-3">
                 <Button
-                  variant={requestDetailTab === 'details' ? 'secondary' : 'ghost'}
+                  variant={requestDetailTab === 'details' ? 'secondary' : 'outline'}
                   size="sm"
                   onClick={() => setRequestDetailTab('details')}
                 >
                   Details
                 </Button>
                 <Button
-                  variant={requestDetailTab === 'documents' ? 'secondary' : 'ghost'}
+                  variant={requestDetailTab === 'documents' ? 'secondary' : 'outline'}
                   size="sm"
                   onClick={() => setRequestDetailTab('documents')}
                 >

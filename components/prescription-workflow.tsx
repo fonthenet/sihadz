@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,8 +13,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Pill, Send, Building2, MapPin, Star, Clock, CheckCircle, CreditCard, Banknote, QrCode, Download, FileDown, Printer, XCircle, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Pill, Send, Building2, MapPin, Star, Clock, CheckCircle, CreditCard, Banknote, QrCode, Download, FileDown, FileText, XCircle, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react'
 import { QRCodeDisplay } from './qr-code-display'
+import { LoadingSpinner } from '@/components/ui/page-loading'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 // Status constants
 const PRESCRIPTION_STATUS = {
@@ -81,6 +83,10 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [patientFavoritePharmacy, setPatientFavoritePharmacy] = useState<any>(null)
   const [showQrDialog, setShowQrDialog] = useState(false)
+  const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null)
+  const [pdfViewerLoading, setPdfViewerLoading] = useState(false)
+  const pdfViewerRevokeRef = useRef<(() => void) | null>(null)
 
   const isDialogMode = open !== undefined
   const canSendToPharmacy = (prescription.status === PRESCRIPTION_STATUS.CREATED || prescription.status === 'active') && 
@@ -198,62 +204,86 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
   }
 
   const getStatusBadge = () => {
-    const statusConfig: Record<string, { label: string; className: string }> = {
-      created: { label: 'Not Fulfilled', className: 'bg-gray-500' },
-      active: { label: 'Active', className: 'bg-blue-500' },
-      sent: { label: 'Sent to Pharmacy', className: 'bg-purple-500' },
-      sent_to_pharmacy: { label: 'Sent to Pharmacy', className: 'bg-purple-500' },
-      received: { label: 'Received', className: 'bg-indigo-500' },
-      processing: { label: 'Processing', className: 'bg-yellow-500' },
-      ready: { label: 'Ready for Pickup', className: 'bg-green-500' },
-      picked_up: { label: 'Picked Up', className: 'bg-emerald-500' },
-      collected: { label: 'Collected', className: 'bg-green-700' },
-      dispensed: { label: 'Dispensed', className: 'bg-green-700' },
-      declined: { label: 'Declined by Pharmacy', className: 'bg-red-500' },
+    const statusLabels: Record<string, string> = {
+      created: 'Created',
+      active: 'Created',
+      sent: 'Sent to Pharmacy',
+      sent_to_pharmacy: 'Sent to Pharmacy',
+      received: 'Received',
+      processing: 'Processing',
+      ready: 'Ready for Pickup',
+      picked_up: 'Picked Up',
+      collected: 'Collected',
+      dispensed: 'Dispensed',
+      declined: 'Declined by Pharmacy',
     }
-    const config = statusConfig[prescription.status] || statusConfig.created
-    return <Badge className={`${config.className} whitespace-nowrap shrink-0`}>{config.label}</Badge>
+    const label = statusLabels[prescription.status] || prescription.status
+    const className = getStatusBadgeClassName(prescription.status, 'solid')
+    return <Badge className={`${className} whitespace-nowrap shrink-0`}>{label}</Badge>
   }
 
-  const handleDownloadPDF = async () => {
-    try {
-      const { default: html2canvas } = await import('html2canvas')
-      const { default: jsPDF } = await import('jspdf')
-      
-      const element = document.getElementById(`prescription-card-${prescription.id}`)
-      if (!element) return
-      
-      const canvas = await html2canvas(element, { scale: 2 })
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-      pdf.save(`prescription-${prescription.id}.pdf`)
-      
-      toast({ title: 'PDF downloaded successfully!' })
-    } catch (error) {
-      console.error('[v0] Error generating PDF:', error)
-      toast({ title: 'Error', description: 'Failed to generate PDF', variant: 'destructive' })
-    }
-  }
-
-  const handlePrint = async () => {
-    try {
-      let branding = null
-      if (prescription.doctor_id) {
+  const getBranding = async () => {
+    let branding = null
+    if (prescription.doctor_id) {
+      try {
         const res = await fetch(`/api/professionals/${prescription.doctor_id}/branding`, { credentials: 'include' })
         const json = await res.json()
         if (res.ok) branding = json.branding
+      } catch {
+        /* ignore */
       }
-      const { openPdfPrescription, getPrescriptionPrintHtml, openPrintWindow } = await import('@/lib/print-prescription-lab')
-      const ok = await openPdfPrescription(prescription, branding)
-      if (!ok) openPrintWindow(getPrescriptionPrintHtml(prescription, branding), 'Prescription')
-    } catch (e) {
-      console.error(e)
-      toast({ title: 'Error', description: 'Failed to open PDF', variant: 'destructive' })
     }
+    return branding
+  }
+
+  const handleDownloadPdf = async () => {
+    try {
+      const branding = await getBranding()
+      const { downloadPrescriptionPdf, getPrescriptionPrintHtml, openPrintWindow } = await import('@/lib/print-prescription-lab')
+      const ok = await downloadPrescriptionPdf(prescription, branding)
+      if (!ok) {
+        openPrintWindow(getPrescriptionPrintHtml(prescription, branding), 'Prescription')
+        toast({ title: 'Opening print view...' })
+      } else {
+        toast({ title: 'PDF downloaded' })
+      }
+    } catch (e) {
+      console.error('[PrescriptionWorkflow] PDF download error:', e)
+      toast({ title: 'Failed to generate PDF', variant: 'destructive' })
+    }
+  }
+
+  const handleViewPdf = async () => {
+    setPdfViewerLoading(true)
+    setShowPdfViewer(true)
+    setPdfViewerUrl(null)
+    try {
+      const branding = await getBranding()
+      const { generatePrescriptionPdf } = await import('@/lib/print-prescription-lab')
+      const result = await generatePrescriptionPdf(prescription, branding)
+      if (result) {
+        pdfViewerRevokeRef.current = result.revoke
+        setPdfViewerUrl(result.url)
+      } else {
+        toast({ title: 'Failed to generate PDF', variant: 'destructive' })
+        setShowPdfViewer(false)
+      }
+    } catch (e) {
+      console.error('[PrescriptionWorkflow] PDF view error:', e)
+      toast({ title: 'Failed to generate PDF', variant: 'destructive' })
+      setShowPdfViewer(false)
+    } finally {
+      setPdfViewerLoading(false)
+    }
+  }
+
+  const closePdfViewer = () => {
+    setShowPdfViewer(false)
+    if (pdfViewerRevokeRef.current) {
+      pdfViewerRevokeRef.current()
+      pdfViewerRevokeRef.current = null
+    }
+    setPdfViewerUrl(null)
   }
 
   const getPaymentBadge = () => {
@@ -268,12 +298,12 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
 
   // Main content render
   const renderPrescriptionCard = () => (
-    <Card className="overflow-hidden gap-3 py-3 w-full min-w-0">
-      <CardHeader className="p-4 pt-3 pb-3 border-b space-y-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <Card className="overflow-hidden gap-2 sm:gap-3 pt-0 pb-2 sm:pb-3 w-full min-w-0">
+      <CardHeader className="p-3 pt-2 pb-2 sm:p-4 sm:pb-3 border-b bg-sky-50/70 dark:bg-sky-950/25 space-y-1 sm:space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Pill className="h-5 w-5 shrink-0 text-primary" />
-            <CardTitle className="text-lg">Prescription</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Prescription</CardTitle>
             {prescription.diagnosis && (
               <span className="text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-xs" title={prescription.diagnosis}>— {prescription.diagnosis}</span>
             )}
@@ -282,36 +312,35 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-3">
-                  <Download className="h-4 w-4 mr-1.5" />
-                  PDF
-                  <ChevronDown className="h-3 w-3 ml-1 opacity-70" />
+                  PDF / QR
+                  <ChevronDown className="h-3.5 w-3.5 ms-1 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={handleDownloadPDF}>
-                  <FileDown className="h-4 w-4 mr-2" />
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleViewPdf}>
+                  <FileText className="h-4 w-4 me-2" />
+                  View PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadPdf}>
+                  <FileDown className="h-4 w-4 me-2" />
                   Download PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Open / Print
+                <DropdownMenuItem onClick={() => setShowQrDialog(true)}>
+                  <QrCode className="h-4 w-4 me-2" />
+                  Show QR Code
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" onClick={() => setShowQrDialog(true)} className="h-8 px-3">
-              <QrCode className="h-4 w-4 mr-1.5" />
-              QR
-            </Button>
             {getStatusBadge()}
             {prescription.status !== 'created' && getPaymentBadge()}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-5 pt-4" id={`prescription-card-${prescription.id}`}>
-        <div className="flex flex-col gap-5 min-w-0">
+      <CardContent className="p-3 pt-2 sm:p-5 sm:pt-4" id={`prescription-card-${prescription.id}`}>
+        <div className="flex flex-col gap-3 sm:gap-5 min-w-0">
         {/* Note from doctor (visible only to patient) */}
         {userRole === 'patient' && prescription.notes && (
-          <div className="text-sm p-3 rounded-lg bg-muted/30 dark:bg-muted/10 break-words">
+          <div className="text-sm p-2 sm:p-3 rounded-lg bg-muted/30 dark:bg-muted/10 break-words">
             <span className="font-medium text-muted-foreground">Note from doctor:</span> {prescription.notes}
           </div>
         )}
@@ -332,9 +361,9 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
         )}
 
         {/* Medications List */}
-        <div className="space-y-3 min-w-0">
+        <div className="space-y-2 sm:space-y-3 min-w-0">
           <Label className="text-sm font-medium">Medications</Label>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:gap-3">
             {prescription.medications?.map((med: any, idx: number) => {
               const fulfillment = prescription.pharmacy_fulfillment?.find(f => f.medication_index === idx)
               const isOutOfStock = fulfillment?.status === 'out_of_stock'
@@ -346,7 +375,7 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
               const details = [med.dosage, med.frequency, med.duration].filter(Boolean).join(' • ') || '—'
               
               return (
-                <div key={idx} className={`py-3 px-4 rounded-lg border border-border/60 min-w-0 ${
+                <div key={idx} className={`py-2 px-3 sm:py-3 sm:px-4 rounded-lg border border-border/60 min-w-0 ${
                   isOutOfStock ? 'bg-red-50/50 dark:bg-red-950/10' :
                   isPending || needsApproval ? 'bg-amber-50/50 dark:bg-amber-950/10' :
                   isSubstituted ? 'bg-purple-50/50 dark:bg-purple-950/10' :
@@ -421,7 +450,7 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
         {/* Timeline — below medications */}
         <div className="space-y-2 min-w-0">
           <Label className="text-sm font-medium">Timeline</Label>
-          <div className="space-y-1.5 text-sm p-3 rounded-lg bg-muted/30 dark:bg-muted/10">
+          <div className="space-y-1.5 text-sm p-2 sm:p-3 rounded-lg bg-muted/30 dark:bg-muted/10">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4 shrink-0" />
               <span>Created: {new Date(prescription.created_at).toLocaleString()}</span>
@@ -443,7 +472,7 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
 
         {/* Pharmacy Info */}
         {prescription.pharmacy && (
-          <div className="flex items-start gap-3 text-sm min-w-0 p-3 rounded-lg bg-muted/30 dark:bg-muted/10">
+          <div className="flex items-start gap-2 sm:gap-3 text-sm min-w-0 p-2 sm:p-3 rounded-lg bg-muted/30 dark:bg-muted/10">
             <Building2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div className="break-words">
               <span className="font-medium">{prescription.pharmacy.business_name}</span>
@@ -652,6 +681,30 @@ export function PrescriptionWorkflow({ prescription, userRole, patientId, onUpda
               {paymentMethod === 'cash' ? 'Confirm & Send' : 'Proceed to Payment'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={showPdfViewer} onOpenChange={(open) => !open && closePdfViewer()}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[85vh] p-0 gap-0 overflow-hidden flex flex-col">
+          <div className="flex items-center px-4 py-2 shrink-0 border-b">
+            <DialogTitle className="text-base font-medium">Prescription PDF</DialogTitle>
+          </div>
+          <div className="flex-1 min-h-0 overflow-hidden p-4">
+            {pdfViewerLoading && (
+              <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
+                <LoadingSpinner size="lg" />
+                <p className="text-sm text-muted-foreground">Generating PDF…</p>
+              </div>
+            )}
+            {!pdfViewerLoading && pdfViewerUrl && (
+              <iframe
+                src={pdfViewerUrl}
+                title="Prescription PDF"
+                className="w-full h-full min-h-[400px] rounded-lg border bg-muted"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

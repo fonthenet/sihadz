@@ -82,6 +82,7 @@ import PrescriptionBuilder from './prescription-builder'
 import LabTestRequestBuilder, { type LabTestVisitContext } from './lab-test-request-builder'
 import { LabRequestDocumentsAttach } from '@/components/lab-request-documents-attach'
 import { VisitDocumentsAttach } from '@/components/visit-documents-attach'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 /** Option for "Prescription/Lab for:" selector (Self or a family member) */
 export interface FamilyMemberOption {
@@ -116,9 +117,10 @@ interface ClinicalOrdersPanelProps {
   initialLabRequestId?: string | null
 }
 
-// Status configurations with colors (dark mode variants for contrast)
+// Status configurations with labels and icons (colors from lib/status-colors)
 const PRESCRIPTION_STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: any }> = {
-  active: { label: 'Active', color: 'text-blue-700 dark:text-blue-300', bgColor: 'bg-blue-50 border-blue-200 dark:bg-blue-950/60 dark:border-blue-800', icon: FileText },
+  created: { label: 'Created', color: 'text-blue-700 dark:text-blue-300', bgColor: 'bg-blue-50 border-blue-200 dark:bg-blue-950/60 dark:border-blue-800', icon: FileText },
+  active: { label: 'Created', color: 'text-blue-700 dark:text-blue-300', bgColor: 'bg-blue-50 border-blue-200 dark:bg-blue-950/60 dark:border-blue-800', icon: FileText },
   sent: { label: 'Sent to Pharmacy', color: 'text-purple-700 dark:text-purple-300', bgColor: 'bg-purple-50 border-purple-200 dark:bg-purple-950/60 dark:border-purple-800', icon: Send },
   received: { label: 'Received', color: 'text-indigo-700 dark:text-indigo-300', bgColor: 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/60 dark:border-indigo-800', icon: CheckCircle },
   processing: { label: 'Processing', color: 'text-amber-700 dark:text-amber-300', bgColor: 'bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:border-amber-800', icon: Clock },
@@ -908,16 +910,14 @@ export default function ClinicalOrdersPanel({
   }
 
   const getStatusBadge = (status: string, type: 'prescription' | 'lab') => {
-    // Hide "sent" status badges - orders are linked to tickets
-    if (status === 'sent' || status === 'sent_to_lab') {
-      return null
-    }
-    const config = type === 'prescription' 
+    if (status === 'sent' || status === 'sent_to_lab') return null
+    const config = type === 'prescription'
       ? PRESCRIPTION_STATUS_CONFIG[status] || PRESCRIPTION_STATUS_CONFIG.active
       : LAB_STATUS_CONFIG[status] || LAB_STATUS_CONFIG.pending
     const Icon = config.icon
+    const className = getStatusBadgeClassName(status, 'outline')
     return (
-      <Badge variant="outline" className={`${config.bgColor} ${config.color} border font-medium`}>
+      <Badge variant="outline" className={`${className} font-medium`}>
         <Icon className="h-3 w-3 mr-1" />
         {config.label}
       </Badge>
@@ -1132,32 +1132,27 @@ export default function ClinicalOrdersPanel({
                             {renderStatusTimeline(rx.status, PRESCRIPTION_STEPS, PRESCRIPTION_STATUS_CONFIG, undefined, 'prescription')}
                           </div>
                           
-                          {/* Sub-tabs for Details, Messages */}
+                          {/* Sub-tabs: Details, Messages */}
                           <div className="bg-white dark:bg-card rounded-lg border overflow-hidden">
-                            <div className="flex border-b">
-                              <button
+                            <div className="flex gap-1 p-2 border-b bg-muted/50">
+                              <Button
+                                variant={getPrescriptionSubTab(rx.id) === 'details' ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => setPrescriptionSubTab(prev => ({ ...prev, [rx.id]: 'details' }))}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                                  getPrescriptionSubTab(rx.id) === 'details'
-                                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-b-2 border-primary -mb-px'
-                                    : 'text-muted-foreground hover:bg-muted/50'
-                                }`}
+                                className="flex-1 gap-2"
                               >
                                 <FileText className="h-4 w-4" />
                                 Details
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant={getPrescriptionSubTab(rx.id) === 'messages' ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => {
                                   setPrescriptionSubTab(prev => ({ ...prev, [rx.id]: 'messages' }))
                                   if (!messages[rx.id]) loadMessagesForOrder(rx.id, 'prescription')
-                                  // Mark messages as read when opening messages tab
                                   markAsRead(rx.id)
                                 }}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                                  getPrescriptionSubTab(rx.id) === 'messages'
-                                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-b-2 border-primary -mb-px'
-                                    : 'text-muted-foreground hover:bg-muted/50'
-                                }`}
+                                className="flex-1 gap-2"
                               >
                                 <MessageSquare className="h-4 w-4" />
                                 Messages
@@ -1171,10 +1166,9 @@ export default function ClinicalOrdersPanel({
                                   }
                                   return null
                                 })()}
-                              </button>
+                              </Button>
                             </div>
                             
-                            {/* Details Tab */}
                             {getPrescriptionSubTab(rx.id) === 'details' && (
                               <div className="p-4 space-y-4">
                                 {rx.family_member_id && rx.family_member && (
@@ -1416,7 +1410,6 @@ export default function ClinicalOrdersPanel({
                               </div>
                             )}
                             
-                            {/* Messages Tab - split: messages left, files right */}
                             {getPrescriptionSubTab(rx.id) === 'messages' && (
                               <div className="p-4 flex flex-col min-h-[420px]">
                                 {!rx.pharmacy?.id ? (
@@ -1783,43 +1776,36 @@ export default function ClinicalOrdersPanel({
                             {renderStatusTimeline(lr.status, LAB_STEPS, LAB_STATUS_CONFIG, LAB_STATUS_MAP, 'lab')}
                           </div>
                           
-                          {/* Sub-tabs for Details, Messages */}
+                          {/* Sub-tabs: Details, Documents, Messages */}
                           <div className="bg-white dark:bg-card rounded-lg border overflow-hidden">
-                            <div className="flex border-b">
-                              <button
+                            <div className="flex gap-1 p-2 border-b bg-muted/50">
+                              <Button
+                                variant={getLabSubTab(lr.id) === 'details' ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => setLabSubTab(prev => ({ ...prev, [lr.id]: 'details' }))}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                                  getLabSubTab(lr.id) === 'details'
-                                    ? 'bg-violet-100/50 text-violet-700 dark:bg-violet-900/50 dark:text-violet-200 border-b-2 border-violet-500 -mb-px'
-                                    : 'text-muted-foreground hover:bg-muted/50'
-                                }`}
+                                className="flex-1 gap-2"
                               >
                                 <FlaskConical className="h-4 w-4" />
                                 Details
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant={getLabSubTab(lr.id) === 'documents' ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => setLabSubTab(prev => ({ ...prev, [lr.id]: 'documents' }))}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                                  getLabSubTab(lr.id) === 'documents'
-                                    ? 'bg-violet-100/50 text-violet-700 dark:bg-violet-900/50 dark:text-violet-200 border-b-2 border-violet-500 -mb-px'
-                                    : 'text-muted-foreground hover:bg-muted/50'
-                                }`}
+                                className="flex-1 gap-2"
                               >
                                 <FileText className="h-4 w-4" />
                                 Documents
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant={getLabSubTab(lr.id) === 'messages' ? 'default' : 'outline'}
+                                size="sm"
                                 onClick={() => {
                                   setLabSubTab(prev => ({ ...prev, [lr.id]: 'messages' }))
                                   if (!messages[lr.id]) loadMessagesForOrder(lr.id, 'lab')
-                                  // Mark messages as read when opening messages tab
                                   markAsRead(lr.id)
                                 }}
-                                className={`flex-1 px-4 py-2.5 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
-                                  getLabSubTab(lr.id) === 'messages'
-                                    ? 'bg-violet-100/50 text-violet-700 dark:bg-violet-900/50 dark:text-violet-200 border-b-2 border-violet-500 -mb-px'
-                                    : 'text-muted-foreground hover:bg-muted/50'
-                                }`}
+                                className="flex-1 gap-2"
                               >
                                 <MessageSquare className="h-4 w-4" />
                                 Messages
@@ -1833,10 +1819,9 @@ export default function ClinicalOrdersPanel({
                                   }
                                   return null
                                 })()}
-                              </button>
+                              </Button>
                             </div>
                             
-                            {/* Details Tab */}
                             {getLabSubTab(lr.id) === 'details' && (
                               <div className="p-4 space-y-4">
                                 {lr.family_member_id && lr.family_member && (
@@ -1977,7 +1962,6 @@ export default function ClinicalOrdersPanel({
                               </div>
                             )}
                             
-                            {/* Documents Tab */}
                             {getLabSubTab(lr.id) === 'documents' && (
                               <div className="p-4">
                                 {lr.id ? (
@@ -1988,7 +1972,6 @@ export default function ClinicalOrdersPanel({
                               </div>
                             )}
                             
-                            {/* Messages Tab - split: messages left, files right */}
                             {getLabSubTab(lr.id) === 'messages' && (
                               <div className="p-4 flex flex-col min-h-[420px]">
                                 {!lr.laboratory?.id ? (

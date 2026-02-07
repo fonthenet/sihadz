@@ -171,7 +171,7 @@ export function DocumentViewer({ open, onOpenChange, fileUrl, fileName = 'Docume
             : 'p-0 gap-0 max-w-[95vw] w-full max-h-[100dvh] sm:max-h-[90vh] overflow-hidden flex flex-col'
         }
         size="xl2"
-        showCloseButton={false}
+        showCloseButton={true}
         resizable={!isMobile}
         style={
           isMobile && (viewMode === 'pdf' || viewMode === 'doc')

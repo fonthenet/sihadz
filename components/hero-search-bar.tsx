@@ -249,9 +249,9 @@ export function HeroSearchBar() {
   }, [])
 
   return (
-    <div ref={containerRef} className="w-full max-w-6xl relative">
-      {/* Search bar - beautiful blue gradient with soft glow */}
-      <div className="flex flex-col sm:flex-row sm:min-h-[64px] rounded-2xl overflow-hidden shadow-xl shadow-blue-500/15 dark:shadow-blue-900/30 ring-1 ring-blue-300/70 dark:ring-blue-500/30 bg-gradient-to-r from-blue-50 via-indigo-50/80 to-blue-50 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-blue-950/60 border border-blue-300/90 dark:border-blue-600/60 focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/80 dark:focus-within:ring-blue-400/40 dark:focus-within:border-blue-400/70 transition-all duration-200">
+    <div ref={containerRef} className="w-full min-w-0 max-w-6xl relative">
+      {/* Search bar - beautiful blue gradient with soft glow - responsive for 320px-428px */}
+      <div className="flex flex-col sm:flex-row sm:min-h-[64px] rounded-xl min-[375px]:rounded-2xl overflow-hidden shadow-xl shadow-blue-500/15 dark:shadow-blue-900/30 ring-1 ring-blue-300/70 dark:ring-blue-500/30 bg-gradient-to-r from-blue-50 via-indigo-50/80 to-blue-50 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-blue-950/60 border border-blue-300/90 dark:border-blue-600/60 focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500/80 dark:focus-within:ring-blue-400/40 dark:focus-within:border-blue-400/70 transition-all duration-200">
         {/* Search input - takes most space, Near me at end */}
         <div className="relative flex-1 flex items-center min-w-0 rounded-t-2xl sm:rounded-t-none sm:rounded-s-2xl">
           <Search className="absolute start-3 h-5 w-5 text-blue-600 dark:text-blue-300 shrink-0" />
@@ -262,7 +262,7 @@ export function HeroSearchBar() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => searchQuery.length >= MIN_QUERY_LENGTH && setSuggestionsOpen(true)}
-            className="flex-1 min-w-0 h-full py-4 sm:py-5 ps-11 pe-12 text-sm sm:text-base bg-transparent border-0 outline-none placeholder:text-blue-600/80 dark:placeholder:text-blue-300/70 focus:ring-0 rounded-t-2xl sm:rounded-s-2xl text-foreground"
+            className="flex-1 min-w-0 h-full py-3 min-[375px]:py-4 sm:py-5 ps-10 min-[375px]:ps-11 pe-11 min-[375px]:pe-12 text-sm sm:text-base bg-transparent border-0 outline-none placeholder:text-blue-600/80 dark:placeholder:text-blue-300/70 focus:ring-0 rounded-t-xl min-[375px]:rounded-t-2xl sm:rounded-s-2xl text-foreground"
             autoComplete="off"
             aria-autocomplete="list"
             aria-expanded={suggestionsOpen && !!hasSuggestions}
@@ -291,13 +291,13 @@ export function HeroSearchBar() {
         </div>
 
         {/* Wilaya + City + Search - Popovers render only after mount to avoid Radix ID hydration mismatch */}
-        <div className="flex items-stretch flex-1 sm:flex-initial min-h-[48px] sm:min-h-[64px] border-t sm:border-t-0 sm:border-s border-blue-300/60 dark:border-blue-600/50 rounded-b-2xl sm:rounded-none sm:rounded-e-2xl bg-white/70 dark:bg-blue-950/40 sm:bg-transparent">
+        <div className="flex items-stretch flex-1 sm:flex-initial min-h-[44px] min-[375px]:min-h-[48px] sm:min-h-[64px] border-t sm:border-t-0 sm:border-s border-blue-300/60 dark:border-blue-600/50 rounded-b-xl min-[375px]:rounded-b-2xl sm:rounded-none sm:rounded-e-2xl bg-white/70 dark:bg-blue-950/40 sm:bg-transparent">
           {mounted ? <Popover open={wilayaOpen} onOpenChange={setWilayaOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="min-h-[48px] sm:min-h-[64px] flex-1 sm:flex-initial min-w-0 sm:max-w-[140px] px-3 sm:px-4 gap-1.5 sm:gap-2 rounded-none border-0 border-e border-blue-300/50 dark:border-blue-600/40 bg-transparent hover:bg-blue-100/60 dark:hover:bg-blue-800/40 font-normal transition-colors flex items-center"
+                className="min-h-[44px] min-[375px]:min-h-[48px] sm:min-h-[64px] flex-1 sm:flex-initial min-w-0 sm:max-w-[140px] px-2 min-[375px]:px-3 sm:px-4 gap-1 min-[375px]:gap-1.5 sm:gap-2 rounded-none border-0 border-e border-blue-300/50 dark:border-blue-600/40 bg-transparent hover:bg-blue-100/60 dark:hover:bg-blue-800/40 font-normal transition-colors flex items-center"
               >
                 <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-300 shrink-0" />
                 <span className="truncate text-sm font-medium text-foreground">
@@ -306,7 +306,7 @@ export function HeroSearchBar() {
                 <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[340px] p-0" align="start" side="bottom" avoidCollisions={false}>
+            <PopoverContent className="w-[340px] max-w-[calc(100vw-2rem)] p-0" align="start" side="bottom" avoidCollisions={false}>
               <Command className="rounded-lg" shouldFilter={true}>
                 <CommandInput placeholder={l.searchWilaya} className="h-10 border-b" />
                 <CommandList className="max-h-[320px]">
@@ -379,7 +379,7 @@ export function HeroSearchBar() {
                 <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] p-0" align="end" side="bottom" avoidCollisions={false}>
+            <PopoverContent className="w-[280px] max-w-[calc(100vw-2rem)] p-0" align="end" side="bottom" avoidCollisions={false}>
               <Command className="rounded-lg" shouldFilter={true}>
                 <CommandInput placeholder={l.searchCity} className="h-10 border-b" />
                 <CommandList className="max-h-[260px]">

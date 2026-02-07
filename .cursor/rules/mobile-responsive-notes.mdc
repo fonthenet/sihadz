@@ -1,0 +1,32 @@
+---
+description: Notes on mobile responsiveness (front page + patient dashboard) - may be removed if it doesn't work well
+alwaysApply: false
+---
+
+# Mobile Responsiveness (Feb 2026)
+
+## Context
+
+Comprehensive mobile fixes were added for small screens (320px–428px) on:
+
+- **Front page**: `MobileHomePage`, `Header` (mobile-home), `HeroSearchBar`
+- **Patient dashboard**: `(patient)/layout.tsx`, `dashboard-content.tsx`, `VitalCard`, `DashboardPageWrapper`
+
+## Breakpoints Used
+
+- `min-[375px]:` — iPhone 6/7/8, Galaxy S
+- `min-[428px]:` — iPhone Plus, Pro Max
+
+## Files Modified
+
+- `components/mobile-home-page.tsx`
+- `components/hero-search-bar.tsx`
+- `components/header.tsx`
+- `app/(patient)/layout.tsx`
+- `app/(patient)/dashboard/dashboard-content.tsx`
+- `components/dashboard/vital-card.tsx`
+- `components/dashboard/dashboard-page-wrapper.tsx`
+
+## Rollback Note
+
+**These changes may be removed later** if they don't work well in practice. Use git history to revert if needed.

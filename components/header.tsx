@@ -318,8 +318,8 @@ export function Header({
       </div>
       )}
 
-      {/* Main Header */}
-      <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4 gap-2 min-w-0">
+      {/* Main Header - responsive for 320px-428px */}
+      <div className="container mx-auto flex h-12 min-[375px]:h-14 sm:h-16 items-center justify-between px-2 min-[375px]:px-3 sm:px-4 gap-1 min-[375px]:gap-2 min-w-0">
         {/* Logo (hidden on mobile except main welcome page) */}
         <Link
           href="/"
@@ -333,7 +333,7 @@ export function Header({
             alt="Siha DZ"
             width={180}
             height={120}
-            className="h-14 sm:h-16 w-auto object-contain [filter:drop-shadow(0_0_0px_transparent)]"
+            className="h-10 min-[375px]:h-12 min-[428px]:h-14 sm:h-16 w-auto object-contain [filter:drop-shadow(0_0_0px_transparent)]"
             style={{ backgroundColor: 'transparent', mixBlendMode: 'multiply' }}
             priority
           />
@@ -589,33 +589,33 @@ export function Header({
         </div>
       </div>
 
-      {/* Shortcuts bar - below main header when variant is mobile-home */}
+      {/* Shortcuts bar - below main header when variant is mobile-home - responsive for 320px-428px */}
       {variant === 'mobile-home' && (
         <div className="border-t border-border/50 bg-muted/20">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide px-3 py-2.5">
-            <Link href="/search" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <Search className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{t('search')}</span>
+          <div className="flex items-center gap-0.5 min-[375px]:gap-1 overflow-x-auto scrollbar-hide px-2 min-[375px]:px-3 py-2 min-[375px]:py-2.5">
+            <Link href="/search" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <Search className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{t('search')}</span>
             </Link>
-            <Link href="/search?specialty=all&professionalType=doctor" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <Stethoscope className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{language === 'ar' ? 'أطباء' : language === 'fr' ? 'Médecins' : 'Doctors'}</span>
+            <Link href="/search?specialty=all&professionalType=doctor" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <Stethoscope className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{language === 'ar' ? 'أطباء' : language === 'fr' ? 'Médecins' : 'Doctors'}</span>
             </Link>
-            <Link href="/clinics" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <Building className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{language === 'ar' ? 'عيادات' : language === 'fr' ? 'Cliniques' : 'Clinics'}</span>
+            <Link href="/clinics" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <Building className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{language === 'ar' ? 'عيادات' : language === 'fr' ? 'Cliniques' : 'Clinics'}</span>
             </Link>
-            <Link href="/labs" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <FlaskConical className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{language === 'ar' ? 'مختبرات' : language === 'fr' ? 'Labs' : 'Labs'}</span>
+            <Link href="/labs" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <FlaskConical className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{language === 'ar' ? 'مختبرات' : language === 'fr' ? 'Labs' : 'Labs'}</span>
             </Link>
-            <Link href="/nurses" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <Heart className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{language === 'ar' ? 'ممرضون' : language === 'fr' ? 'Infirmiers' : 'Nurses'}</span>
+            <Link href="/nurses" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <Heart className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{language === 'ar' ? 'ممرضون' : language === 'fr' ? 'Infirmiers' : 'Nurses'}</span>
             </Link>
-            <Link href="/pharmacies" className="flex flex-col items-center gap-1 p-2.5 rounded-lg min-w-[60px] active:bg-muted transition-colors shrink-0">
-              <Pill className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium text-foreground">{language === 'ar' ? 'صيدليات' : language === 'fr' ? 'Pharmacies' : 'Pharmacies'}</span>
+            <Link href="/pharmacies" className="flex flex-col items-center gap-0.5 min-[375px]:gap-1 p-2 min-[375px]:p-2.5 rounded-lg min-w-[52px] min-[375px]:min-w-[58px] min-[428px]:min-w-[60px] active:bg-muted transition-colors shrink-0">
+              <Pill className="h-5 w-5 min-[375px]:h-6 min-[375px]:w-6 text-primary" />
+              <span className="text-[11px] min-[375px]:text-xs min-[428px]:text-sm font-medium text-foreground">{language === 'ar' ? 'صيدليات' : language === 'fr' ? 'Pharmacies' : 'Pharmacies'}</span>
             </Link>
           </div>
         </div>

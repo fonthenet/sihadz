@@ -15,6 +15,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 import Loading from "./loading"
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 const translations = {
   en: {
@@ -62,16 +63,6 @@ const translations = {
     messages: "الرسائل",
     back: "العودة للوحة التحكم"
   }
-}
-
-const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  in_progress: "bg-purple-100 text-purple-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  ready_for_pickup: "bg-emerald-100 text-emerald-800",
-  processing: "bg-indigo-100 text-indigo-800"
 }
 
 const typeIcons: Record<string, any> = {
@@ -265,7 +256,7 @@ export default function PatientTicketsPage() {
                               <div>
                                 <div className="flex items-center gap-2 mb-1">
                                   <span className="font-mono text-sm font-medium">{ticket.ticket_number}</span>
-                                  <Badge className={statusColors[ticket.status] || "bg-gray-100"}>
+                                  <Badge className={getStatusBadgeClassName(ticket.status || ticket.ticket_status || '', 'solid')}>
                                     {ticket.status.replace(/_/g, ' ')}
                                   </Badge>
                                 </div>
@@ -311,7 +302,7 @@ export default function PatientTicketsPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <span className="font-mono">{selectedTicket?.ticket_number}</span>
-                <Badge className={statusColors[selectedTicket?.status] || "bg-gray-100"}>
+                <Badge className={getStatusBadgeClassName(selectedTicket?.status || selectedTicket?.ticket_status || '', 'solid')}>
                   {selectedTicket?.status?.replace(/_/g, ' ')}
                 </Badge>
               </DialogTitle>

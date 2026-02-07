@@ -441,7 +441,7 @@ function ShopPage({ professionalId }: { professionalId: string }) {
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <div className="flex items-center gap-1 rounded-lg border p-1">
             <Button
-              variant={viewPrefs.viewMode === 'grid' ? 'secondary' : 'ghost'}
+              variant={viewPrefs.viewMode === 'grid' ? 'secondary' : 'outline'}
               size="sm"
               className="h-8 px-2"
               onClick={() => updateViewPrefs({ viewMode: 'grid' })}
@@ -450,7 +450,7 @@ function ShopPage({ professionalId }: { professionalId: string }) {
               <LayoutGrid className="h-4 w-4" />
             </Button>
             <Button
-              variant={viewPrefs.viewMode === 'list' ? 'secondary' : 'ghost'}
+              variant={viewPrefs.viewMode === 'list' ? 'secondary' : 'outline'}
               size="sm"
               className="h-8 px-2"
               onClick={() => updateViewPrefs({ viewMode: 'list' })}

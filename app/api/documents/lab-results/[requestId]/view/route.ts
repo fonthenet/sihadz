@@ -219,8 +219,17 @@ export async function GET(
       baseUrl,
     })
 
-    // Add print script so user can Save as PDF
-    const printScript = `
+    const forceDownload = request.nextUrl?.searchParams?.get('download') === '1'
+    const headers: Record<string, string> = {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'private, no-cache',
+    }
+    if (forceDownload) {
+      headers['Content-Disposition'] = `attachment; filename="lab-results-${requestId.slice(0, 8)}.html"`
+    }
+
+    // Add print script so user can Save as PDF (only when not downloading)
+    const printScript = forceDownload ? '' : `
 <script>
 (function() {
   function doPrint() {
@@ -231,14 +240,11 @@ export async function GET(
   else window.addEventListener('load', function() { setTimeout(doPrint, 300); });
 })();
 </script>`
-    const fullHtml = html.replace('</body>', printScript + '\n</body>')
+    const fullHtml = printScript ? html.replace('</body>', printScript + '\n</body>') : html
 
     return new NextResponse(fullHtml, {
       status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'private, no-cache',
-      },
+      headers,
     })
   } catch (e) {
     console.error('[documents/lab-results/view] Error:', e)

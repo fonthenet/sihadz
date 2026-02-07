@@ -44,6 +44,7 @@ import { LoadingSpinner } from '@/components/ui/page-loading'
 import { Input } from '@/components/ui/input'
 import { QRCodeDisplay } from '@/components/qr-code-display'
 import { useScanHandler } from '@/lib/scanner'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 import { useToast } from '@/hooks/use-toast'
 import { format, isToday, isYesterday } from 'date-fns'
 
@@ -386,19 +387,20 @@ export default function PharmacyPrescriptions({ pharmacyId }: PharmacyPrescripti
   }
 
   const getStatusBadge = (status: string) => {
-    const config: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; className?: string }> = {
-      sent: { label: 'Received', variant: 'default' },
-      received: { label: 'Received', variant: 'default' },
-      processing: { label: 'Processing', variant: 'default' },
-      ready: { label: 'Ready for pickup', variant: 'default', className: 'bg-green-500 hover:bg-green-600 text-white' },
-      picked_up: { label: 'Picked up', variant: 'default', className: 'bg-emerald-500 hover:bg-emerald-600 text-white' },
-      declined: { label: 'Declined', variant: 'destructive' },
-      delivered: { label: 'Delivered', variant: 'default', className: 'bg-teal-500 hover:bg-teal-600 text-white' },
-      dispensed: { label: 'Dispensed', variant: 'default', className: 'bg-green-600 hover:bg-green-700 text-white' },
-      cancelled: { label: 'Cancelled', variant: 'destructive' },
+    const labels: Record<string, string> = {
+      sent: 'Received',
+      received: 'Received',
+      processing: 'Processing',
+      ready: 'Ready for pickup',
+      picked_up: 'Picked up',
+      declined: 'Declined',
+      delivered: 'Delivered',
+      dispensed: 'Dispensed',
+      cancelled: 'Cancelled',
     }
-    const c = config[status] || { label: status, variant: 'secondary' as const }
-    return <Badge variant={c.variant} className={c.className}>{c.label}</Badge>
+    const label = labels[status] ?? status
+    const className = getStatusBadgeClassName(status, 'solid')
+    return <Badge className={className}>{label}</Badge>
   }
 
   const getStatusIcon = (status: string) => {

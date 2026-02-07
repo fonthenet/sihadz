@@ -478,8 +478,8 @@ export default function PatientDashboard() {
         </Tabs>
       </section>
 
-      {/* Quick Links - responsive for 320px-428px */}
-      <section className="grid gap-3 min-[375px]:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Quick Links - hidden on mobile, shown from sm+ */}
+      <section className="hidden sm:grid gap-3 min-[375px]:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Link href="/dashboard/prescriptions">
           <Card className="rounded-none sm:rounded-xl group h-full overflow-hidden transition-all hover:shadow-md">
             <CardContent className="p-4 min-[375px]:p-5 flex items-center gap-3 min-[375px]:gap-4">

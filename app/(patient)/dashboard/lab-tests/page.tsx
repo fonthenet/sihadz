@@ -12,13 +12,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { FlaskConical, Calendar, Clock, Building2, FileText, AlertCircle, CheckCircle } from 'lucide-react'
 import { LabTestWorkflow } from '@/components/lab-test-workflow'
 import { format } from 'date-fns'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
-const LAB_STATUS_LABELS: Record<string, { en: string; ar: string; fr: string; color: string }> = {
-  created: { en: 'Created', ar: 'تم الإنشاء', fr: 'Créé', color: 'bg-gray-500' },
-  sent_to_lab: { en: 'Sent to Lab', ar: 'أرسل للمختبر', fr: 'Envoyé au labo', color: 'bg-blue-500' },
-  sample_collected: { en: 'Sample Collected', ar: 'تم جمع العينة', fr: 'Échantillon collecté', color: 'bg-yellow-500' },
-  processing: { en: 'Processing', ar: 'قيد المعالجة', fr: 'En cours', color: 'bg-purple-500' },
-  fulfilled: { en: 'Results Received', ar: 'تم استلام النتائج', fr: 'Résultats reçus', color: 'bg-green-500' },
+const LAB_STATUS_LABELS: Record<string, { en: string; ar: string; fr: string }> = {
+  created: { en: 'Created', ar: 'تم الإنشاء', fr: 'Créé' },
+  sent_to_lab: { en: 'Sent to Lab', ar: 'أرسل للمختبر', fr: 'Envoyé au labo' },
+  sample_collected: { en: 'Sample Collected', ar: 'تم جمع العينة', fr: 'Échantillon collecté' },
+  processing: { en: 'Processing', ar: 'قيد المعالجة', fr: 'En cours' },
+  fulfilled: { en: 'Results Received', ar: 'تم استلام النتائج', fr: 'Résultats reçus' },
 }
 
 const PAYMENT_STATUS_LABELS: Record<string, { en: string; ar: string; fr: string }> = {
@@ -165,7 +166,7 @@ export default function PatientLabTestsPage() {
                         </CardDescription>
                       </div>
                       <div className="flex flex-col gap-1 items-end">
-                        <Badge className={LAB_STATUS_LABELS[request.status]?.color || 'bg-gray-500'}>
+                        <Badge className={getStatusBadgeClassName(request.status, 'solid')}>
                           {getStatusLabel(request.status)}
                         </Badge>
                         <Badge variant="outline" className="text-xs">

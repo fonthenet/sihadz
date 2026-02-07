@@ -470,7 +470,7 @@ function SearchContent() {
             {(['all', 'in-person', 'e-visit'] as const).map((type) => (
               <Button
                 key={type}
-                variant={visitTypeFilter === type ? 'default' : 'ghost'}
+                variant={visitTypeFilter === type ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => {
                   setVisitTypeFilter(type)

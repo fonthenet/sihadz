@@ -33,14 +33,15 @@ import { useLanguage } from '@/lib/i18n/language-context'
 import type { StorefrontOrder, OrderStatus } from '@/lib/storefront/types'
 import { DashboardPageWrapper } from '@/components/dashboard/dashboard-page-wrapper'
 import { LoadingSpinner } from '@/components/ui/page-loading'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; labelFr: string; labelAr: string; color: string; icon: any }> = {
-  pending: { label: 'Pending', labelFr: 'En attente', labelAr: 'قيد الانتظار', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  confirmed: { label: 'Confirmed', labelFr: 'Confirmée', labelAr: 'مؤكد', color: 'bg-blue-100 text-blue-700', icon: CheckCircle },
-  preparing: { label: 'Preparing', labelFr: 'En préparation', labelAr: 'قيد التحضير', color: 'bg-purple-100 text-purple-700', icon: Package },
-  ready: { label: 'Ready', labelFr: 'Prête', labelAr: 'جاهز', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  completed: { label: 'Completed', labelFr: 'Terminée', labelAr: 'مكتمل', color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
-  cancelled: { label: 'Cancelled', labelFr: 'Annulée', labelAr: 'ملغي', color: 'bg-red-100 text-red-700', icon: XCircle },
+const STATUS_CONFIG: Record<OrderStatus, { label: string; labelFr: string; labelAr: string; icon: any }> = {
+  pending: { label: 'Pending', labelFr: 'En attente', labelAr: 'قيد الانتظار', icon: Clock },
+  confirmed: { label: 'Confirmed', labelFr: 'Confirmée', labelAr: 'مؤكد', icon: CheckCircle },
+  preparing: { label: 'Preparing', labelFr: 'En préparation', labelAr: 'قيد التحضير', icon: Package },
+  ready: { label: 'Ready', labelFr: 'Prête', labelAr: 'جاهز', icon: CheckCircle },
+  completed: { label: 'Completed', labelFr: 'Terminée', labelAr: 'مكتمل', icon: CheckCircle },
+  cancelled: { label: 'Cancelled', labelFr: 'Annulée', labelAr: 'ملغي', icon: XCircle },
 }
 
 const labels = {
@@ -228,7 +229,7 @@ export default function CustomerOrdersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-mono font-medium text-sm">{order.order_number}</span>
-                        <Badge className={statusConfig.color}>
+                        <Badge className={getStatusBadgeClassName(order.status, 'solid')}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {getStatusLabel(order.status)}
                         </Badge>
@@ -287,7 +288,7 @@ export default function CustomerOrdersPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   {selectedOrder.order_number}
-                  <Badge className={STATUS_CONFIG[selectedOrder.status].color}>
+                  <Badge className={getStatusBadgeClassName(selectedOrder.status, 'solid')}>
                     {getStatusLabel(selectedOrder.status)}
                   </Badge>
                 </DialogTitle>

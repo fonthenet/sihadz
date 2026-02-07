@@ -246,14 +246,14 @@ export default function PrescriptionsPage() {
 
       <Tabs defaultValue={defaultTab} className="flex flex-col gap-4 w-full">
         <TabsList className="grid w-full grid-cols-2 h-11 p-1 rounded-xl bg-muted/50 border">
-          <TabsTrigger value="prescriptions" className="gap-2 rounded-lg px-4 sm:px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsTrigger value="prescriptions" className="gap-2 rounded-lg px-4 sm:px-5 data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-emerald-950/30 dark:data-[state=active]:text-emerald-300">
             <Pill className="h-4 w-4" />
             {l.prescriptions}
             {prescriptions.length > 0 && (
               <Badge variant="secondary" className="h-5 px-1.5 text-xs">{prescriptions.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="labtests" className="gap-2 rounded-lg px-4 sm:px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsTrigger value="labtests" className="gap-2 rounded-lg px-4 sm:px-5 data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 data-[state=active]:shadow-sm dark:data-[state=active]:bg-violet-950/30 dark:data-[state=active]:text-violet-300">
             <TestTube className="h-4 w-4" />
             {l.labTests}
             {labRequests.length > 0 && (
@@ -271,7 +271,7 @@ export default function PrescriptionsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-4 sm:gap-6">
               {prescriptions.map((prescription) => (
                 <PrescriptionWorkflow
                   key={prescription.id}
@@ -294,7 +294,7 @@ export default function PrescriptionsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-6 list-stripe">
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2 gap-4 sm:gap-6 list-stripe">
               {labRequests.map((labRequest) => (
                 <LabTestWorkflow
                   key={labRequest.id}

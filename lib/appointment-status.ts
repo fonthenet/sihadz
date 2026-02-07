@@ -74,14 +74,7 @@ export function showVisitCompleteAbove(item: AppointmentStatusItem, displayStatu
 }
 
 /**
- * Tailwind classes for status badge (accent colors).
+ * Tailwind classes for status badge. Delegates to platform-wide status colors.
+ * Use getStatusBadgeClassName(displayStatus) or getStatusBadgeClassName(displayStatus, 'outline').
  */
-export function getStatusBadgeClassName(displayStatus: string): string {
-  if (displayStatus === 'cancelled') return 'bg-red-600 text-white border-red-600 dark:bg-red-600 dark:text-white'
-  if (displayStatus === 'completed' || displayStatus === 'visit_completed') return 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-600 dark:text-white'
-  if (['prescription_sent', 'sent', 'processing', 'ready_for_pickup'].includes(displayStatus)) return 'bg-violet-600 text-white border-violet-600 dark:bg-violet-600 dark:text-white'
-  if (displayStatus === 'confirmed') return 'bg-emerald-400 text-white border-emerald-400 dark:bg-emerald-400 dark:text-white dark:border-emerald-400'
-  if (displayStatus === 'pending') return 'bg-amber-500 text-white border-amber-500 dark:bg-amber-500 dark:text-white'
-  if (displayStatus === 'in_progress' || displayStatus === 'created') return 'bg-blue-600 text-white border-blue-600 dark:bg-blue-600 dark:text-white'
-  return 'bg-primary text-primary-foreground border-primary dark:bg-primary dark:text-primary-foreground'
-}
+export { getStatusBadgeClassName } from '@/lib/status-colors'

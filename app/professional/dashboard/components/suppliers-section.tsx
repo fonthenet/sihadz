@@ -48,26 +48,7 @@ import type {
   SupplierProduct,
   OrderInput,
 } from '@/lib/supplier/types'
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  suspended: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  draft: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  confirmed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  processing: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  shipped: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  delivered: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  pending_buyer_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  partial: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-}
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 interface SuppliersSectionProps {
   professionalId: string
@@ -867,7 +848,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                         </div>
                       </div>
                       {supplier.is_linked ? (
-                        <Badge className={STATUS_COLORS[supplier.link_status || 'active']}>
+                        <Badge className={getStatusBadgeClassName(supplier.link_status || 'active', 'solid')}>
                           {supplier.link_status === 'pending' ? l.pending : l.linked}
                         </Badge>
                       ) : null}
@@ -967,7 +948,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge className={STATUS_COLORS[link.status]}>{link.status}</Badge>
+                        <Badge className={getStatusBadgeClassName(link.status, 'solid')}>{link.status}</Badge>
                         {link.status === 'active' && link.supplier && (
                           <Button
                             size="sm"
@@ -1205,7 +1186,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium">{order.order_number}</p>
-                          <Badge className={STATUS_COLORS[order.status]}>
+                          <Badge className={getStatusBadgeClassName(order.status, 'solid')}>
                             {order.status === 'pending_buyer_review' 
                               ? (language === 'ar' ? 'تحتاج مراجعة' : language === 'fr' ? 'À réviser' : 'Needs Review')
                               : order.status.replace(/_/g, ' ')
@@ -1342,7 +1323,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-medium">{invoice.invoice_number}</p>
-                            <Badge className={STATUS_COLORS[invoice.status]}>{invoice.status}</Badge>
+                            <Badge className={getStatusBadgeClassName(invoice.status, 'solid')}>{invoice.status}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">{invoice.supplier?.business_name}</p>
                           {invoice.due_date && (
@@ -1394,7 +1375,7 @@ export function SuppliersSection({ professionalId, professionalType }: Suppliers
                   </div>
                   <div className="flex items-center gap-3">
                     <p className="font-bold">{product.unit_price.toLocaleString()} {l.dzd}</p>
-                    <Badge className={product.in_stock ? STATUS_COLORS.active : STATUS_COLORS.cancelled}>
+                    <Badge className={getStatusBadgeClassName(product.in_stock ? 'active' : 'cancelled', 'solid')}>
                       {product.in_stock ? 'In Stock' : 'Out of Stock'}
                     </Badge>
                   </div>

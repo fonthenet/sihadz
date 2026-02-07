@@ -65,32 +65,7 @@ import type {
   SupplierBuyerLink,
   SupplierStats,
 } from '@/lib/supplier/types'
-
-// Status colors for badges
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  confirmed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  processing: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  shipped: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  delivered: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  pending_buyer_review: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  suspended: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  partial: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  disputed: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  critical: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  low: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  ok: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  excess: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-}
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 interface SupplierDashboardProps {
   authUserId?: string | null
@@ -1254,7 +1229,7 @@ export default function SupplierDashboard({
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-end">
                           <p className="font-medium text-sm">{order.total.toLocaleString()} DZD</p>
-                          <Badge className={cn("text-xs", STATUS_COLORS[order.status])}>{order.status}</Badge>
+                          <Badge className={cn("text-xs", getStatusBadgeClassName(order.status, 'solid'))}>{order.status}</Badge>
                         </div>
                       </div>
                     </div>
@@ -1441,7 +1416,7 @@ export default function SupplierDashboard({
                         </p>
                       </div>
                     </div>
-                    <Badge className={alert.severity === 'critical' ? STATUS_COLORS.critical : STATUS_COLORS.low}>
+                    <Badge className={getStatusBadgeClassName(alert.severity === 'critical' ? 'critical' : 'low', 'solid')}>
                       {alert.type.replace('_', ' ')}
                     </Badge>
                   </div>
@@ -1530,7 +1505,7 @@ export default function SupplierDashboard({
                             {product.reorder_point && ` (min: ${product.reorder_point})`}
                           </p>
                         </div>
-                        <Badge className={STATUS_COLORS[stockStatus]}>
+                        <Badge className={getStatusBadgeClassName(stockStatus, 'solid')}>
                           {stockStatus === 'critical' ? 'Out' : stockStatus === 'low' ? 'Low' : 'OK'}
                         </Badge>
                         <DropdownMenu>
@@ -1880,7 +1855,7 @@ export default function SupplierDashboard({
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium">{order.order_number}</p>
-                          <Badge className={STATUS_COLORS[order.status]}>{order.status.replace(/_/g, ' ')}</Badge>
+                          <Badge className={getStatusBadgeClassName(order.status, 'solid')}>{order.status.replace(/_/g, ' ')}</Badge>
                           {order.paid_at && <Badge variant="outline" className="text-green-600 border-green-600">Paid</Badge>}
                         </div>
                         <p className="text-sm text-muted-foreground">{order.buyer?.business_name}</p>
@@ -2111,7 +2086,7 @@ export default function SupplierDashboard({
                           {(link as { unpaid_amount?: number }).unpaid_amount?.toLocaleString()} DZD unpaid
                         </Badge>
                       )}
-                      <Badge className={STATUS_COLORS[link.status]}>{link.status}</Badge>
+                      <Badge className={getStatusBadgeClassName(link.status, 'solid')}>{link.status}</Badge>
                     </div>
                   </div>
 

@@ -1,0 +1,58 @@
+# Platform-Wide Status Colors
+
+## Rule
+
+**All status badges across the platform MUST use the shared status color map.** No local status color logic. Applies to all users, all accounts, all dashboards (old, new, future).
+
+## Source of Truth
+
+**`lib/status-colors.ts`** — single source for status badge colors.
+
+- **`getStatusBadgeClassName(status, variant)`** — returns Tailwind classes for badges
+- **`STATUS_COLOR_SOLID`** — solid badges (default for prominent status)
+- **`STATUS_COLOR_OUTLINE`** — outline badges (subtle status)
+
+## Semantic Mapping
+
+| Status type | Color | Example values |
+|------------|-------|----------------|
+| Created / Draft | slate | `created`, `draft`, `active` |
+| Pending / Waiting | amber | `pending`, `waiting`, `pending_approval`, `waiting_approval` |
+| Sent / Submitted | blue | `sent`, `sent_to_pharmacy`, `sent_to_lab`, `received` |
+| Processing | indigo | `processing`, `in_progress`, `sample_collected` |
+| Accepted / Confirmed | teal | `accepted`, `confirmed` |
+| Ready | cyan | `ready`, `ready_for_pickup` |
+| Completed / Success | emerald | `completed`, `fulfilled`, `collected`, `dispensed`, `picked_up`, `delivered` |
+| Declined / Rejected | rose | `declined`, `rejected`, `cancelled`, `denied`, `no_show` |
+| AI / Generated | violet (purple) | `ai` — unique, always distinct |
+
+## Usage
+
+```tsx
+import { getStatusBadgeClassName } from '@/lib/status-colors'
+
+<Badge className={getStatusBadgeClassName(status, 'solid')}>{label}</Badge>
+```
+
+For appointment/ticket status, you can also import from `@/lib/appointment-status` (re-exports the same function).
+
+## Do NOT
+
+- Define local `statusColors`, `STATUS_COLORS`, `STATUS_CONFIG` color maps
+- Use hardcoded `bg-amber-500`, `bg-rose-500`, etc. for status badges
+- Mix different color schemes for the same status across pages
+
+## Adding New Statuses
+
+Add new status values to `lib/status-colors.ts` in both `STATUS_COLOR_SOLID` and `STATUS_COLOR_OUTLINE`. Map to the closest semantic group above.
+
+## Prescription Status Labels
+
+**When a doctor creates a prescription and has not sent it yet**, the status is `created` or `active`. The displayed label MUST be **"Created"**, never "Active" or "Not Fulfilled".
+
+- `created` → label "Created"
+- `active` (before sent to pharmacy) → label "Created"
+- `sent` / `sent_to_pharmacy` → "Sent to Pharmacy"
+- etc.
+
+Apply consistently in: prescription-workflow, clinical-orders-panel, pharmacy-prescriptions, settings prescription-workflow.

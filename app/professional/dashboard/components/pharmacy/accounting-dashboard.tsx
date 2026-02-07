@@ -83,17 +83,38 @@ export default function AccountingDashboard() {
     ]
   })
 
+  // Helper: parse API error for user feedback
+  const parseApiError = async (res: Response) => {
+    try {
+      const body = await res.json()
+      return (body?.error as string) || res.statusText || `Request failed (${res.status})`
+    } catch {
+      return res.statusText || `Request failed (${res.status})`
+    }
+  }
+
   // Fetch dashboard stats
   const fetchStats = useCallback(async () => {
     try {
       const res = await fetch('/api/pharmacy/accounting/dashboard')
-      if (!res.ok) throw new Error('Failed to fetch stats')
+      if (!res.ok) {
+        const msg = await parseApiError(res)
+        if (res.status === 401) {
+          toast({ title: 'Authentication required', description: 'Please sign in as a pharmacy to access accounting.', variant: 'destructive' })
+        } else {
+          toast({ title: 'Failed to load stats', description: msg, variant: 'destructive' })
+        }
+        setStats(null)
+        return
+      }
       const data = await res.json()
       setStats(data)
     } catch (error: any) {
       console.error('Error fetching accounting stats:', error)
+      toast({ title: 'Error', description: error?.message || 'Failed to fetch stats', variant: 'destructive' })
+      setStats(null)
     }
-  }, [])
+  }, [toast])
 
   // Fetch accounts
   const fetchAccounts = useCallback(async () => {
@@ -103,13 +124,20 @@ export default function AccountingDashboard() {
         url += `&class=${accountClassFilter}`
       }
       const res = await fetch(url)
-      if (!res.ok) throw new Error('Failed to fetch accounts')
+      if (!res.ok) {
+        const msg = await parseApiError(res)
+        if (res.status === 401) return
+        toast({ title: 'Failed to load accounts', description: msg, variant: 'destructive' })
+        setAccounts([])
+        return
+      }
       const data = await res.json()
       setAccounts(data.accounts || [])
     } catch (error: any) {
       console.error('Error fetching accounts:', error)
+      setAccounts([])
     }
-  }, [accountClassFilter])
+  }, [accountClassFilter, toast])
 
   // Fetch journal entries
   const fetchEntries = useCallback(async () => {
@@ -122,13 +150,20 @@ export default function AccountingDashboard() {
         url += `&status=${statusFilter}`
       }
       const res = await fetch(url)
-      if (!res.ok) throw new Error('Failed to fetch entries')
+      if (!res.ok) {
+        const msg = await parseApiError(res)
+        if (res.status === 401) return
+        toast({ title: 'Failed to load entries', description: msg, variant: 'destructive' })
+        setEntries([])
+        return
+      }
       const data = await res.json()
       setEntries(data.entries || [])
     } catch (error: any) {
       console.error('Error fetching entries:', error)
+      setEntries([])
     }
-  }, [journalFilter, statusFilter])
+  }, [journalFilter, statusFilter, toast])
 
   // Initial load
   useEffect(() => {

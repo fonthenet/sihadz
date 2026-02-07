@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Building2, Stethoscope, MapPin, Phone, FileText, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 export interface Referral {
   id: string
@@ -51,13 +52,7 @@ export function ReferralWorkflow({ referral, language = 'en', className }: Refer
   const statusLabel = STATUS_LABELS[status]?.[language as keyof typeof STATUS_LABELS.en] || status
   const urgencyLabel = URGENCY_LABELS[urgency]?.[language as keyof typeof URGENCY_LABELS.en] || urgency
 
-  const statusColors: Record<string, string> = {
-    pending: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
-    accepted: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
-    declined: 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/30',
-    completed: 'bg-primary/10 text-primary border-primary/30',
-    expired: 'bg-muted text-muted-foreground border-border',
-  }
+  const statusClassName = getStatusBadgeClassName(status, 'outline')
   const urgencyColors: Record<string, string> = {
     routine: 'bg-muted text-muted-foreground',
     urgent: 'bg-orange-500/10 text-orange-700 dark:text-orange-400',
@@ -86,7 +81,7 @@ export function ReferralWorkflow({ referral, language = 'en', className }: Refer
               {referral.referral_number && (
                 <span className="text-xs text-muted-foreground font-mono">#{referral.referral_number}</span>
               )}
-              <Badge variant="outline" className={cn('text-xs', statusColors[status] || statusColors.pending)}>
+              <Badge variant="outline" className={cn('text-xs', statusClassName)}>
                 {statusLabel}
               </Badge>
               {urgency !== 'routine' && (

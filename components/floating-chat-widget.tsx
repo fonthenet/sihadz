@@ -10,6 +10,7 @@ export function FloatingChatWidget() {
   const [userName, setUserName] = useState('')
   const [userAvatar, setUserAvatar] = useState<string | undefined>(undefined)
   const [userType, setUserType] = useState('')
+  const [isProfessional, setIsProfessional] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export function FloatingChatWidget() {
       const u = auth?.user
       if (!u) {
         setUser(null)
+        setIsProfessional(false)
         setIsLoading(false)
         return
       }
@@ -38,6 +40,7 @@ export function FloatingChatWidget() {
       setUserName(professional?.business_name || profile?.full_name || 'User')
       setUserAvatar(professional?.avatar_url || profile?.avatar_url || undefined)
       setUserType(professional?.type || profile?.user_type || 'patient')
+      setIsProfessional(!!professional)
       setIsLoading(false)
     }
 
@@ -50,7 +53,8 @@ export function FloatingChatWidget() {
     return () => subscription.unsubscribe()
   }, [supabase])
 
-  if (isLoading || !user) return null
+  // Hide chat widget for patients (only show for professionals)
+  if (isLoading || !user || !isProfessional) return null
 
   return (
     <ChatWidget

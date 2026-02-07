@@ -1128,6 +1128,48 @@ export async function openPdfPrescription(prescription: any, branding?: Document
   return htmlToPdfAndOpen(getPrescriptionPrintHtml(prescription, branding), targetWindow)
 }
 
+/** Generate a unique filename for prescription: PatientName_RX-Number.pdf */
+export function getPrescriptionPdfFilename(prescription: any): string {
+  const patientName = sanitizeFilenamePart(prescription?.patient?.full_name || 'Patient')
+  const rxNumber = sanitizeFilenamePart(prescription?.prescription_number || prescription?.id?.slice(0, 12) || 'RX')
+  return `${patientName}_${rxNumber}.pdf`
+}
+
+/** Generate prescription PDF as blob + URL for in-app viewing/download. Returns blob, url, filename. Caller must revoke URL when done. */
+export async function generatePrescriptionPdf(
+  prescription: any,
+  branding?: DocumentBranding | null
+): Promise<{ blob: Blob; url: string; filename: string; revoke: () => void } | null> {
+  const html = getPrescriptionPrintHtml(prescription, branding)
+  const result = await htmlToPdfBlob(html)
+  if (!result) return null
+  const filename = getPrescriptionPdfFilename(prescription)
+  return {
+    blob: result.blob,
+    url: result.url,
+    filename,
+    revoke: result.revoke,
+  }
+}
+
+/** Download prescription PDF directly without opening a new tab. Triggers browser download. */
+export async function downloadPrescriptionPdf(
+  prescription: any,
+  branding?: DocumentBranding | null
+): Promise<boolean> {
+  const result = await generatePrescriptionPdf(prescription, branding)
+  if (!result) return false
+  const a = document.createElement('a')
+  a.href = result.url
+  a.download = result.filename
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  result.revoke()
+  return true
+}
+
 export async function openPdfLabRequest(
   labRequest: any,
   branding?: DocumentBranding | null,
@@ -1152,4 +1194,23 @@ export async function generateLabRequestPdf(
     filename,
     revoke: result.revoke,
   }
+}
+
+/** Download lab request PDF directly without opening a new tab. Triggers browser download. */
+export async function downloadLabRequestPdf(
+  labRequest: any,
+  branding?: DocumentBranding | null,
+  options?: { labReportTemplate?: LabReportTemplate | null; labId?: string; reportId?: string; baseUrl?: string }
+): Promise<boolean> {
+  const result = await generateLabRequestPdf(labRequest, branding, options)
+  if (!result) return false
+  const a = document.createElement('a')
+  a.href = result.url
+  a.download = result.filename
+  a.style.display = 'none'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  result.revoke()
+  return true
 }

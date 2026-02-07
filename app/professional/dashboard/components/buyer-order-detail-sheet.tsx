@@ -28,17 +28,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import type { SupplierPurchaseOrder } from '@/lib/supplier/types'
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-slate-100 text-slate-700',
-  accepted: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
-  substitution_offered: 'bg-amber-100 text-amber-700',
-  substitution_accepted: 'bg-green-100 text-green-700',
-  substitution_rejected: 'bg-red-100 text-red-700',
-  quantity_adjusted: 'bg-blue-100 text-blue-700',
-  price_adjusted: 'bg-blue-100 text-blue-700',
-}
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 interface OrderItem {
   id: string
@@ -136,15 +126,7 @@ export function BuyerOrderDetailSheet({
         <div className="mt-4 space-y-4">
           {/* Status & Total */}
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <Badge className={cn(
-              'capitalize',
-              order.status === 'pending_buyer_review' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-              order.status === 'submitted' && 'bg-blue-100 text-blue-700',
-              order.status === 'confirmed' && 'bg-emerald-100 text-emerald-700',
-              order.status === 'shipped' && 'bg-purple-100 text-purple-700',
-              order.status === 'delivered' && 'bg-green-100 text-green-700',
-              order.status === 'rejected' && 'bg-red-100 text-red-700'
-            )}>
+            <Badge className={cn('capitalize', getStatusBadgeClassName(order.status, 'solid'))}>
               {order.status === 'pending_buyer_review'
                 ? (language === 'ar' ? 'تحتاج مراجعة' : language === 'fr' ? 'À réviser' : 'Needs Review')
                 : order.status.replace(/_/g, ' ')}
@@ -247,7 +229,7 @@ export function BuyerOrderDetailSheet({
                           <p className="font-medium">
                             {(item.substitute_line_total ?? item.line_total)?.toLocaleString()} {l.dzd}
                           </p>
-                          <Badge className={cn('mt-1', STATUS_COLORS[status] || 'bg-slate-100')}>
+                          <Badge className={cn('mt-1', getStatusBadgeClassName(status, 'solid'))}>
                             {status.replace(/_/g, ' ')}
                           </Badge>
                         </div>

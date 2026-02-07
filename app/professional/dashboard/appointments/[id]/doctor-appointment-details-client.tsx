@@ -40,6 +40,7 @@ import ClinicalOrdersPanel from '../../components/clinical-orders-panel'
 import { AiPatientAnalysisCard } from '../../components/ai-patient-analysis-card'
 import { useToast } from '@/hooks/use-toast'
 import { LoadingSpinner } from '@/components/ui/page-loading'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 export interface DoctorAppointmentDetailsClientProps {
   id: string
@@ -288,14 +289,10 @@ export default function DoctorAppointmentDetailsClient({ id, searchParams: resol
   }
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: any = {
-      pending: { variant: 'secondary', label: 'Pending' },
-      confirmed: { variant: 'default', label: 'Confirmed' },
-      completed: { variant: 'default', label: 'Completed' },
-      cancelled: { variant: 'destructive', label: 'Cancelled' },
-    }
-    const config = statusConfig[status] || statusConfig.pending
-    return <Badge variant={config.variant as any}>{config.label}</Badge>
+    const labels: Record<string, string> = { pending: 'Pending', confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled' }
+    const label = labels[status] ?? status
+    const className = getStatusBadgeClassName(status, 'solid')
+    return <Badge className={className}>{label}</Badge>
   }
 
   if (loading) {

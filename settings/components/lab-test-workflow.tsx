@@ -18,6 +18,7 @@ import { LoadingSpinner } from '@/components/ui/page-loading'
 import { createBrowserClient } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { QRCodeDisplay } from './qr-code-display'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 // Lab test status flow
 export const LAB_TEST_STATUS = {
@@ -176,25 +177,17 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
     const status = labRequest.status
     const paymentStatus = labRequest.payment_status
 
-    switch (status) {
-      case LAB_TEST_STATUS.CREATED:
-        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">Pending</Badge>
-      case LAB_TEST_STATUS.SENT_TO_LAB:
-        if (paymentStatus === PAYMENT_STATUS.PAID_ONLINE) {
-          return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Sent to Lab (Paid)</Badge>
-        }
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Sent to Lab (Unpaid)</Badge>
-      case LAB_TEST_STATUS.SAMPLE_COLLECTED:
-        return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">Sample Collected</Badge>
-      case LAB_TEST_STATUS.PROCESSING:
-        return <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 border-indigo-500/30">Processing</Badge>
-      case LAB_TEST_STATUS.FULFILLED:
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">Results Ready</Badge>
-      case LAB_TEST_STATUS.CANCELLED:
-        return <Badge variant="destructive">Cancelled</Badge>
-      default:
-        return <Badge variant="secondary">{status}</Badge>
+    const labels: Record<string, string> = {
+      [LAB_TEST_STATUS.CREATED]: 'Pending',
+      [LAB_TEST_STATUS.SENT_TO_LAB]: paymentStatus === PAYMENT_STATUS.PAID_ONLINE ? 'Sent to Lab (Paid)' : 'Sent to Lab (Unpaid)',
+      [LAB_TEST_STATUS.SAMPLE_COLLECTED]: 'Sample Collected',
+      [LAB_TEST_STATUS.PROCESSING]: 'Processing',
+      [LAB_TEST_STATUS.FULFILLED]: 'Results Ready',
+      [LAB_TEST_STATUS.CANCELLED]: 'Cancelled',
     }
+    const label = labels[status] ?? status
+    const className = getStatusBadgeClassName(status, 'solid')
+    return <Badge className={`${className} whitespace-nowrap shrink-0`}>{label}</Badge>
   }
 
   const getPriorityBadge = () => {
@@ -530,7 +523,7 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
           <Alert className="border-green-500/30 bg-green-500/5">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
-              Your lab test results are ready! Download the PDF above.
+              Results ready — download PDF above.
             </AlertDescription>
           </Alert>
         )}

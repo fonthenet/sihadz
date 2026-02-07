@@ -29,6 +29,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { compressImage, uploadWithProgress, validateFile, formatBytes, type UploadProgress } from '@/lib/utils/upload-helpers'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 export type DocumentType = 
   | 'carte_chifa'
@@ -244,29 +245,11 @@ export function DocumentUpload({
   }
 
   const getStatusBadge = (status: Document['status']) => {
-    switch (status) {
-      case 'verified':
-        return (
-          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-            <CheckCircle className="h-3 w-3 me-1" />
-            {t('verified')}
-          </Badge>
-        )
-      case 'pending':
-        return (
-          <Badge className="bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20">
-            <CheckCircle className="h-3 w-3 me-1" />
-            {t('uploaded')}
-          </Badge>
-        )
-      case 'expired':
-        return (
-          <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20">
-            <AlertCircle className="h-3 w-3 me-1" />
-            {t('chifaExpired')}
-          </Badge>
-        )
-    }
+    const labels: Record<Document['status'], string> = { verified: t('verified'), pending: t('uploaded'), expired: t('chifaExpired') }
+    const label = labels[status]
+    const className = getStatusBadgeClassName(status, 'outline')
+    const Icon = status === 'expired' ? AlertCircle : CheckCircle
+    return <Badge variant="outline" className={className}><Icon className="h-3 w-3 me-1" />{label}</Badge>
   }
 
   const chifaCard = documents?.find(d => d.type === 'carte_chifa')

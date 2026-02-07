@@ -41,14 +41,15 @@ import {
 } from 'lucide-react'
 import type { StorefrontOrder, OrderStatus } from '@/lib/storefront/types'
 import { cn } from '@/lib/utils'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: any }> = {
-  pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  confirmed: { label: 'Confirmed', color: 'bg-blue-100 text-blue-700', icon: CheckCircle },
-  preparing: { label: 'Preparing', color: 'bg-purple-100 text-purple-700', icon: Package },
-  ready: { label: 'Ready', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  completed: { label: 'Completed', color: 'bg-gray-100 text-gray-700', icon: CheckCircle },
-  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-700', icon: XCircle },
+const STATUS_CONFIG: Record<OrderStatus, { label: string; icon: any }> = {
+  pending: { label: 'Pending', icon: Clock },
+  confirmed: { label: 'Confirmed', icon: CheckCircle },
+  preparing: { label: 'Preparing', icon: Package },
+  ready: { label: 'Ready', icon: CheckCircle },
+  completed: { label: 'Completed', icon: CheckCircle },
+  cancelled: { label: 'Cancelled', icon: XCircle },
 }
 
 const NEXT_STATUS: Record<OrderStatus, OrderStatus | null> = {
@@ -232,7 +233,7 @@ export default function StorefrontOrdersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-mono font-medium">{order.order_number}</span>
-                        <Badge className={statusConfig.color}>
+                        <Badge className={getStatusBadgeClassName(order.status, 'solid')}>
                           <StatusIcon className="h-3 w-3 mr-1" />
                           {statusConfig.label}
                         </Badge>
@@ -310,7 +311,7 @@ export default function StorefrontOrdersPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   {selectedOrder.order_number}
-                  <Badge className={STATUS_CONFIG[selectedOrder.status].color}>
+                  <Badge className={getStatusBadgeClassName(selectedOrder.status, 'solid')}>
                     {STATUS_CONFIG[selectedOrder.status].label}
                   </Badge>
                 </DialogTitle>

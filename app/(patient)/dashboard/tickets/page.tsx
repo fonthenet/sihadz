@@ -298,7 +298,7 @@ export default function PatientTicketsPage() {
                               <div>
                                 <div className="flex items-center gap-2 mb-1">
                                   <span className="font-mono text-sm font-medium">{ticket.ticket_number}</span>
-                                  <Badge className={statusColors[ticket.status] || "bg-gray-100"}>
+                                  <Badge className={getStatusBadgeClassName(ticket.status || ticket.ticket_status || '', 'solid')}>
                                     {getTicketStatusLabel(ticket.status, ticket, ticket.metadata?.pharmacy_name)}
                                   </Badge>
                                 </div>

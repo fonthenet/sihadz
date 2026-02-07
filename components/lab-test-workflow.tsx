@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
   TestTube, Send, CreditCard, Banknote, MapPin, Clock, CheckCircle, 
   AlertCircle, Building2, Phone, Star, Navigation, FileText, Download, QrCode,
-  XCircle, RefreshCw, Brain, Printer, TrendingUp, TrendingDown, Minus, ChevronDown, FileDown
+  XCircle, RefreshCw, Brain, Printer, TrendingUp, TrendingDown, Minus, ChevronDown, FileDown, Maximize2,
+  Table2, LayoutGrid
 } from 'lucide-react'
 import { LoadingSpinner } from '@/components/ui/page-loading'
 import { createBrowserClient } from '@/lib/supabase'
@@ -21,6 +22,7 @@ import { useToast } from '@/hooks/use-toast'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QRCodeDisplay } from './qr-code-display'
 import { LabRequestDocumentsAttach } from '@/components/lab-request-documents-attach'
+import { getStatusBadgeClassName } from '@/lib/status-colors'
 
 // Lab test status flow
 export const LAB_TEST_STATUS = {
@@ -109,8 +111,18 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
   const [aiAnalysis, setAiAnalysis] = useState<any>(labRequest.ai_analysis_cache ?? null)
   const [isAiExplaining, setIsAiExplaining] = useState(false)
   const [showQrDialog, setShowQrDialog] = useState(false)
-  const [showAiResultsDialog, setShowAiResultsDialog] = useState(false)
+  const [showAiAnalysisDialog, setShowAiAnalysisDialog] = useState(false)
   const [labWorkflowTab, setLabWorkflowTab] = useState<'overview' | 'documents'>('overview')
+  const [resultsViewMode, setResultsViewMode] = useState<'cards' | 'table'>('cards')
+  const [showAllResultsPopup, setShowAllResultsPopup] = useState(false)
+  const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [pdfViewerUrl, setPdfViewerUrl] = useState<string | null>(null)
+  const [pdfViewerLoading, setPdfViewerLoading] = useState(false)
+  const pdfViewerRevokeRef = useRef<(() => void) | null>(null)
+
+  useEffect(() => {
+    setShowAllResultsPopup(false)
+  }, [labRequest.id])
 
   // Sync cached analysis when labRequest updates (e.g. after refetch)
   useEffect(() => {
@@ -120,12 +132,12 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
   const hasStoredAnalysis = !!(labRequest.ai_analysis_cache ?? aiAnalysis)
 
   const getResultStatusInfo = (status: string | undefined, failed?: boolean) => {
-    if (failed) return { label: 'Failed', color: 'text-red-600', bg: 'bg-red-500/10', icon: XCircle }
+    if (failed) return { label: 'Failed', color: 'text-violet-600', bg: 'bg-violet-500/10', icon: XCircle }
     switch (status) {
       case 'normal': return { label: 'Normal', color: 'text-green-600', bg: 'bg-green-500/10', icon: CheckCircle }
       case 'high': return { label: 'High', color: 'text-orange-600', bg: 'bg-orange-500/10', icon: TrendingUp }
       case 'low': return { label: 'Low', color: 'text-blue-600', bg: 'bg-blue-500/10', icon: TrendingDown }
-      case 'critical': return { label: 'Critical', color: 'text-red-600', bg: 'bg-red-500/10', icon: AlertCircle }
+      case 'critical': return { label: 'Critical', color: 'text-amber-600', bg: 'bg-amber-500/10', icon: AlertCircle }
       default: return { label: status || '—', color: 'text-muted-foreground', bg: 'bg-muted/50', icon: Minus }
     }
   }
@@ -186,8 +198,8 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to analyze')
       setAiAnalysis(data.analysis)
-      // Show results directly on card (not in dialog)
       onUpdate?.()
+      setShowAiAnalysisDialog(true)
     } catch (e: any) {
       toast({ title: 'AI analysis failed', description: e?.message, variant: 'destructive' })
     } finally {
@@ -197,15 +209,58 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
 
   const handleDownloadPdf = async () => {
     try {
-      const { openPdfLabRequest, getLabRequestPrintHtml, openPrintWindow } = await import('@/lib/print-prescription-lab')
+      const { downloadLabRequestPdf, getLabRequestPrintHtml, openPrintWindow } = await import('@/lib/print-prescription-lab')
       const labTemplate = labRequest.laboratory ? { labName: labRequest.laboratory.business_name } : {}
-      const ok = await openPdfLabRequest(labRequest, null, { labReportTemplate: labTemplate })
-      if (!ok) openPrintWindow(getLabRequestPrintHtml(labRequest, null, { labReportTemplate: labTemplate }), 'Lab Results')
-      toast({ title: 'Opening PDF...' })
+      const ok = await downloadLabRequestPdf(labRequest, null, { labReportTemplate: labTemplate })
+      if (!ok) {
+        openPrintWindow(getLabRequestPrintHtml(labRequest, null, { labReportTemplate: labTemplate }), 'Lab Results')
+        toast({ title: 'Opening print view...' })
+      } else {
+        toast({ title: 'PDF downloaded' })
+      }
     } catch (e) {
       console.error('[LabTestWorkflow] PDF error:', e)
       toast({ title: 'Failed to generate PDF', variant: 'destructive' })
     }
+  }
+
+  const handleViewPdf = async () => {
+    if (labRequest.result_pdf_url) {
+      pdfViewerRevokeRef.current = null
+      setPdfViewerUrl(labRequest.result_pdf_url)
+      setShowPdfViewer(true)
+      return
+    }
+    setPdfViewerLoading(true)
+    setShowPdfViewer(true)
+    setPdfViewerUrl(null)
+    try {
+      const { generateLabRequestPdf } = await import('@/lib/print-prescription-lab')
+      const labTemplate = labRequest.laboratory ? { labName: labRequest.laboratory.business_name } : {}
+      const result = await generateLabRequestPdf(labRequest, null, { labReportTemplate: labTemplate })
+      if (result) {
+        pdfViewerRevokeRef.current = result.revoke
+        setPdfViewerUrl(result.url)
+      } else {
+        toast({ title: 'Failed to generate PDF', variant: 'destructive' })
+        setShowPdfViewer(false)
+      }
+    } catch (e) {
+      console.error('[LabTestWorkflow] PDF view error:', e)
+      toast({ title: 'Failed to generate PDF', variant: 'destructive' })
+      setShowPdfViewer(false)
+    } finally {
+      setPdfViewerLoading(false)
+    }
+  }
+
+  const closePdfViewer = () => {
+    setShowPdfViewer(false)
+    if (pdfViewerRevokeRef.current) {
+      pdfViewerRevokeRef.current()
+      pdfViewerRevokeRef.current = null
+    }
+    setPdfViewerUrl(null)
   }
 
   const loadLaboratories = async () => {
@@ -328,28 +383,19 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
     const status = labRequest.status
     const paymentStatus = labRequest.payment_status
 
-    switch (status) {
-      case LAB_TEST_STATUS.CREATED:
-      case LAB_TEST_STATUS.PENDING:
-        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">Pending</Badge>
-      case LAB_TEST_STATUS.SENT_TO_LAB:
-        if (paymentStatus === PAYMENT_STATUS.PAID_ONLINE) {
-          return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Sent to Lab (Paid)</Badge>
-        }
-        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Sent to Lab (Unpaid)</Badge>
-      case LAB_TEST_STATUS.SAMPLE_COLLECTED:
-        return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/30">Sample Collected</Badge>
-      case LAB_TEST_STATUS.PROCESSING:
-        return <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 border-indigo-500/30">Processing</Badge>
-      case LAB_TEST_STATUS.FULFILLED:
-        return <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">Results Ready</Badge>
-      case LAB_TEST_STATUS.CANCELLED:
-        return <Badge variant="destructive">Cancelled</Badge>
-      case LAB_TEST_STATUS.DENIED:
-        return <Badge variant="destructive">Denied by Lab</Badge>
-      default:
-        return <Badge variant="secondary">{status}</Badge>
+    const labels: Record<string, string> = {
+      [LAB_TEST_STATUS.CREATED]: 'Pending',
+      [LAB_TEST_STATUS.PENDING]: 'Pending',
+      [LAB_TEST_STATUS.SENT_TO_LAB]: paymentStatus === PAYMENT_STATUS.PAID_ONLINE ? 'Sent to Lab (Paid)' : 'Sent to Lab (Unpaid)',
+      [LAB_TEST_STATUS.SAMPLE_COLLECTED]: 'Sample Collected',
+      [LAB_TEST_STATUS.PROCESSING]: 'Processing',
+      [LAB_TEST_STATUS.FULFILLED]: 'Results Ready',
+      [LAB_TEST_STATUS.CANCELLED]: 'Cancelled',
+      [LAB_TEST_STATUS.DENIED]: 'Denied by Lab',
     }
+    const label = labels[status] ?? status
+    const className = getStatusBadgeClassName(status, 'solid')
+    return <Badge className={`${className} whitespace-nowrap shrink-0`}>{label}</Badge>
   }
 
   const getPriorityBadge = () => {
@@ -566,49 +612,272 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
         </DialogContent>
       </Dialog>
 
-      {/* AI Explanation Dialog - hidden until "View results" clicked */}
-      <Dialog open={showAiResultsDialog} onOpenChange={setShowAiResultsDialog}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-primary" />
-              AI Explanation
-            </DialogTitle>
+      {/* AI Explanation Dialog - opens after Analyze or when View AI Explanation clicked */}
+      <Dialog open={showAiAnalysisDialog} onOpenChange={setShowAiAnalysisDialog}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pb-2">
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                AI Explanation
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                {aiAnalysis?.urgency && (
+                  <Badge
+                    variant="outline"
+                    className={`text-xs shrink-0 ${
+                      aiAnalysis.urgency === 'urgent' ? 'border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-400' :
+                      aiAnalysis.urgency === 'soon' ? 'border-orange-500/60 bg-orange-500/10 text-orange-700 dark:text-orange-400' :
+                      'border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                    }`}
+                  >
+                    {aiAnalysis.urgency === 'urgent' ? 'Consult soon' : aiAnalysis.urgency === 'soon' ? 'Follow up' : 'Routine'}
+                  </Badge>
+                )}
+                {aiAnalysis?.provider && (
+                  <Badge variant="outline" className="text-xs shrink-0">
+                    {aiAnalysis.provider}
+                  </Badge>
+                )}
+              </div>
+            </div>
             <DialogDescription>Educational summary of your lab results. Always consult your doctor for medical advice.</DialogDescription>
           </DialogHeader>
-          {aiAnalysis && (
-            <div className="space-y-3 text-sm pt-2">
+          {aiAnalysis ? (
+            <div className="space-y-5 text-sm">
               {typeof aiAnalysis === 'object' ? (
                 <>
-                  {aiAnalysis.summary && <p>{aiAnalysis.summary}</p>}
+                  {aiAnalysis.summary && (
+                    <div className="rounded-xl border border-violet-200/60 dark:border-violet-800/40 bg-violet-50/60 dark:bg-violet-950/30 p-4">
+                      <p className="font-medium text-violet-800 dark:text-violet-300 mb-1.5">Summary</p>
+                      <p className="leading-relaxed">{aiAnalysis.summary}</p>
+                      {aiAnalysis.summary_ar && (
+                        <p className="mt-3 pt-3 border-t border-violet-200/40 dark:border-violet-800/30 text-muted-foreground leading-relaxed" dir="rtl">
+                          {aiAnalysis.summary_ar}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   {aiAnalysis.findings?.length > 0 && (
-                    <ul className="list-disc pl-5 space-y-1">
-                      {aiAnalysis.findings.map((f: any, i: number) => (
-                        <li key={i}>
-                          <strong>{f.test}</strong> ({f.status}): {f.explanation}
-                        </li>
-                      ))}
-                    </ul>
+                    <div>
+                      <p className="font-medium text-foreground mb-3 flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        Findings by test
+                      </p>
+                      <div className="space-y-2">
+                        {aiAnalysis.findings.map((f: any, i: number) => {
+                          const statusLower = (f.status || '').toLowerCase()
+                          const statusStyle =
+                            statusLower === 'normal' ? 'border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-950/20' :
+                            statusLower === 'high' ? 'border-orange-200 dark:border-orange-800/50 bg-orange-50/50 dark:bg-orange-950/20' :
+                            statusLower === 'low' ? 'border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-950/20' :
+                            'border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20'
+                          const statusBadge =
+                            statusLower === 'normal' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400' :
+                            statusLower === 'high' ? 'bg-orange-500/15 text-orange-700 dark:text-orange-400' :
+                            statusLower === 'low' ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400' :
+                            'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                          return (
+                            <div key={i} className={`rounded-lg border p-3 ${statusStyle}`}>
+                              <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <span className="font-medium">{f.test}</span>
+                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${statusBadge}`}>
+                                  {f.status || '—'}
+                                </span>
+                              </div>
+                              <p className="text-muted-foreground leading-relaxed">{f.explanation}</p>
+                              {f.explanation_ar && (
+                                <p className="mt-2 pt-2 border-t border-border/40 text-muted-foreground text-xs leading-relaxed" dir="rtl">
+                                  {f.explanation_ar}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   )}
                   {aiAnalysis.recommendations?.length > 0 && (
-                    <div>
-                      <p className="font-medium mb-1">Recommendations:</p>
-                      <ul className="list-disc pl-5 space-y-0.5">
+                    <div className="rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-4">
+                      <p className="font-medium text-emerald-800 dark:text-emerald-300 mb-3 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Recommendations
+                      </p>
+                      <ul className="space-y-2">
                         {aiAnalysis.recommendations.map((r: string, i: number) => (
-                          <li key={i}>{r}</li>
+                          <li key={i} className="flex gap-2">
+                            <span className="text-emerald-600 dark:text-emerald-400 mt-0.5">•</span>
+                            <span className="leading-relaxed">{r}</span>
+                          </li>
                         ))}
                       </ul>
+                      {aiAnalysis.recommendations_ar?.length > 0 && (
+                        <ul className="mt-3 pt-3 border-t border-emerald-200/40 dark:border-emerald-800/30 space-y-1" dir="rtl">
+                          {aiAnalysis.recommendations_ar.map((r: string, i: number) => (
+                            <li key={i} className="text-muted-foreground text-xs">{r}</li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                   {aiAnalysis.disclaimer && (
-                    <p className="text-xs text-muted-foreground italic mt-2">{aiAnalysis.disclaimer}</p>
+                    <div className="rounded-lg border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/30 dark:bg-amber-950/20 p-3">
+                      <p className="text-xs text-muted-foreground italic leading-relaxed">{aiAnalysis.disclaimer}</p>
+                    </div>
                   )}
                 </>
               ) : (
-                <p>{String(aiAnalysis)}</p>
+                <p className="leading-relaxed">{String(aiAnalysis)}</p>
               )}
             </div>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4">No analysis available.</p>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* All Results Popup - compact cards with per-test colors */}
+      <Dialog open={showAllResultsPopup} onOpenChange={setShowAllResultsPopup}>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] overflow-hidden pt-4 flex flex-col">
+          <DialogHeader className="shrink-0 pb-0 gap-0.5">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <TestTube className="h-5 w-5 text-primary" />
+              All test results
+            </DialogTitle>
+            <DialogDescription className="mb-0 text-xs">Full details for all requested tests</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 min-h-0 overflow-y-auto mt-1">
+            {((labRequest.items || []) as any[]).map((item: any, idx: number) => {
+              const f = (labRequest.lab_fulfillment || []).find((x: any) => x.item_id === item.id)
+              const val = item.result_value ?? f?.result_value
+              const unit = item.result_unit ?? f?.result_unit
+              const ref = item.reference_range ?? f?.reference_range
+              const failed = (f?.status || item.result_status) === 'failed'
+              const name = item.test_type?.name || item.test_type?.name_ar || '—'
+              const refMatch = ref?.match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/)
+              const min = refMatch?.[1] ? parseFloat(refMatch[1]) : undefined
+              const max = refMatch?.[2] ? parseFloat(refMatch[2]) : undefined
+              const numVal = val != null ? parseFloat(String(val)) : undefined
+              const showBar = !failed && min != null && max != null && numVal != null && !isNaN(numVal)
+
+              // Derive status from value vs reference when not in data
+              const status = item.result_status ?? f?.result_status ?? (min != null && max != null && numVal != null && !isNaN(numVal)
+                ? (numVal < min ? 'low' : numVal > max ? 'high' : 'normal')
+                : 'normal')
+
+              const statusInfo = getResultStatusInfo(status, failed)
+              const StatusIcon = statusInfo.icon
+
+              // Each test gets a distinct color: status-based when abnormal, else cycle by index
+              const accentPalette = ['violet', 'amber', 'sky', 'emerald', 'fuchsia', 'teal', 'indigo', 'cyan'] as const
+              const accent = failed
+                ? 'violet'
+                : status === 'critical'
+                  ? 'amber'
+                  : status === 'high'
+                    ? 'amber'
+                    : status === 'low'
+                      ? 'sky'
+                      : accentPalette[idx % accentPalette.length]
+
+              const accentClasses: Record<string, string> = {
+                violet: 'border-s-violet-500 bg-violet-50/60 dark:bg-violet-950/30',
+                amber: 'border-s-amber-500 bg-amber-50/60 dark:bg-amber-950/30',
+                sky: 'border-s-sky-500 bg-sky-50/60 dark:bg-sky-950/30',
+                emerald: 'border-s-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/30',
+                fuchsia: 'border-s-fuchsia-500 bg-fuchsia-50/60 dark:bg-fuchsia-950/30',
+                teal: 'border-s-teal-500 bg-teal-50/60 dark:bg-teal-950/30',
+                indigo: 'border-s-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/30',
+                cyan: 'border-s-cyan-500 bg-cyan-50/60 dark:bg-cyan-950/30',
+              }
+
+              const textClasses: Record<string, string> = {
+                violet: 'text-violet-700 dark:text-violet-400',
+                amber: 'text-amber-700 dark:text-amber-400',
+                sky: 'text-sky-700 dark:text-sky-400',
+                emerald: 'text-emerald-700 dark:text-emerald-400',
+                fuchsia: 'text-fuchsia-700 dark:text-fuchsia-400',
+                teal: 'text-teal-700 dark:text-teal-400',
+                indigo: 'text-indigo-700 dark:text-indigo-400',
+                cyan: 'text-cyan-700 dark:text-cyan-400',
+              }
+
+              const barBgClasses: Record<string, string> = {
+                violet: 'bg-violet-500',
+                amber: 'bg-amber-500',
+                sky: 'bg-sky-500',
+                emerald: 'bg-emerald-500',
+                fuchsia: 'bg-fuchsia-500',
+                teal: 'bg-teal-500',
+                indigo: 'bg-indigo-500',
+                cyan: 'bg-cyan-500',
+              }
+
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-lg border border-s-4 border-muted p-2.5 ${accentClasses[accent]}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`font-medium text-sm truncate ${textClasses[accent]}`}>{name}</p>
+                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md shrink-0 ${statusInfo.bg} ${statusInfo.color}`}>
+                      <StatusIcon className="h-3 w-3" />
+                      {statusInfo.label}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5 mt-0.5">
+                    <span className={`text-lg font-bold tabular-nums ${textClasses[accent]}`}>
+                      {failed ? '—' : (val ?? '—')}
+                    </span>
+                    {!failed && unit && (
+                      <span className={`text-xs font-medium ${textClasses[accent]} opacity-80`}>{unit}</span>
+                    )}
+                  </div>
+                  {ref && !failed && (
+                    <p className={`text-xs mt-0.5 truncate font-medium ${textClasses[accent]} opacity-90`}>Ref: {ref}</p>
+                  )}
+                  {showBar && (
+                    <div className={`flex items-center gap-1.5 text-xs mt-1 font-medium ${textClasses[accent]}`}>
+                      <span className="tabular-nums w-6 opacity-80">{min}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${barBgClasses[accent]}`}
+                          style={{
+                            width: `${Math.min(100, Math.max(0, ((numVal - min) / (max - min)) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="tabular-nums w-6 opacity-80">{max}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Viewer Dialog */}
+      <Dialog open={showPdfViewer} onOpenChange={(open) => !open && closePdfViewer()}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[85vh] p-0 gap-0 overflow-hidden flex flex-col">
+          <div className="flex items-center px-4 py-2 shrink-0 border-b">
+            <DialogTitle className="text-base font-medium">Lab Results PDF</DialogTitle>
+          </div>
+          <div className="flex-1 min-h-0 overflow-hidden p-4">
+            {pdfViewerLoading && (
+              <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
+                <LoadingSpinner size="lg" />
+                <p className="text-sm text-muted-foreground">Generating PDF…</p>
+              </div>
+            )}
+            {!pdfViewerLoading && pdfViewerUrl && (
+              <iframe
+                src={pdfViewerUrl}
+                title="Lab Results PDF"
+                className="w-full h-full min-h-[400px] rounded-lg border bg-muted"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </>
@@ -621,12 +890,12 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
 
   return (
     <>
-      <Card className="overflow-hidden gap-3 py-3 w-full min-w-0">
-      <CardHeader className="p-4 pt-3 pb-3 border-b space-y-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <Card className="overflow-hidden gap-2 sm:gap-3 pt-0 pb-2 sm:pb-3 w-full min-w-0">
+      <CardHeader className="p-3 pt-2 pb-2 sm:p-4 sm:pb-3 border-b bg-sky-50/70 dark:bg-sky-950/25 space-y-1 sm:space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <TestTube className="h-5 w-5 shrink-0 text-primary" />
-              <CardTitle className="text-lg">Lab Test Request</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Lab Test Request</CardTitle>
               {getPriorityBadge()}
               {labRequest.diagnosis && (
                 <span className="text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-xs" title={labRequest.diagnosis}>— {labRequest.diagnosis}</span>
@@ -635,19 +904,19 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
             {getStatusBadge()}
           </div>
         </CardHeader>
-        <CardContent className="p-4 pt-3 space-y-4">
+        <CardContent className="p-3 pt-2 space-y-3 sm:p-4 sm:pt-3 sm:space-y-4">
           {/* Tabs: Overview | Documents */}
           {labRequest.id && (
-            <div className="flex gap-1 border-b pb-3 -mx-1 px-1">
+            <div className="flex gap-1 border-b pb-2 sm:pb-3 -mx-1 px-1">
               <Button
-                variant={labWorkflowTab === 'overview' ? 'secondary' : 'ghost'}
+                variant={labWorkflowTab === 'overview' ? 'secondary' : 'outline'}
                 size="sm"
                 onClick={() => setLabWorkflowTab('overview')}
               >
                 Overview
               </Button>
               <Button
-                variant={labWorkflowTab === 'documents' ? 'secondary' : 'ghost'}
+                variant={labWorkflowTab === 'documents' ? 'secondary' : 'outline'}
                 size="sm"
                 onClick={() => setLabWorkflowTab('documents')}
               >
@@ -659,7 +928,7 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
           {labWorkflowTab === 'overview' && (
           <>
           {/* Test Types List */}
-          <div className="space-y-1.5">
+          <div className="space-y-1 sm:space-y-1.5">
             <Label className="text-sm font-medium">Requested Tests</Label>
             <div className="flex flex-wrap gap-2">
               {(labRequest.items?.length ? labRequest.items.map((item: any) => item.test_type?.name || item.test_type?.name_ar || 'Test') : labRequest.test_types || []).map((test: string, idx: number) => (
@@ -693,101 +962,242 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
             const hasResults = items.some((item: any) => item.result_value ?? fulfillmentMap.get(item.id)?.result_value)
 
             return (
-              <div className="space-y-2">
+              <div className="space-y-2 sm:space-y-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <Label className="text-sm font-medium">Test Results</Label>
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm font-medium">Test Results</Label>
                     {hasResults && (
-                      <Button size="sm" variant="outline" onClick={handleAiExplain} disabled={isAiExplaining} className="h-8 px-3">
-                        {isAiExplaining ? <LoadingSpinner size="sm" /> : <Brain className="h-4 w-4" />}
-                        <span className="ml-1.5">{isAiExplaining ? 'Analyzing...' : 'Analyze'}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setResultsViewMode(resultsViewMode === 'cards' ? 'table' : 'cards')}
+                        title={resultsViewMode === 'cards' ? 'View as table' : 'View as cards'}
+                      >
+                        {resultsViewMode === 'cards' ? (
+                          <><Table2 className="h-4 w-4 me-1.5" />Table</>
+                        ) : (
+                          <><LayoutGrid className="h-4 w-4 me-1.5" />Cards</>
+                        )}
                       </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    {hasResults && (
+                      <Button size="sm" variant="outline" onClick={() => setShowAllResultsPopup(true)} className="h-8 px-3">
+                        <Maximize2 className="h-4 w-4 me-1.5" />
+                        View all
+                      </Button>
+                    )}
+                    {hasResults && (
+                      hasStoredAnalysis ? (
+                        <Button size="sm" variant="outline" onClick={() => setShowAiAnalysisDialog(true)} className="h-8 px-2 sm:px-3">
+                          <Brain className="h-4 w-4 me-1 sm:me-1.5" />
+                          <span className="hidden sm:inline">View AI Explanation</span>
+                          <span className="sm:hidden">AI</span>
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={handleAiExplain} disabled={isAiExplaining} className="h-8 px-2 sm:px-3">
+                          {isAiExplaining ? (
+                            <LoadingSpinner size="sm" className="me-1 sm:me-1.5" />
+                          ) : (
+                            <Brain className="h-4 w-4 me-1 sm:me-1.5" />
+                          )}
+                          <span className="hidden sm:inline">{isAiExplaining ? 'Analyzing...' : 'Analyze'}</span>
+                          <span className="sm:hidden">{isAiExplaining ? '…' : 'AI'}</span>
+                        </Button>
+                      )
                     )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="sm" variant="outline" className="h-8 px-3">
-                          <Download className="h-4 w-4 me-2" />
-                          PDF
+                          PDF / QR
                           <ChevronDown className="h-3.5 w-3.5 ms-1 opacity-70" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={handleViewPdf}>
+                          <FileText className="h-4 w-4 me-2" />
+                          View PDF
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={handleDownloadPdf}>
                           <FileDown className="h-4 w-4 me-2" />
                           Download PDF
                         </DropdownMenuItem>
-                        {labRequest.result_pdf_url && (
-                          <DropdownMenuItem asChild>
-                            <a href={labRequest.result_pdf_url} target="_blank" rel="noopener noreferrer">
-                              <FileText className="h-4 w-4 me-2" />
-                              Open PDF
-                            </a>
-                          </DropdownMenuItem>
-                        )}
+                        <DropdownMenuItem onClick={() => setShowQrDialog(true)}>
+                          <QrCode className="h-4 w-4 me-2" />
+                          Show QR Code
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button size="sm" variant="outline" onClick={() => setShowQrDialog(true)} className="h-8 px-3">
-                      <QrCode className="h-4 w-4 me-2" />
-                      QR
-                    </Button>
                   </div>
                 </div>
 
                 {hasResults ? (
-                  <div className="rounded-xl border overflow-x-auto overflow-y-visible">
-                    <table className="w-full min-w-[480px] text-sm">
-                      <thead>
-                        <tr className="bg-muted/50">
-                          <th className="px-4 py-3 text-left font-medium">Test</th>
-                          <th className="px-4 py-3 text-center font-medium">Result</th>
-                          <th className="px-4 py-3 text-center font-medium">Unit</th>
-                          <th className="px-4 py-3 text-center font-medium">Ref. Range</th>
-                          <th className="px-4 py-3 text-center font-medium">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  resultsViewMode === 'table' ? (
+                    <div className="rounded-none sm:rounded-xl border overflow-x-auto overflow-y-visible">
+                      <table className="w-full min-w-[480px] text-sm">
+                        <thead>
+                          <tr className="bg-muted/50">
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 text-left font-medium">Test</th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 text-center font-medium">Result</th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 text-center font-medium">Unit</th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 text-center font-medium">Ref. Range</th>
+                            <th className="px-3 py-2 sm:px-4 sm:py-3 text-center font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {items.map((item: any) => {
+                            const f = fulfillmentMap.get(item.id)
+                            const val = item.result_value ?? f?.result_value
+                            const unit = item.result_unit ?? f?.result_unit
+                            const ref = item.reference_range ?? f?.reference_range
+                            const status = item.result_status ?? f?.result_status
+                            const failed = (f?.status || item.result_status) === 'failed'
+                            const name = item.test_type?.name || item.test_type?.name_ar || '—'
+                            const statusInfo = getResultStatusInfo(status, failed)
+                            const StatusIcon = statusInfo.icon
+                            return (
+                              <tr key={item.id} className="border-t">
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 font-medium">{name}</td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 text-center">{failed ? <span className="text-destructive">Failed</span> : (val ?? '—')}</td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 text-center text-muted-foreground">{unit || '—'}</td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 text-center text-muted-foreground">{ref || '—'}</td>
+                                <td className="px-3 py-2 sm:px-4 sm:py-3 text-center">
+                                  <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${statusInfo.bg} ${statusInfo.color}`}>
+                                    <StatusIcon className="h-3 w-3" />
+                                    {statusInfo.label}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                  <>
+                    {/* Mobile: ultra-compact list (View all button is in header) */}
+                    <div className="sm:hidden divide-y divide-border/60 rounded-none border border-border/60 bg-card">
                         {items.map((item: any) => {
                           const f = fulfillmentMap.get(item.id)
                           const val = item.result_value ?? f?.result_value
                           const unit = item.result_unit ?? f?.result_unit
-                          const ref = item.reference_range ?? f?.reference_range
-                          const status = item.result_status ?? f?.result_status
                           const failed = (f?.status || item.result_status) === 'failed'
                           const name = item.test_type?.name || item.test_type?.name_ar || '—'
-                          const statusInfo = getResultStatusInfo(status, failed)
+                          const statusInfo = getResultStatusInfo(item.result_status ?? f?.result_status, failed)
                           const StatusIcon = statusInfo.icon
+
                           return (
-                            <tr key={item.id} className="border-t">
-                              <td className="px-4 py-3 font-medium">{name}</td>
-                              <td className="px-4 py-3 text-center">{failed ? <span className="text-destructive">Failed</span> : (val ?? '—')}</td>
-                              <td className="px-4 py-3 text-center text-muted-foreground">{unit || '—'}</td>
-                              <td className="px-4 py-3 text-center text-muted-foreground">{ref || '—'}</td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded ${statusInfo.bg} ${statusInfo.color}`}>
-                                  <StatusIcon className="h-3 w-3" />
-                                  {statusInfo.label}
-                                </span>
-                              </td>
-                            </tr>
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between gap-2 py-2 px-2 sm:py-2.5 sm:px-3 min-w-0"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-medium text-muted-foreground truncate">{name}</p>
+                                <p className="text-sm font-semibold tabular-nums truncate">
+                                  {failed ? <span className="text-destructive">Failed</span> : `${val ?? '—'} ${unit || ''}`.trim()}
+                                </p>
+                              </div>
+                              <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0 ${statusInfo.bg} ${statusInfo.color}`}>
+                                <StatusIcon className="h-2.5 w-2.5" />
+                                {statusInfo.label}
+                              </span>
+                            </div>
                           )
                         })}
-                      </tbody>
-                    </table>
-                  </div>
+                    </div>
+
+                    {/* Desktop: full cards */}
+                    <div className="hidden sm:grid gap-2 sm:gap-4">
+                      {items.map((item: any) => {
+                        const f = fulfillmentMap.get(item.id)
+                        const val = item.result_value ?? f?.result_value
+                        const unit = item.result_unit ?? f?.result_unit
+                        const ref = item.reference_range ?? f?.reference_range
+                        const status = item.result_status ?? f?.result_status
+                        const failed = (f?.status || item.result_status) === 'failed'
+                        const name = item.test_type?.name || item.test_type?.name_ar || '—'
+                        const statusInfo = getResultStatusInfo(status, failed)
+                        const StatusIcon = statusInfo.icon
+                        const refMatch = ref?.match(/(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)/)
+                        const min = refMatch?.[1] ? parseFloat(refMatch[1]) : undefined
+                        const max = refMatch?.[2] ? parseFloat(refMatch[2]) : undefined
+                        const numVal = val != null ? parseFloat(String(val)) : undefined
+                        const showBar = !failed && min != null && max != null && numVal != null && !isNaN(numVal)
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`
+                              rounded-xl border p-3 sm:p-4 min-w-0
+                              ${failed ? 'border-destructive/30 bg-destructive/5' : 'border-border/60 bg-card'}
+                            `}
+                          >
+                            <div className="flex items-center justify-between gap-3 min-w-0">
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium text-muted-foreground">{name}</p>
+                                <div className="flex items-baseline gap-2 flex-wrap mt-1.5">
+                                  <span className={`text-2xl font-bold tabular-nums ${failed ? 'text-destructive' : ''}`}>
+                                    {failed ? 'Failed' : (val ?? '—')}
+                                  </span>
+                                  {!failed && unit && (
+                                    <span className="text-base font-medium text-muted-foreground">{unit}</span>
+                                  )}
+                                </div>
+                                {ref && !failed && (
+                                  <p className="mt-1 text-xs text-muted-foreground">Reference: {ref}</p>
+                                )}
+                              </div>
+                              <div className="shrink-0">
+                                <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${statusInfo.bg} ${statusInfo.color}`}>
+                                  <StatusIcon className="h-3.5 w-3.5" />
+                                  {statusInfo.label}
+                                </span>
+                              </div>
+                            </div>
+                            {showBar && (
+                              <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-border/40">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <span className="tabular-nums">{min}</span>
+                                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full transition-all ${
+                                        status === 'critical' ? 'bg-destructive' :
+                                        status === 'high' ? 'bg-orange-500' :
+                                        status === 'low' ? 'bg-blue-500' : 'bg-green-500'
+                                      }`}
+                                      style={{
+                                        width: `${Math.min(100, Math.max(0, ((numVal - min) / (max - min)) * 100))}%`,
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="tabular-nums">{max}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                  )
                 ) : (
                   <div className="p-2 border border-green-500/30 bg-green-500/5 rounded-md text-sm">
                     <div className="flex items-center gap-2">
                       <FileText className="h-5 w-5 text-green-600" />
                       <span className="font-medium">Results Available</span>
                     </div>
-                    {labRequest.result_pdf_url && (
-                      <Button size="sm" variant="outline" className="mt-2" asChild>
-                        <a href={labRequest.result_pdf_url} target="_blank" rel="noopener noreferrer">
-                          <Download className="h-4 w-4 me-2" />
-                          Download PDF
-                        </a>
+                    <div className="flex gap-2 mt-2">
+                      <Button size="sm" variant="outline" onClick={handleViewPdf}>
+                        <FileText className="h-4 w-4 me-2" />
+                        View PDF
                       </Button>
-                    )}
+                      <Button size="sm" variant="outline" onClick={handleDownloadPdf}>
+                        <Download className="h-4 w-4 me-2" />
+                        Download PDF
+                      </Button>
+                    </div>
                     {labRequest.result_notes && (
                       <p className="text-sm text-muted-foreground mt-2">{labRequest.result_notes}</p>
                     )}
@@ -797,61 +1207,13 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
                 {labRequest.result_notes && hasResults && (
                   <p className="text-sm text-muted-foreground">{labRequest.result_notes}</p>
                 )}
-
-                {/* AI Analysis - shown directly on card */}
-                {aiAnalysis && (
-                  <div className="rounded-xl border border-violet-200/50 dark:border-violet-800/30 bg-violet-50/50 dark:bg-violet-950/20 p-4 space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300">
-                        <Brain className="h-5 w-5" />
-                        <span className="font-medium">AI Explanation</span>
-                      </div>
-                      {aiAnalysis.provider && (
-                        <Badge variant="outline" className="text-xs bg-violet-100 dark:bg-violet-900/50 border-violet-300 dark:border-violet-700">
-                          {aiAnalysis.provider}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      {typeof aiAnalysis === 'object' ? (
-                        <>
-                          {aiAnalysis.summary && <p>{aiAnalysis.summary}</p>}
-                          {aiAnalysis.findings?.length > 0 && (
-                            <ul className="list-disc pl-5 space-y-1">
-                              {aiAnalysis.findings.map((f: any, i: number) => (
-                                <li key={i}>
-                                  <strong>{f.test}</strong> ({f.status}): {f.explanation}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          {aiAnalysis.recommendations?.length > 0 && (
-                            <div>
-                              <p className="font-medium mb-1">Recommendations:</p>
-                              <ul className="list-disc pl-5 space-y-0.5">
-                                {aiAnalysis.recommendations.map((r: string, i: number) => (
-                                  <li key={i}>{r}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {aiAnalysis.disclaimer && (
-                            <p className="text-xs text-muted-foreground italic mt-2">{aiAnalysis.disclaimer}</p>
-                          )}
-                        </>
-                      ) : (
-                        <p>{String(aiAnalysis)}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             )
           })(          )}
 
           {/* QR — when not fulfilled, no PDF; show button here */}
           {labRequest.status !== LAB_TEST_STATUS.FULFILLED && (
-            <div className="border-t pt-3">
+            <div className="border-t pt-2 sm:pt-3">
               <Button size="sm" variant="outline" onClick={() => setShowQrDialog(true)} className="h-8 px-3">
                 <QrCode className="h-4 w-4 me-2" />
                 QR
@@ -900,7 +1262,7 @@ export function LabTestWorkflow({ labRequest, userRole, patientId, onUpdate, ope
           <Alert className="border-green-500/30 bg-green-500/5">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-700">
-              Your lab test results are ready! Download the PDF above.
+              Results ready — download PDF above.
             </AlertDescription>
           </Alert>
         )}

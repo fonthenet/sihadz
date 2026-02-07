@@ -304,23 +304,23 @@ function PatientLayoutInner({
         <PatientSidebar userName={userName} fallbackAddress={fallbackAddress} userId={userId} />
       </div>
       <LiveNotificationToast userId={userId} />
-      <main className="flex-1 w-full min-w-0 max-w-none px-2 py-4 sm:px-4 sm:py-6 md:px-4 lg:px-6 xl:px-6">
-        {/* Top bar: notifications on far right upper corner (mobile + desktop) */}
-        <div className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 backdrop-blur px-4 -mx-2 sm:-mx-4 md:-mx-4 lg:-mx-6 xl:-mx-6 sm:px-4 md:px-4 lg:px-6 xl:px-6">
-          <div className="md:hidden flex items-center gap-2 min-w-0 flex-1">
-            <SidebarTrigger className="h-9 w-9 shrink-0" aria-label="Open menu" />
-            <Link href="/dashboard" className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-sm font-semibold">
+      <main className="flex-1 w-full min-w-0 max-w-none px-2 min-[375px]:px-3 py-3 min-[375px]:py-4 sm:px-4 sm:py-6 md:px-4 lg:px-6 xl:px-6">
+        {/* Top bar: notifications on far right upper corner (mobile + desktop) - responsive for 320px-428px */}
+        <div className="sticky top-0 z-40 flex h-12 min-[375px]:h-14 shrink-0 items-center justify-between gap-1 min-[375px]:gap-2 border-b bg-background/95 backdrop-blur px-3 min-[375px]:px-4 -mx-2 min-[375px]:-mx-3 sm:-mx-4 md:-mx-4 lg:-mx-6 xl:-mx-6 sm:px-4 md:px-4 lg:px-6 xl:px-6">
+          <div className="md:hidden flex items-center gap-1.5 min-[375px]:gap-2 min-w-0 flex-1">
+            <SidebarTrigger className="h-8 w-8 min-[375px]:h-9 min-[375px]:w-9 shrink-0" aria-label="Open menu" />
+            <Link href="/dashboard" className="flex items-center gap-1.5 min-[375px]:gap-2 min-w-0 flex-1">
+              <span className="flex h-7 w-7 min-[375px]:h-8 min-[375px]:w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 text-white text-xs min-[375px]:text-sm font-semibold">
                 {userName ? userName.charAt(0).toUpperCase() : <Home className="h-4 w-4" strokeWidth={2.25} />}
               </span>
-              <span className="text-sm font-bold truncate">{userName || 'DZDOC'}</span>
+              <span className="text-xs min-[375px]:text-sm font-bold truncate">{userName || 'DZDOC'}</span>
             </Link>
           </div>
-          <div className="flex items-center justify-end gap-2 min-w-0 ms-auto">
+          <div className="flex items-center justify-end gap-1 min-[375px]:gap-2 min-w-0 ms-auto">
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0"
+              className="h-8 w-8 min-[375px]:h-9 min-[375px]:w-9 shrink-0"
               onClick={cycleLevel}
               title={language === 'ar' ? `حجم الخط: ${level === 1 ? 'عادي' : level === 2 ? 'كبير' : 'أكبر'}` : language === 'fr' ? `Taille: ${level === 1 ? 'Normal' : level === 2 ? 'Grand' : 'Très grand'}` : `Font: ${level === 1 ? 'Normal' : level === 2 ? 'Large' : 'Larger'}`}
               aria-label={language === 'ar' ? 'تكبير النص' : language === 'fr' ? 'Agrandir le texte' : 'Increase font size'}

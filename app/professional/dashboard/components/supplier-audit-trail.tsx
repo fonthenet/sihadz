@@ -180,7 +180,7 @@ export function SupplierAuditTrail({ supplierId, supplierName }: SupplierAuditTr
       {/* Tab Switcher */}
       <div className="flex gap-2 border-b pb-2">
         <Button
-          variant={activeTab === 'logs' ? 'default' : 'ghost'}
+          variant={activeTab === 'logs' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setActiveTab('logs')}
         >
@@ -188,7 +188,7 @@ export function SupplierAuditTrail({ supplierId, supplierName }: SupplierAuditTr
           Activity Log
         </Button>
         <Button
-          variant={activeTab === 'summary' ? 'default' : 'ghost'}
+          variant={activeTab === 'summary' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setActiveTab('summary')}
         >

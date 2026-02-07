@@ -591,13 +591,11 @@ export function TicketDetailView({
                                 <Button variant="outline" onClick={() => setLabResultViewOpen(true)}>
                                   <Eye className="h-4 w-4 me-2" /> View Results
                                 </Button>
-                                {ticket.lab_request.result_pdf_url && (
-                                  <Button variant="outline" asChild>
-                                    <a href={ticket.lab_request.result_pdf_url} target="_blank" rel="noopener noreferrer">
-                                      <Download className="h-4 w-4 me-2" /> Download PDF
-                                    </a>
-                                  </Button>
-                                )}
+                                <Button variant="outline" asChild>
+                                  <a href={`/api/documents/lab-results/${ticket.lab_request.id}/view${ticketId ? `?ticketId=${ticketId}&` : '?'}download=1`} download>
+                                    <Download className="h-4 w-4 me-2" /> Download
+                                  </a>
+                                </Button>
                               </div>
                             )}
                           </TabsContent>
