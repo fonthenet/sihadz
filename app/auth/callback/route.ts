@@ -47,8 +47,8 @@ export async function GET(request: NextRequest) {
     if (user) {
         // Only redirect to reset-password when type=recovery AND user signed in via email (not OAuth)
         // Supabase may incorrectly send type=recovery for OAuth - check provider to be sure
-        const isOAuthUser = user.app_metadata?.provider === 'google' ||
-          user.identities?.some((i: { provider?: string }) => i.provider === 'google')
+        const isOAuthUser = (user.app_metadata?.provider && user.app_metadata.provider !== 'email') ||
+          user.identities?.some((i: { provider?: string }) => i.provider && i.provider !== 'email')
         if (type === 'recovery' && !isOAuthUser) {
           return NextResponse.redirect(new URL('/auth/reset-password', origin))
         }
@@ -127,13 +127,18 @@ export async function GET(request: NextRequest) {
 
         // Not a professional - this is a patient (ALWAYS redirect to /dashboard, never to professional)
         // intendedUserType=patient from URL when they used patient login/register - ensures we never send to pro signup
+        // OAuth users (Google, etc.) are auto-approved: is_verified=true since provider verified their email
         if (!profile?.user_type || profile.user_type === 'patient' || intendedUserType === 'patient') {
+          const updatePayload: Record<string, unknown> = {
+            user_type: 'patient',
+            full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+          }
+          if (isOAuthUser) {
+            updatePayload.is_verified = true
+          }
           await supabase
             .from('profiles')
-            .update({
-              user_type: 'patient',
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            })
+            .update(updatePayload)
             .eq('id', user.id)
         }
         
