@@ -37,7 +37,7 @@ function AuthCallbackHandler() {
     async function redirectToMainIfSignedIn(): Promise<boolean> {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
-        router.replace('/')
+        router.replace('/dashboard')
         return true
       }
       return false

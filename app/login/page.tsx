@@ -40,7 +40,7 @@ export default function LoginPage() {
     if (err === 'auth_callback_error') {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          router.replace('/')
+          router.replace('/dashboard')
           return
         }
         setError(details || (language === 'ar' ? 'فشل تسجيل الدخول عبر جوجل. تحقق من إعدادات Supabase (Redirect URLs).' : language === 'fr' ? 'Échec de la connexion Google. Vérifiez les paramètres Supabase (Redirect URLs).' : 'Google sign-in failed. Check Supabase Redirect URLs in Auth settings.'))
