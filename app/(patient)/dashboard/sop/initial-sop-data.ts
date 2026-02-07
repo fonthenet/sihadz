@@ -170,12 +170,18 @@ export const initialSopData: SopData = {
         },
         {
           id: '9.8',
+          title: 'Prescription Anti-Fraud',
+          content:
+            'PROBLEM: Patients may use the same prescription at multiple pharmacies, doctor-shop, or forge prescriptions.\n\nPHARMACIES AND DOCTORS HANDLE FRAUD (not platform admin):\n• Full visibility: professionals see all flags and redemptions for shared awareness\n• Self-service: flagger can resolve/dismiss their own flags\n• Risk auto-updated when flags are created or resolved\n\nONE REDEMPTION PER PRESCRIPTION:\n• Central registry (prescription_redemptions) tracks every dispensed prescription line\n• Before dispensing: Pharmacy must verify prescription not already redeemed elsewhere\n• Platform patients: Check by prescription_id or prescription_number\n• Walk-ins: Check by prescription_number or external_prescription_ref + patient CIN/phone\n\nFLAGGING:\n• Doctors and pharmacies can flag suspicious patients (double_redemption, doctor_shopping, forged_prescription, etc.)\n• Flagged patients get risk level (low, medium, high, blocked) — auto-computed from open flags\n• Pharmacies see warning or block when checking before dispense\n• Flagger can resolve/dismiss; view patient flags and redemption history\n\nFLOWS:\n• Platform RX: Verify → Dispense → Record redemption\n• Walk-in (paper): Enter prescription ref + patient CIN/phone → Verify → Dispense → Record\n• Doctor/Pharmacy: "Report abuse" → Flag patient with type and description\n• Resolve: Flagger or admin updates status to resolved/dismissed\n\nSee docs/PRESCRIPTION-ANTI-FRAUD-DESIGN.md for full design.',
+        },
+        {
+          id: '9.9',
           title: 'Supplier Management',
           content:
             'SUPPLIER RECORD:\n• Name, contact person, phone, email\n• Address, wilaya, commune\n• Payment terms (cash, 30 days, 60 days)\n• Product catalog from supplier\n• Performance history (delivery time, issues)\n\nPURCHASE ORDERS:\n• Create PO from low stock alerts\n• Send to supplier (email, fax, phone)\n• Track order status (sent, confirmed, shipped, received)\n• Receiving: verify quantities, check expiry dates\n• Create stock entries from received items\n• Handle discrepancies (short, damaged, wrong items)\n\nPRICING UPDATES:\n• Supplier price changes\n• Update purchase prices\n• Recalculate margins\n• Flag items with margin below threshold',
         },
         {
-          id: '9.9',
+          id: '9.10',
           title: 'Reports & Analytics',
           content:
             'DAILY REPORTS:\n• Sales summary (cash, Chifa, total)\n• Cash drawer reconciliation\n• Low stock alerts\n• Expiring items\n\nMONTHLY REPORTS:\n• Sales by product, category, supplier\n• Profit margin analysis\n• CNAS claims summary\n• Stock valuation (FIFO)\n• TVA summary for G50\n\nINVENTORY REPORTS:\n• Current stock levels\n• Stock movement history\n• Expiry date report\n• Dead stock (no movement > 90 days)\n• ABC analysis (fast/slow movers)',
