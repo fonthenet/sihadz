@@ -22,9 +22,9 @@ npm run build 2>&1 | head -80
 
 ## Correct commands (use these instead)
 
-✅ **Run build normally** (let it complete):
+✅ **Run build** (default is now safe-build—live output + log, never killed by pipes):
 ```powershell
-cd c:\Users\Faycel\Documents\dzd-oc; npm run build
+npm run build
 ```
 
 ✅ **PWA build** (generates service worker for offline app shell - use for deployment):

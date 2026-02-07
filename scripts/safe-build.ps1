@@ -16,15 +16,16 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
 
 # Build command - NEVER pipe to Select-Object or head
+# Use build:raw to avoid recursion (build now invokes this script)
 if ($Quiet) {
     # Redirect to file only (no live output)
     Write-Host "Building (output to $LogFile)..." -ForegroundColor Yellow
-    npm run build > $LogFile 2>&1
+    npm run build:raw > $LogFile 2>&1
     $ExitCode = $LASTEXITCODE
 } else {
-    # Use Tee-Object to capture AND display (build completes)
+    # Use Tee-Object to capture AND display (build completes - never pipe to Select-Object!)
     Write-Host "Building (live output + log file)..." -ForegroundColor Yellow
-    npm run build 2>&1 | Tee-Object -FilePath $LogFile
+    npm run build:raw 2>&1 | Tee-Object -FilePath $LogFile
     $ExitCode = $LASTEXITCODE
 }
 

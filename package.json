@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node scripts/write-build-info.js && next build",
+    "build": "powershell -ExecutionPolicy Bypass -File scripts/safe-build.ps1",
+    "build:raw": "node scripts/write-build-info.js && next build",
     "build:pwa": "node scripts/write-build-info.js && next build --webpack",
     "build:safe": "powershell -ExecutionPolicy Bypass -File scripts/safe-build.ps1",
     "build:quiet": "powershell -ExecutionPolicy Bypass -File scripts/safe-build.ps1 -Quiet",

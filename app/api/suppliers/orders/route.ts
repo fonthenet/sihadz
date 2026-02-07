@@ -486,11 +486,80 @@ export async function PATCH(request: NextRequest) {
         break
 
       case 'cancel':
-        if (!['draft', 'submitted'].includes(order.status)) {
+        if (!['draft', 'submitted', 'pending_buyer_review'].includes(order.status)) {
           return NextResponse.json({ error: 'Cannot cancel this order' }, { status: 400 })
         }
         updates.status = 'cancelled'
         updates.buyer_notes = updateData.buyer_notes || 'Cancelled by buyer'
+        break
+
+      case 'update_items':
+        // Buyer edits order before supplier processes (status = submitted)
+        if (order.status !== 'submitted') {
+          return NextResponse.json({ error: 'Can only edit submitted orders before supplier processes' }, { status: 400 })
+        }
+        const editItems = (updateData.items || []) as Array<{ product_id: string; quantity: number }>
+        if (editItems.length === 0) {
+          return NextResponse.json({ error: 'At least one item required' }, { status: 400 })
+        }
+        const editProductIds = editItems.map((i) => i.product_id)
+        const { data: editProducts } = await supabase
+          .from('supplier_product_catalog')
+          .select('id, name, sku, barcode, unit_price, min_order_qty, in_stock')
+          .in('id', editProductIds)
+          .eq('supplier_id', order.supplier_id)
+        if (!editProducts || editProducts.length !== editProductIds.length) {
+          return NextResponse.json({ error: 'Some products not found' }, { status: 400 })
+        }
+        const editProductMap = new Map(editProducts.map((p) => [p.id, p]))
+        const editValidation = await validateOrderItems(
+          supabase,
+          order.supplier_id,
+          editItems.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+          new Map(editProducts.map((p) => [p.id, { name: p.name, min_order_qty: p.min_order_qty ?? 1, in_stock: p.in_stock }]))
+        )
+        if (!editValidation.valid) {
+          const firstErr = editValidation.errors[0]
+          return NextResponse.json(
+            { error: `${firstErr.productName}: ${firstErr.error}`, validationErrors: editValidation.errors },
+            { status: 400 }
+          )
+        }
+        const { data: editLink } = await supabase
+          .from('supplier_buyer_links')
+          .select('discount_percent')
+          .eq('supplier_id', order.supplier_id)
+          .eq('buyer_id', buyer.id)
+          .single()
+        const editDiscount = editLink?.discount_percent || 0
+        const newOrderItems = editItems.map((item) => {
+          const product = editProductMap.get(item.product_id)!
+          const unitPrice = product.unit_price
+          const lineTotal = item.quantity * unitPrice * (1 - editDiscount / 100)
+          return {
+            order_id: order_id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price: unitPrice,
+            discount_percent: editDiscount,
+            line_total: lineTotal,
+            product_name: product.name,
+            product_sku: product.sku,
+            product_barcode: product.barcode,
+            item_status: 'pending',
+          }
+        })
+        const newSubtotal = newOrderItems.reduce((sum, item) => sum + item.line_total, 0)
+        const newTotal = newSubtotal + (order.shipping_cost || 0)
+        await supabase.from('supplier_purchase_order_items').delete().eq('order_id', order_id)
+        const { error: insErr } = await supabase.from('supplier_purchase_order_items').insert(newOrderItems)
+        if (insErr) {
+          console.error('Error updating order items:', insErr)
+          return NextResponse.json({ error: 'Failed to update items' }, { status: 500 })
+        }
+        updates.subtotal = newSubtotal
+        updates.total = newTotal
+        updates.buyer_notes = updateData.buyer_notes ?? order.buyer_notes
         break
 
       case 'confirm_delivery':
@@ -522,7 +591,7 @@ export async function PATCH(request: NextRequest) {
           .select('*')
           .eq('order_id', order_id)
 
-        let newSubtotal = 0
+        let approvedSubtotal = 0
         for (const it of orderItems || []) {
           if (it.item_status === 'rejected' || it.item_status === 'substitution_rejected') continue
 
@@ -554,7 +623,7 @@ export async function PATCH(request: NextRequest) {
                 substitute_product_sku: null,
               })
               .eq('id', it.id)
-            newSubtotal += it.substitute_line_total || 0
+            approvedSubtotal += it.substitute_line_total || 0
           } else if (it.item_status === 'quantity_adjusted' && it.adjusted_quantity != null) {
             const newUnitPrice = it.adjusted_unit_price ?? it.unit_price
             const lineTotal = it.adjusted_quantity * newUnitPrice
@@ -570,7 +639,7 @@ export async function PATCH(request: NextRequest) {
                 adjustment_reason: null,
               })
               .eq('id', it.id)
-            newSubtotal += lineTotal
+            approvedSubtotal += lineTotal
           } else if (it.item_status === 'price_adjusted' && it.adjusted_unit_price != null) {
             const lineTotal = it.quantity * it.adjusted_unit_price
             await supabase
@@ -584,16 +653,16 @@ export async function PATCH(request: NextRequest) {
                 adjustment_reason: null,
               })
               .eq('id', it.id)
-            newSubtotal += lineTotal
+            approvedSubtotal += lineTotal
           } else if (['accepted', 'pending'].includes(it.item_status)) {
-            newSubtotal += it.line_total || 0
+            approvedSubtotal += it.line_total || 0
           }
         }
 
         updates.status = 'confirmed'
         updates.confirmed_at = new Date().toISOString()
-        updates.subtotal = newSubtotal
-        updates.total = newSubtotal + (order.shipping_cost || 0)
+        updates.subtotal = approvedSubtotal
+        updates.total = approvedSubtotal + (order.shipping_cost || 0)
         updates.review_requested_at = null
         updates.supplier_changes_summary = null
         break

@@ -21,7 +21,7 @@ Write-Host ""
 
 # Run build - capture to file (no pipe that could kill it)
 # Use cmd.exe for reliable redirect; do NOT pipe to Select-Object
-cmd /c "npm run build > `"$LogFile`" 2>&1"
+cmd /c "npm run build:raw > `"$LogFile`" 2>&1"
 $ExitCode = $LASTEXITCODE
 
 Write-Host ""
