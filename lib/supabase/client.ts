@@ -1,9 +1,11 @@
+import { createBrowserClient as createBrowserClientSSR } from "@supabase/ssr";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
+// Create a singleton client
 let client: SupabaseClient | null = null;
 
 export function createClient() {
-  // Return cached client if it exists and we're in the browser
+  // Only cache in browser
   if (client && typeof window !== 'undefined') return client;
   
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,17 +25,35 @@ export function createClient() {
     return client;
   }
 
-  // Use standard Supabase client which handles PKCE with localStorage automatically
-  client = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      // Use localStorage for PKCE flow (default, but being explicit)
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce'
-    }
-  }) as SupabaseClient;
+  // Check if we're in browser environment
+  if (typeof window !== 'undefined') {
+    // Use @supabase/ssr browser client with cookie storage for PKCE flow
+    // This ensures PKCE verifier is stored in cookies accessible by server
+    client = createBrowserClientSSR(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return document.cookie.split(';').map(cookie => {
+            const [name, ...rest] = cookie.trim().split('=');
+            return { name, value: rest.join('=') };
+          });
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            let cookie = `${name}=${value}`;
+            if (options?.maxAge) cookie += `; max-age=${options.maxAge}`;
+            if (options?.path) cookie += `; path=${options.path}`;
+            if (options?.domain) cookie += `; domain=${options.domain}`;
+            if (options?.sameSite) cookie += `; samesite=${options.sameSite}`;
+            if (options?.secure) cookie += '; secure';
+            document.cookie = cookie;
+          });
+        },
+      },
+    }) as SupabaseClient;
+  } else {
+    // For SSR, use basic client (shouldn't be called, but fallback)
+    client = createSupabaseClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
+  }
   
   return client;
 }
