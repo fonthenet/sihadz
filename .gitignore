@@ -36,3 +36,6 @@ build*.log
 public/build-info.json
 
 .vercel
+
+# Accidental screenshots in repo root (can bloat deployment)
+Image_*.png

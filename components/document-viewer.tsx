@@ -195,6 +195,10 @@ export function DocumentViewer({ open, onOpenChange, fileUrl, fileName = 'Docume
             : mobileStyle
         }
       >
+        {/* DialogTitle required for accessibility when header is hidden (mobile PDF/doc) */}
+        {(isMobile && (viewMode === 'pdf' || viewMode === 'doc')) && (
+          <DialogTitle className="sr-only">{fileName}</DialogTitle>
+        )}
         {/* Floating X button on mobile for PDF/doc */}
         {isMobile && (viewMode === 'pdf' || viewMode === 'doc') && (
           <Button
