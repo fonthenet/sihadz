@@ -23,28 +23,24 @@ export function createClient() {
   }
 
   if (typeof window !== "undefined") {
-    // @supabase/ssr with simple document.cookie–based storage for PKCE
-    // Matches v0 fix: explicit getAll/setAll so verifier persists across OAuth redirect
+    // @supabase/ssr with explicit cookie storage for PKCE flow
+    // Ensures PKCE verifier is stored in cookies accessible across OAuth redirect
     client = createBrowserClientSSR(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
-          return document.cookie
-            .split(";")
-            .map((c) => {
-              const [name, ...rest] = c.trim().split("=");
-              return { name: name ?? "", value: rest.join("=").trim() || "" };
-            })
-            .filter((c) => c.name);
+          return document.cookie.split(";").map((cookie) => {
+            const [name, ...rest] = cookie.trim().split("=");
+            return { name, value: rest.join("=") };
+          });
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            const opts = (options ?? {}) as { maxAge?: number; path?: string; domain?: string; sameSite?: string; secure?: boolean };
             let cookie = `${name}=${value}`;
-            if (opts.maxAge != null) cookie += `; max-age=${opts.maxAge}`;
-            if (opts.path) cookie += `; path=${opts.path}`;
-            if (opts.domain) cookie += `; domain=${opts.domain}`;
-            if (opts.sameSite) cookie += `; samesite=${opts.sameSite}`;
-            if (opts.secure) cookie += "; secure";
+            if (options?.maxAge) cookie += `; max-age=${options.maxAge}`;
+            if (options?.path) cookie += `; path=${options.path}`;
+            if (options?.domain) cookie += `; domain=${options.domain}`;
+            if (options?.sameSite) cookie += `; samesite=${options.sameSite}`;
+            if (options?.secure) cookie += "; secure";
             document.cookie = cookie;
           });
         },
