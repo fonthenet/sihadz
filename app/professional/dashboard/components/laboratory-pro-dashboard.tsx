@@ -56,6 +56,7 @@ import { ProDocumentsSection } from './pro-documents-section'
 import { SuppliersSection } from './suppliers-section'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { LabRequestDocumentsAttach } from '@/components/lab-request-documents-attach'
+import { B2BCollaborationSection } from './b2b/B2BCollaborationSection'
 import { PatientDocumentsView } from '@/components/patient-documents-view'
 import { DocumentViewer } from '@/components/document-viewer'
 import ProfessionalPOSUnified from './pos/professional-pos-unified'
@@ -1256,6 +1257,11 @@ export function LaboratoryProDashboard({ professional, authUserId, avatarUrl, on
               professionalId={professional?.id}
               professionalType={professional?.type}
             />
+          )}
+
+          {/* B2B Collaboration Section */}
+          {activeSection === 'b2b' && professional && (
+            <B2BCollaborationSection professional={professional} />
           )}
 
           {/* Settings Section */}

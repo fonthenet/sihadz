@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { SupplierOrderDetailSheet } from './supplier-order-detail-sheet'
 import { SupplierAuditTrail } from './supplier-audit-trail'
+import { B2BCollaborationSection } from './b2b/B2BCollaborationSection'
 import { BackupSettings } from '@/components/backup'
 import { PrivacySecuritySettings } from '@/components/settings/privacy-security-settings'
 import { useOfflineSync } from '@/hooks/use-offline-sync'
@@ -2460,6 +2461,9 @@ export default function SupplierDashboard({
           authUserId={userId} 
           supplierName={professional.business_name} 
         />
+      )}
+      {activeSection === 'b2b' && (
+        <B2BCollaborationSection professional={professional} />
       )}
 
       {/* Order Detail Sheet (with item-level edit) */}

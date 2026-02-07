@@ -48,6 +48,7 @@ import {
   ClipboardCheck,
   Stethoscope,
   Truck,
+  Handshake,
   Beaker,
   Microscope,
   Store,
@@ -88,7 +89,7 @@ const NURSE_SECTION_KEYS: Record<string, string[]> = {
 }
 const LAB_SECTION_KEYS: Record<string, string[]> = {
   overview: ['overview'], requests: ['requests', 'lab_requests'], patients: ['patients'], samples: ['samples'],
-  results: ['results'], equipment: ['equipment'], pos: ['pos'], analytics: ['analytics'], finances: ['finances'], documents: ['documents'], suppliers: ['orders', 'inventory'], messages: ['messages'], settings: ['settings'],
+  results: ['results'], equipment: ['equipment'], pos: ['pos'], analytics: ['analytics'], finances: ['finances'], documents: ['documents'], suppliers: ['orders', 'inventory'], messages: ['messages'], settings: ['settings'], b2b: ['overview'],
 }
 const CLINIC_SECTION_KEYS: Record<string, string[]> = {
   overview: ['overview'], appointments: ['appointments'], patients: ['patients'], messages: ['messages'],
@@ -150,6 +151,7 @@ const LABORATORY_NAV = [
   { href: '/professional/dashboard?section=finances', label: 'Finances', icon: Banknote, section: 'finances' },
   { href: '/professional/dashboard?section=documents', label: 'Documents', icon: FileText, section: 'documents' },
   { href: '/professional/dashboard?section=suppliers', label: 'Suppliers', icon: Truck, section: 'suppliers' },
+  { href: '/professional/dashboard?section=b2b', label: 'B2B Collaboration', icon: Handshake, section: 'b2b' },
   { href: '/professional/dashboard/messages', label: 'Messages', icon: Inbox, section: 'messages' as string | null },
   { href: '/professional/dashboard/storefront', label: 'Online Store', icon: Store, section: 'storefront' },
   { href: '/professional/dashboard/settings', label: 'Settings', icon: Cog, section: 'settings' },
@@ -194,6 +196,7 @@ const SUPPLIER_NAV = [
   { href: '/professional/dashboard?section=inventory', label: 'Inventory', icon: Package, section: 'inventory' },
   { href: '/professional/dashboard?section=orders', label: 'Orders', icon: ShoppingCart, section: 'orders' },
   { href: '/professional/dashboard?section=buyers', label: 'Buyers', icon: Users, section: 'buyers' },
+  { href: '/professional/dashboard?section=b2b', label: 'B2B Collaboration', icon: Handshake, section: 'b2b' },
   { href: '/professional/dashboard?section=analytics', label: 'Analytics', icon: BarChart3, section: 'analytics' },
   { href: '/professional/dashboard?section=audit', label: 'Audit Trail', icon: ClipboardCheck, section: 'audit' },
   { href: '/professional/dashboard/messages', label: 'Messages', icon: Inbox, section: 'messages' as string | null },

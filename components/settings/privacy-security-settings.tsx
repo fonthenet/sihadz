@@ -287,6 +287,7 @@ export function PrivacySecuritySettings({
       }
       const { error: updateError } = await supabase.auth.updateUser({ email: trimmed })
       if (updateError) throw updateError
+      await supabase.from('profiles').update({ email: trimmed }).eq('id', user.id)
       setEmailSuccess(true)
       setNewEmail('')
       setEmailPassword('')

@@ -186,9 +186,10 @@ export default function SettingsPage() {
       setProfileError(language === 'ar' ? 'يجب تسجيل الدخول' : language === 'fr' ? 'Vous devez être connecté' : 'You must be signed in')
       return
     }
+    const trimmedEmail = String(email ?? '').trim() || null
     const fullPayload: Record<string, unknown> = {
       full_name: fullName.trim() || null,
-      email: email.trim() || null,
+      email: trimmedEmail,
       phone: phone.trim() || null,
       date_of_birth: dateOfBirth || null,
       gender: gender || null,
@@ -198,9 +199,9 @@ export default function SettingsPage() {
       blood_type: bloodType || null,
       height_cm: heightCm ? parseFloat(heightCm) : null,
       weight_kg: weightKg ? parseFloat(weightKg) : null,
-      allergies: allergies.trim() || null,
-      chronic_conditions: chronicConditions.trim() || null,
-      current_medications: currentMedications.trim() || null,
+      allergies: String(allergies ?? '').trim() || null,
+      chronic_conditions: String(chronicConditions ?? '').trim() || null,
+      current_medications: String(currentMedications ?? '').trim() || null,
       timezone: timezone || 'africa-algiers',
       email_notifications: emailNotifications,
       sms_notifications: smsNotifications,
@@ -208,6 +209,17 @@ export default function SettingsPage() {
       marketing_emails: marketingEmails,
       preferred_language: language,
     }
+    // If email changed, update auth.users first so signup check uses correct email
+    const authEmail = (user.email ?? '').toLowerCase().trim()
+    const newEmail = trimmedEmail ? trimmedEmail.toLowerCase().trim() : ''
+    if (newEmail && newEmail !== authEmail) {
+      const { error: authUpdateError } = await supabase.auth.updateUser({ email: newEmail })
+      if (authUpdateError) {
+        setProfileError(authUpdateError.message)
+        return
+      }
+    }
+
     const { error } = await supabase
       .from('profiles')
       .update(fullPayload)
@@ -219,7 +231,7 @@ export default function SettingsPage() {
       if (missingColumn) {
         const minimalPayload = {
           full_name: fullName.trim() || null,
-          email: email.trim() || null,
+          email: trimmedEmail,
           phone: phone.trim() || null,
         }
         const { error: minimalError } = await supabase
@@ -338,6 +350,8 @@ export default function SettingsPage() {
       }
       const { error: updateError } = await supabase.auth.updateUser({ email: trimmed })
       if (updateError) throw updateError
+      await supabase.from('profiles').update({ email: trimmed }).eq('id', user.id)
+      setEmail(trimmed)
       setEmailSuccess(true)
       setNewEmail('')
       setEmailPassword('')

@@ -46,11 +46,11 @@ const VALID_SECTIONS: Record<string, string[]> = {
   doctor: ['overview', 'patients', 'messages', 'pos', 'prescriptions', 'lab-requests', 'analytics', 'finances', 'documents', 'suppliers'],
   nurse: ['overview', 'schedule', 'appointments', 'patients', 'messages', 'pos', 'documents', 'settings'],
   pharmacy: ['overview', 'pos', 'prescriptions', 'orders', 'messages', 'inventory', 'warehouses', 'purchase-orders', 'chifa', 'accounting', 'delivery', 'analytics', 'finances', 'documents', 'suppliers'],
-  laboratory: ['overview', 'requests', 'patients', 'samples', 'results', 'equipment', 'pos', 'analytics', 'finances', 'messages', 'documents', 'schedule', 'settings', 'suppliers'],
+  laboratory: ['overview', 'requests', 'patients', 'samples', 'results', 'equipment', 'pos', 'analytics', 'finances', 'messages', 'documents', 'schedule', 'settings', 'suppliers', 'b2b'],
   clinic: ['overview', 'appointments', 'patients', 'doctors', 'departments', 'billing', 'pos', 'analytics', 'messages', 'documents', 'suppliers'],
   ambulance: ['overview', 'pos', 'messages', 'documents', 'settings'],
-  pharma_supplier: ['overview', 'inventory', 'products', 'orders', 'buyers', 'analytics', 'messages', 'settings'],
-  equipment_supplier: ['overview', 'inventory', 'products', 'orders', 'buyers', 'analytics', 'messages', 'settings'],
+  pharma_supplier: ['overview', 'inventory', 'products', 'orders', 'buyers', 'analytics', 'messages', 'settings', 'b2b'],
+  equipment_supplier: ['overview', 'inventory', 'products', 'orders', 'buyers', 'analytics', 'messages', 'settings', 'b2b'],
 }
 
 export default function ProfessionalDashboardClient({ searchParams: resolvedSearchParams }: ProfessionalDashboardClientProps) {
