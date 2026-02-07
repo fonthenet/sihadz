@@ -47,6 +47,10 @@ export async function createServerClient(): Promise<SupabaseClient> {
             }
           },
         },
+        cookieOptions: {
+          path: '/',
+          sameSite: 'lax',
+        },
       },
     ) as unknown as SupabaseClient;
   } catch {

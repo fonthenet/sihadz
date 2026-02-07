@@ -15,7 +15,6 @@ export function createClient() {
       hasKey: !!supabaseAnonKey,
       nodeEnv: process.env.NODE_ENV,
     });
-    // Use @supabase/supabase-js directly as fallback (accepts any URL)
     client = createSupabaseClient(
       'https://placeholder.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
@@ -23,12 +22,16 @@ export function createClient() {
     return client;
   }
 
-  try {
-    client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
-  } catch {
-    // Fallback if SSR browser client throws
-    client = createSupabaseClient(supabaseUrl, supabaseAnonKey) as SupabaseClient;
-  }
+  // CRITICAL: Always use @supabase/ssr createBrowserClient with cookies.
+  // Do NOT fall back to createSupabaseClient - that uses localStorage, which breaks
+  // PKCE: code_verifier is stored in localStorage but server/callback expects cookies.
+  client = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      path: '/',
+      sameSite: 'lax',
+      secure: typeof window !== 'undefined' && window.location?.protocol === 'https:',
+    },
+  }) as SupabaseClient;
   
   return client;
 }
